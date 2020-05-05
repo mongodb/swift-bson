@@ -1,13 +1,16 @@
-// swift-tools-version:4.0
+// swift-tools-version:5.1
 import PackageDescription
+
 let package = Package(
-    name: "bson",
-    pkgConfig: "libbson-1.0",
-    providers: [
-        .brew(["mongo-c-driver"]),
-        .apt(["libbson-dev"])
-    ],
+    name: "swift-bson",
     products: [
-        .library(name: "bson", targets: ["bson"])
+        .library(name: "BSON", targets: ["BSON"])
+    ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-nio", .upToNextMajor(from: "2.16.0"))
+    ],
+    targets: [
+        .target( name: "BSON", dependencies: ["NIO"]),
+        .testTarget(name: "BSONTests", dependencies: ["BSON"])
     ]
 )
