@@ -1,4 +1,3 @@
---exclude Sources/MongoSwift/MongoSwiftVersion.swift,Sources/MongoSwiftSync/Exports.swift
 --exclude .build/*
 
 # unnecessary
@@ -35,3 +34,6 @@
 
 # the ordering doesn't match linter's
 --disable specifiers
+
+# Temporary while library is implemented
+--disable unusedArguments
