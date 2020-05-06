@@ -42,18 +42,8 @@ opt_in_rules:
   - vertical_whitespace_opening_braces
 
 excluded:
-  - build
   - .build
-  - docs
-  - Examples/*/build
-  - Examples/*/.build
-  - Sources/libbson
-  - Sources/libmongoc
   - Package.swift
-  - Examples/*/Package.swift
-  - Tests/LinuxMain.swift
-  - Sources/MongoSwiftSync/Exports.swift
-  - SwiftFormat # this is the path we download SwiftFormat to on travis
 
 trailing_whitespace:
   ignores_comments: false
