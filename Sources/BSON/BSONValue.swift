@@ -64,4 +64,3 @@ public enum BSONType: UInt32 {
     /// Special type which compares higher than all other possible BSON element values
     case maxKey = 0x7F
 }
-
