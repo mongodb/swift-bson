@@ -12,6 +12,22 @@ public enum BSON {
     /// A BSON int64.
     case int64(Int64)
 
+    /// A BSON Array
+    indirect case array([BSON])
+
+    /// A BSON Boolean
+    case bool(Bool)
+
+    /// A BSON UTC datetime.
+    /// - SeeAlso: https://docs.mongodb.com/manual/reference/bson-types/#date
+    case datetime(Date)
+
+    /// A BSON double.
+    case double(Double)
+
+    /// A BSON string.
+    case string(String)
+
     /// Initialize a `BSON` from an integer. On 64-bit systems, this will result in an `.int64`. On 32-bit systems,
     /// this will result in an `.int32`.
     public init(_ int: Int) {
@@ -53,6 +69,46 @@ extension BSON {
         }
         return d
     }
+
+    /// If this `BSON` is a `.array`, return it as a `[BSON]`. Otherwise, return nil.
+    public var arrayValue: [BSON]? {
+        guard case let .array(d) = self else {
+            return nil
+        }
+        return d
+    }
+
+    /// If this `BSON` is a `.bool`, return it as a `Bool`. Otherwise, return nil.
+    public var boolValue: Bool? {
+        guard case let .bool(d) = self else {
+            return nil
+        }
+        return d
+    }
+
+    /// If this `BSON` is a `.date`, return it as a `Date`. Otherwise, return nil.
+    public var dateValue: Date? {
+        guard case let .datetime(d) = self else {
+            return nil
+        }
+        return d
+    }
+
+    /// If this `BSON` is a `.double`, return it as a `Double`. Otherwise, return nil.
+    public var doubleValue: Double? {
+        guard case let .double(d) = self else {
+            return nil
+        }
+        return d
+    }
+
+    /// If this `BSON` is a `.string`, return it as a `String`. Otherwise, return nil.
+    public var stringValue: String? {
+        guard case let .string(d) = self else {
+            return nil
+        }
+        return d
+    }
 }
 
 /// Extension providing the internal API of `BSON`
@@ -61,7 +117,12 @@ extension BSON {
     internal static var allBSONTypes: [BSONType: BSONValue.Type] = [
         .document: BSONDocument.self,
         .int32: Int32.self,
-        .int64: Int64.self
+        .int64: Int64.self,
+        .bool: Bool.self,
+        .string: String.self,
+        .double: Double.self,
+        .datetime: Date.self,
+        .array: [BSON].self
     ]
 
     /// Get the associated `BSONValue` to this `BSON` case.
@@ -72,6 +133,16 @@ extension BSON {
         case let .int32(v):
             return v
         case let .int64(v):
+            return v
+        case let .array(v):
+            return v
+        case let .bool(v):
+            return v
+        case let .datetime(v):
+            return v
+        case let .double(v):
+            return v
+        case let .string(v):
             return v
         }
     }
@@ -85,9 +156,33 @@ extension BSON: ExpressibleByIntegerLiteral {
     }
 }
 
+extension BSON: ExpressibleByFloatLiteral {
+    public init(floatLiteral value: Double) {
+        self = .double(value)
+    }
+}
+
+extension BSON: ExpressibleByBooleanLiteral {
+    public init(booleanLiteral value: Bool) {
+        self = .bool(value)
+    }
+}
+
 extension BSON: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (String, BSON)...) {
         self = .document(BSONDocument(keyValuePairs: elements))
+    }
+}
+
+extension BSON: ExpressibleByStringLiteral {
+    public init(stringLiteral value: String) {
+        self = .string(value)
+    }
+}
+
+extension BSON: ExpressibleByArrayLiteral {
+    public init(arrayLiteral elements: BSON...) {
+        self = .array(elements)
     }
 }
 

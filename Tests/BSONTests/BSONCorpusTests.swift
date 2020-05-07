@@ -3,6 +3,7 @@ import Foundation
 import Nimble
 import XCTest
 
+@available(OSX 10.13, *)
 final class BSONCorpusTests: BSONTestCase {
     /// Test case that includes 'canonical' forms of BSON and Extended JSON that are deemed equivalent and may provide
     /// additional cases or metadata for additional assertions.
@@ -100,7 +101,13 @@ final class BSONCorpusTests: BSONTestCase {
     func testBSONCorpus() throws {
         let INCLUDED_CORPUS_TESTS = [
             "Int32 type",
-            "Int64 type"
+            "Int64 type",
+            "Boolean",
+            "DateTime",
+            "Array",
+            "Document type (sub-documents)",
+            "Double type",
+            "String"
         ]
 
         let shouldRun: (String, String) -> Bool = { testFileDesc, testDesc in
@@ -137,7 +144,7 @@ final class BSONCorpusTests: BSONTestCase {
                     // TODO(SWIFT-867): Enable these lines when you can do subscript assignment
                     let nativeFromDoc = docFromCB.toArray()
                     let docFromNative = BSONDocument(fromArray: nativeFromDoc)
-                    expect(docFromNative.toData()).to(equal(cBData))
+                    expect(docFromNative.byteString).to(equal(cBData.byteString))
 
                     // native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ
                     // expect(docFromCB.canonicalExtendedJSON).to(cleanEqual(test.canonicalExtJSON))

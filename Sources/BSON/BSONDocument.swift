@@ -297,12 +297,19 @@ public struct BSONDocument {
             // Implicitly validate with iterator
             do {
                 while let (_, value) = try iter.nextThrowing() {
-                    if let doc = value.documentValue {
+                    switch value {
+                    case let .document(doc):
                         try doc.storage.validate()
+                    case let .array(array):
+                        for item in array {
+                            if let doc = item.documentValue {
+                                try doc.storage.validate()
+                            }
+                        }
+                    default:
+                        _ = ()
                     }
                 }
-            } catch {
-                throw BSONError.InvalidArgumentError(message: "Validation failed: \(error)")
             }
         }
     }

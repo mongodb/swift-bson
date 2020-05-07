@@ -70,6 +70,12 @@ func toByteString(_ bytes: [UInt8]?) -> String {
     return string
 }
 
+public extension Data {
+    var byteString: String {
+        BSONTests.toByteString([UInt8](self))
+    }
+}
+
 public extension Array where Element == UInt8 {
     var byteString: String {
         BSONTests.toByteString(self)

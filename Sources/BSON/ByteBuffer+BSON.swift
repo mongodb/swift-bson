@@ -1,30 +1,50 @@
 import NIO
 
 extension ByteBuffer {
-    /// Write null terminated string into this ByteBuffer using UTF-8 encoding,
-    /// moving the writer index forward by the byte length of string + 1 (for null terminator).
+    /// Write null terminated UTF-8 string to ByteBuffer starting at writerIndex
     @discardableResult
     internal mutating func writeCString(_ string: String) -> Int {
         let written = self.writeString(string + "\0")
         return written
     }
 
-    /// Read bytes off this ByteBuffer until encountering null, decoding it as String using the UTF-8 encoding.
-    /// moving the reader index forward by the byte length of string + 1 (for null terminator).
+    /// Attempts to read null terminated UTF-8 string from ByteBuffer starting at the readerIndex
     internal mutating func readCString() throws -> String {
-        var bytes: [UInt8] = []
-        for _ in 0..<BSON_MAX_SIZE {
-            guard let b = self.readBytes(length: 1) else {
+        let string = try self.getCString(at: self.readerIndex)
+        self.moveReaderIndex(forwardBy: string.utf8.count + 1)
+        return string
+    }
+
+    /// Attempts to read null terminated UTF-8 string from ByteBuffer starting at the offset
+    internal func getCString(at offset: Int) throws -> String {
+        let key = try getBSONKey(at: offset).dropLast()
+        guard let string = String(bytes: key, encoding: .utf8) else {
+            throw BSONError.InternalError(message: "Failed to decode BSONKey as UTF8: \(key)")
+        }
+        return string
+    }
+
+    /// Returns the C String key including the null byte, for ease of comparison and byte counting
+    internal func getBSONKey(at offset: Int) throws -> [UInt8] {
+        var string: [UInt8] = []
+        for i in 0..<BSON_MAX_SIZE {
+            if let b = self.getBytes(at: offset + i, length: 1) {
+                if b[0] == 0 {
+                    return string + [0x00]
+                }
+                string += b
+            } else {
                 throw BSONError.InternalError(message: "Failed to read CString, unable to read byte from \(self)")
             }
-            guard b[0] != 0 else {
-                guard let string = String(bytes: bytes, encoding: .utf8) else {
-                    throw BSONError.InternalError(message: "Failed to decode CString as UTF8: \(bytes)")
-                }
-                return string
-            }
-            bytes += b
         }
         throw BSONError.InternalError(message: "Failed to read CString, possibly missing null terminator?")
+    }
+
+    /// Get a BSONType byte from self returns .invalid for unknown types.
+    internal func getBSONType(at position: Int) -> BSONType {
+        guard let bsonType = self.getInteger(at: position).flatMap({ BSONType(rawValue: $0) }) else {
+            return .invalid
+        }
+        return bsonType
     }
 }
