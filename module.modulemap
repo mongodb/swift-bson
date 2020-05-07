@@ -1,5 +1,0 @@
-module bson [system] {
-    header "libbson.h"
-    link "bson-1.0"
-    export *
-}
