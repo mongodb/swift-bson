@@ -1,6 +1,6 @@
 import NIO
 
-internal protocol BSONValue: Codable {
+internal protocol BSONValue {
     /// The `BSONType` associated with this value.
     var bsonType: BSONType { get }
 
@@ -63,4 +63,34 @@ public enum BSONType: UInt32 {
     case minKey = 0xFF
     /// Special type which compares higher than all other possible BSON element values
     case maxKey = 0x7F
+}
+
+// Conformances of Swift types we don't own to BSONValue:
+
+extension Int32: BSONValue {
+    var bsonType: BSONType { fatalError("Unimplemented") }
+
+    var bson: BSON { fatalError("Unimplemented") }
+
+    static func read(from buffer: inout ByteBuffer) throws -> BSON {
+        fatalError("Unimplemented")
+    }
+
+    func write(to buffer: inout ByteBuffer) throws {
+        fatalError("Unimplemented")
+    }
+}
+
+extension Int64: BSONValue {
+    var bsonType: BSONType { fatalError("Unimplemented") }
+
+    var bson: BSON { fatalError("Unimplemented") }
+
+    static func read(from buffer: inout ByteBuffer) throws -> BSON {
+        fatalError("Unimplemented")
+    }
+
+    func write(to buffer: inout ByteBuffer) throws {
+        fatalError("Unimplemented")
+    }
 }
