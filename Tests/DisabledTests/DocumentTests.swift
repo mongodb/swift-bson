@@ -729,10 +729,10 @@ final class DocumentTests: MongoSwiftTestCase {
         let deferred = try encoder.encode(dateStruct)
         expect(deferred["date"]).to(equal(.double(date.timeIntervalSinceReferenceDate)))
 
-        encoder.dateEncodingStrategy = .custom({ d, e in
+        encoder.dateEncodingStrategy = .custom { d, e in
             var container = e.singleValueContainer()
             try container.encode(Int64(d.timeIntervalSince1970 + 12))
-        })
+        }
         let custom = try encoder.encode(dateStruct)
         expect(custom["date"]).to(equal(.int64(Int64(date.timeIntervalSince1970 + 12))))
 
@@ -741,12 +741,12 @@ final class DocumentTests: MongoSwiftTestCase {
         dateFormatter.timeStyle = .none
 
         let noSecondsDate = DateWrapper(date: dateFormatter.date(from: "1/2/19")!)
-        encoder.dateEncodingStrategy = .custom({ d, e in
+        encoder.dateEncodingStrategy = .custom { d, e in
             var container = e.unkeyedContainer()
             try dateFormatter.string(from: d).split(separator: "/").forEach { component in
                 try container.encode(String(component))
             }
-        })
+        }
         let customArr = try encoder.encode(noSecondsDate)
         expect(dateFormatter.date(from: (customArr["date"]?
                 .arrayValue?
@@ -758,17 +758,17 @@ final class DocumentTests: MongoSwiftTestCase {
             case month, day, year
         }
 
-        encoder.dateEncodingStrategy = .custom({ d, e in
+        encoder.dateEncodingStrategy = .custom { d, e in
             var container = e.container(keyedBy: DateKeys.self)
             let components = dateFormatter.string(from: d).split(separator: "/").map { String($0) }
             try container.encode(components[0], forKey: .month)
             try container.encode(components[1], forKey: .day)
             try container.encode(components[2], forKey: .year)
-        })
+        }
         let customDoc = try encoder.encode(noSecondsDate)
         expect(customDoc["date"]).to(equal(["month": "1", "day": "2", "year": "19"]))
 
-        encoder.dateEncodingStrategy = .custom({ _, _ in })
+        encoder.dateEncodingStrategy = .custom { _, _ in }
         let customNoop = try encoder.encode(noSecondsDate)
         expect(customNoop["date"]).to(equal([:]))
     }
@@ -829,7 +829,7 @@ final class DocumentTests: MongoSwiftTestCase {
                 .to(throwError(CodecTests.dataCorruptedErr))
         }
 
-        decoder.dateDecodingStrategy = .custom({ decode in try Date(from: decode) })
+        decoder.dateDecodingStrategy = .custom { decode in try Date(from: decode) }
         let customDoc: Document = ["date": .double(date.timeIntervalSinceReferenceDate)]
         let customStruct = try decoder.decode(DateWrapper.self, from: customDoc)
         expect(customStruct.date).to(equal(date))
@@ -887,24 +887,24 @@ final class DocumentTests: MongoSwiftTestCase {
             "d": .string(data.base64EncodedString()),
             "hash": .int64(Int64(data.hashValue))
         ]
-        encoder.dataEncodingStrategy = .custom({ _, encoder in
+        encoder.dataEncodingStrategy = .custom { _, encoder in
             var container = encoder.singleValueContainer()
             try container.encode(customEncodedDoc)
-        })
-        decoder.dataDecodingStrategy = .custom({ decoder in
+        }
+        decoder.dataDecodingStrategy = .custom { decoder in
             let doc = try Document(from: decoder)
             guard let d = Data(base64Encoded: doc["d"]!.stringValue!) else {
                 throw DecodingError.dataCorrupted(DecodingError.Context(codingPath: [], debugDescription: "bad base64"))
             }
             expect(d.hashValue).to(equal(data.hashValue))
             return d
-        })
+        }
         let customDoc = try encoder.encode(dataStruct)
         expect(customDoc["data"]).to(equal(.document(customEncodedDoc)))
         let roundTripCustom = try decoder.decode(DataWrapper.self, from: customDoc)
         expect(roundTripCustom.data).to(equal(data))
 
-        encoder.dataEncodingStrategy = .custom({ _, _ in })
+        encoder.dataEncodingStrategy = .custom { _, _ in }
         expect(try encoder.encode(dataStruct)).to(equal(["data": [:]]))
     }
 
