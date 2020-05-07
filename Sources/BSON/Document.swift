@@ -50,9 +50,9 @@ public struct Document {
     /// The number of (key, value) pairs stored at the top level of this document.
     public var count: Int { fatalError("Unimplemented") }
 
-    /// A copy of the `ByteBuffer` backing this document, containing raw BSON data.
-    /// As `ByteBuffer`s implement copy-on-write, this copy will share byte storage with
-    /// this document until either the document or the returned buffer is mutated.
+    /// A copy of the `ByteBuffer` backing this document, containing raw BSON data. As `ByteBuffer`s implement
+    /// copy-on-write, this copy will share byte storage with this document until either the document or the returned
+    /// buffer is mutated.
     public var buffer: ByteBuffer { fatalError("Unimplemented") }
 
     /// Returns a `Data` containing a copy of the raw BSON data backing this document.
@@ -69,8 +69,8 @@ public struct Document {
      *  d["a"] = 1
      *  print(d["a"]) // prints 1
      *  ```
-     * A nil return value indicates that the key does not exist in the  `Document`.
-     * A true BSON null is returned as `BSON.null`.
+     * A nil return value indicates that the key does not exist in the  `Document`. A true BSON null is returned as
+     * `BSON.null`.
      */
     public subscript(key: String) -> BSON? {
         get { fatalError("Unimplemented") }
