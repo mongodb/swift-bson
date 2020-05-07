@@ -20,24 +20,26 @@ public struct Document {
     public init() { fatalError("Unimplemented") }
 
     /**
-     * Initializes a new `Document` from the provided BSON data.
+     * Initializes a new `Document` from the provided BSON data. If validate is `true` (the default), validates that
+     * the data is specification-compliant BSON.
      *
      * - Throws:
      *   - `InvalidArgumentError` if the data passed is invalid BSON
      *
      * - SeeAlso: http://bsonspec.org/
      */
-    public init(fromBSON bson: Data) throws { fatalError("Unimplemented") }
+    public init(fromBSON bson: Data, validate: Bool = true) throws { fatalError("Unimplemented") }
 
     /**
-     * Initializes a new `Document` from the provided BSON data.
+     * Initializes a new `Document` from the provided BSON data. If validate is `true` (the default), validates that
+     * the data is specification-compliant BSON.
      *
      * - Throws:
      *   - `InvalidArgumentError` if the data passed is invalid BSON
      *
      * - SeeAlso: http://bsonspec.org/
      */
-    public init(fromBSON bson: ByteBuffer) throws { fatalError("Unimplemented") }
+    public init(fromBSON bson: ByteBuffer, validate: Bool = true) throws { fatalError("Unimplemented") }
 
     /// The keys in this `Document`.
     public var keys: [String] { fatalError("Unimplemented") }
@@ -48,9 +50,9 @@ public struct Document {
     /// The number of (key, value) pairs stored at the top level of this document.
     public var count: Int { fatalError("Unimplemented") }
 
-    /// A copy of the `ByteBuffer` backing this document, containing raw BSON data. As `ByteBuffer`s implement
-    /// copy-on-write, this copy will share byte storage with this document until either the document or the returned
-    /// buffer is mutated.
+    /// A copy of the `ByteBuffer` backing this document, containing raw BSON data.
+    /// As `ByteBuffer`s implement copy-on-write, this copy will share byte storage with
+    /// this document until either the document or the returned buffer is mutated.
     public var buffer: ByteBuffer { fatalError("Unimplemented") }
 
     /// Returns a `Data` containing a copy of the raw BSON data backing this document.
@@ -67,8 +69,8 @@ public struct Document {
      *  d["a"] = 1
      *  print(d["a"]) // prints 1
      *  ```
-     * A nil return value indicates that the key does not exist in the  `Document`. A true BSON null is returned as
-     * `BSON.null`.
+     * A nil return value indicates that the key does not exist in the  `Document`.
+     * A true BSON null is returned as `BSON.null`.
      */
     public subscript(key: String) -> BSON? {
         get { fatalError("Unimplemented") }
