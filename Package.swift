@@ -7,10 +7,11 @@ let package = Package(
         .library(name: "BSON", targets: ["BSON"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-nio", .upToNextMajor(from: "2.16.0"))
+        .package(url: "https://github.com/apple/swift-nio", .upToNextMajor(from: "2.16.0")),
+        .package(url: "https://github.com/Quick/Nimble.git", .upToNextMajor(from: "8.0.0"))
     ],
     targets: [
         .target(name: "BSON", dependencies: ["NIO"]),
-        .testTarget(name: "BSONTests", dependencies: ["BSON"])
+        .testTarget(name: "BSONTests", dependencies: ["BSON", "Nimble"])
     ]
 )
