@@ -37,9 +37,9 @@ public struct DocumentIterator: IteratorProtocol {
 }
 
 extension Document {
-    // this is an alternative to the built-in `Document.filter` that returns an `[KeyValuePair]`.
-    // this variant is called by default, but the other is still accessible by explicitly stating
-    // return type: `let newDocPairs: [Document.KeyValuePair] = newDoc.filter { ... }`
+    // this is an alternative to the built-in `Document.filter` that returns an `[KeyValuePair]`. this variant is
+    // called by default, but the other is still accessible by explicitly stating return type:
+    // `let newDocPairs: [Document.KeyValuePair] = newDoc.filter { ... }`
     /**
      * Returns a new document containing the elements of the document that satisfy the given predicate.
      *
