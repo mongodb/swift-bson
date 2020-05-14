@@ -61,6 +61,10 @@ public struct Document {
         self._buffer.setInteger(size, at: 0, endianness: .little, as: Int32.self)
     }
 
+    internal init(fromJSON json: Data) throws { fatalError("Unimplemented") }
+    /// Create BSON Document from JSON String
+    public init(fromJSON json: String) throws { fatalError("Unimplemented") }
+
     /// Initializes a new, empty `Document`.
     public init() {
         self.keySet = Set()
@@ -78,7 +82,20 @@ public struct Document {
      *
      * - SeeAlso: http://bsonspec.org/
      */
-    public init(fromBSON bson: Data, validate: Bool = true) throws { fatalError("Unimplemented") }
+    public init(fromBSON bson: Data, validate: Bool = true) throws {
+        if validate {
+            // Pull apart the underlying binary into [KeyValuePair], should reveal issues
+            fatalError("Not Implemented")
+        } else {
+            // trust the incoming format
+            self.keySet = Set()
+            self._buffer = BSON_ALLOCATOR.buffer(capacity: bson.count)
+            self._buffer.writeBytes(bson)
+            for (key, _) in self {
+                self.keySet.insert(key)
+            }
+        }
+    }
 
     /**
      * Initializes a new `Document` from the provided BSON data. If validate is `true` (the default), validates that
