@@ -72,19 +72,11 @@ public struct DocumentIterator: IteratorProtocol {
         case .codeWithScope:
             fatalError("Unimplemented")
         case .int32:
-            guard let value = self.buffer.readInteger(endianness: .little, as: Int32.self) else {
-                // throw Error(message: "Bad BSON")
-                return nil
-            }
-            return (key, .int32(value))
+            return try? (key, Int32.read(from: &self.buffer))
         case .timestamp:
             fatalError("Unimplemented")
         case .int64:
-            guard let value = self.buffer.readInteger(endianness: .little, as: Int64.self) else {
-                // throw Error(message: "Bad BSON")
-                return nil
-            }
-            return (key, .int64(value))
+            return try? (key, Int64.read(from: &self.buffer))
         case .decimal128:
             fatalError("Unimplemented")
         case .minKey:
