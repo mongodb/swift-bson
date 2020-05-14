@@ -1,6 +1,30 @@
 import Foundation
 import NIO
 
+private let BSON_ALLOCATOR = ByteBufferAllocator()
+
+extension ByteBuffer {
+    @discardableResult
+    internal mutating func writeCString(_ string: String) -> Int {
+        let written = self.writeString(string + "\0")
+        return written
+    }
+
+    internal mutating func readCString() throws -> String? {
+        var string = ""
+        for _ in 0..<0xFFFFFE {
+            if let b = self.readBytes(length: 1) {
+                if b[0] == 0 {
+                    return string
+                }
+                // swiftlint:disable:next force_unwrapping
+                string += String(bytes: b, encoding: .utf8)!
+            }
+        }
+        throw InternalError(message: "C String too long")
+    }
+}
+
 /// A struct representing the BSON document type.
 @dynamicMemberLookup
 public struct Document {
@@ -14,10 +38,36 @@ public struct Document {
 
     internal init(_ elements: [BSON]) { fatalError("Unimplemented") }
 
-    internal init(keyValuePairs: [(String, BSON)]) { fatalError("Unimplemented") }
+    internal init(keyValuePairs: [(String, BSON)]) {
+        self.keySet = Set()
+        self._buffer = BSON_ALLOCATOR.buffer(capacity: 100)
+
+        var size: Int32 = 0
+        // reserve space for our size to be calculated
+        self._buffer.writeInteger(0, endianness: .little, as: Int32.self)
+
+        for (key, bson) in keyValuePairs {
+            self.keySet.insert(key)
+            size += Int32(self._buffer.writeInteger(UInt8(bson.bsonValue.bsonType.rawValue), as: UInt8.self))
+            size += Int32(self._buffer.writeCString(key))
+            let indexBefore = self._buffer.writerIndex
+            // swiftlint:disable:next force_try
+            try! bson.bsonValue.write(to: &self._buffer)
+            size += Int32(self._buffer.writerIndex - indexBefore)
+        }
+        self._buffer.writeInteger(0, as: UInt8.self)
+        size += 1
+
+        self._buffer.setInteger(size, at: 0, endianness: .little, as: Int32.self)
+    }
 
     /// Initializes a new, empty `Document`.
-    public init() { fatalError("Unimplemented") }
+    public init() {
+        self.keySet = Set()
+        self._buffer = BSON_ALLOCATOR.buffer(capacity: 5)
+        self._buffer.writeInteger(5, endianness: .little, as: Int32.self)
+        self._buffer.writeBytes([0])
+    }
 
     /**
      * Initializes a new `Document` from the provided BSON data. If validate is `true` (the default), validates that
@@ -42,24 +92,24 @@ public struct Document {
     public init(fromBSON bson: ByteBuffer, validate: Bool = true) throws { fatalError("Unimplemented") }
 
     /// The keys in this `Document`.
-    public var keys: [String] { fatalError("Unimplemented") }
+    public var keys: [String] { self.map { key, _ in key } }
 
     /// The values in this `Document`.
-    public var values: [BSON] { fatalError("Unimplemented") }
+    public var values: [BSON] { self.map { _, val in val } }
 
     /// The number of (key, value) pairs stored at the top level of this document.
-    public var count: Int { fatalError("Unimplemented") }
+    public var count: Int { self.keySet.count }
 
     /// A copy of the `ByteBuffer` backing this document, containing raw BSON data. As `ByteBuffer`s implement
     /// copy-on-write, this copy will share byte storage with this document until either the document or the returned
     /// buffer is mutated.
-    public var buffer: ByteBuffer { fatalError("Unimplemented") }
+    public var buffer: ByteBuffer { ByteBuffer(self._buffer.readableBytesView) }
 
     /// Returns a `Data` containing a copy of the raw BSON data backing this document.
-    public func toData() -> Data { fatalError("Unimplemented") }
+    public func toData() -> Data { Data(self._buffer.readableBytesView) }
 
     /// Returns a `Boolean` indicating whether this `Document` contains the provided key.
-    public func hasKey(_ key: String) -> Bool { fatalError("Unimplemented") }
+    public func hasKey(_ key: String) -> Bool { self.keySet.contains(key) }
 
     /**
      * Allows getting and setting values on the document via subscript syntax.
@@ -73,7 +123,12 @@ public struct Document {
      * `BSON.null`.
      */
     public subscript(key: String) -> BSON? {
-        get { fatalError("Unimplemented") }
+        get {
+            for (docKey, value) in self where docKey == key {
+                return value
+            }
+            return nil
+        }
         set { fatalError("Unimplemented") }
     }
 
@@ -104,7 +159,12 @@ public struct Document {
      * A true BSON null is returned as `BSON.null`.
      */
     public subscript(dynamicMember member: String) -> BSON? {
-        get { fatalError("Unimplemented") }
+        get {
+            for (key, value) in self where key == member {
+                return value
+            }
+            return nil
+        }
         set { fatalError("Unimplemented") }
     }
 }
@@ -122,7 +182,7 @@ extension Document: ExpressibleByDictionaryLiteral {
      * - Returns: a new `Document`
      */
     public init(dictionaryLiteral keyValuePairs: (String, BSON)...) {
-        fatalError("Unimplemented")
+        self.init(keyValuePairs: keyValuePairs)
     }
 }
 
