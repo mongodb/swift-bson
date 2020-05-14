@@ -12,7 +12,7 @@ extension Document: Sequence {
 
     /// Returns a `DocumentIterator` over the values in this `Document`.
     public func makeIterator() -> DocumentIterator {
-        fatalError("Unimplemented")
+        DocumentIterator(over: self.buffer)
     }
 }
 
@@ -21,12 +21,77 @@ public struct DocumentIterator: IteratorProtocol {
     private var buffer: ByteBuffer
 
     internal init(over buffer: ByteBuffer) {
-        fatalError("Unimplemented")
+        self.buffer = buffer
+        _ = self.buffer.readInteger(as: Int32.self) // put the readerIndex at the first key
     }
 
     /// Advances to the next element and returns it, or nil if no next element exists.
     public mutating func next() -> (String, BSON)? {
-        fatalError("Unimplemented")
+        // swiftlint:disable:previous cyclomatic_complexity
+        let typeByte = UInt32(self.buffer.readInteger(as: UInt8.self) ?? BSONType.invalid.toByte)
+        guard let type = BSONType(rawValue: typeByte) else {
+            return nil
+        }
+
+        guard let key = try? self.buffer.readCString() else {
+            // throw ParseError(message: "Bad BSON")
+            return nil
+        }
+
+        switch type {
+        case .invalid:
+            return nil
+        case .double:
+            fatalError("Unimplemented")
+        case .string:
+            fatalError("Unimplemented")
+        case .document:
+            fatalError("Unimplemented")
+        case .array:
+            fatalError("Unimplemented")
+        case .binary:
+            fatalError("Unimplemented")
+        case .undefined:
+            fatalError("Unimplemented")
+        case .objectId:
+            fatalError("Unimplemented")
+        case .bool:
+            fatalError("Unimplemented")
+        case .datetime:
+            fatalError("Unimplemented")
+        case .null:
+            fatalError("Unimplemented")
+        case .regex:
+            fatalError("Unimplemented")
+        case .dbPointer:
+            fatalError("Unimplemented")
+        case .code:
+            fatalError("Unimplemented")
+        case .symbol:
+            fatalError("Unimplemented")
+        case .codeWithScope:
+            fatalError("Unimplemented")
+        case .int32:
+            guard let value = self.buffer.readInteger(endianness: .little, as: Int32.self) else {
+                // throw Error(message: "Bad BSON")
+                return nil
+            }
+            return (key, .int32(value))
+        case .timestamp:
+            fatalError("Unimplemented")
+        case .int64:
+            guard let value = self.buffer.readInteger(endianness: .little, as: Int64.self) else {
+                // throw Error(message: "Bad BSON")
+                return nil
+            }
+            return (key, .int64(value))
+        case .decimal128:
+            fatalError("Unimplemented")
+        case .minKey:
+            fatalError("Unimplemented")
+        case .maxKey:
+            fatalError("Unimplemented")
+        }
     }
 
     /// Finds the key in the underlying buffer, and returns the [startIndex, endIndex) containing the corresponding

@@ -63,34 +63,44 @@ public enum BSONType: UInt32 {
     case minKey = 0xFF
     /// Special type which compares higher than all other possible BSON element values
     case maxKey = 0x7F
+
+    public var toByte: UInt8 {
+        UInt8(self.rawValue)
+    }
 }
 
 // Conformances of Swift types we don't own to BSONValue:
 
 extension Int32: BSONValue {
-    var bsonType: BSONType { fatalError("Unimplemented") }
+    var bsonType: BSONType { .int32 }
 
-    var bson: BSON { fatalError("Unimplemented") }
+    var bson: BSON { .int32(self) }
 
     static func read(from buffer: inout ByteBuffer) throws -> BSON {
-        fatalError("Unimplemented")
+        guard let value = buffer.readInteger(endianness: .little, as: Int32.self) else {
+            throw InternalError(message: "Cannot read 32-bit integer")
+        }
+        return .int32(value)
     }
 
     func write(to buffer: inout ByteBuffer) throws {
-        fatalError("Unimplemented")
+        buffer.writeInteger(self, endianness: .little, as: Int32.self)
     }
 }
 
 extension Int64: BSONValue {
-    var bsonType: BSONType { fatalError("Unimplemented") }
+    var bsonType: BSONType { .int64 }
 
-    var bson: BSON { fatalError("Unimplemented") }
+    var bson: BSON { .int64(self) }
 
     static func read(from buffer: inout ByteBuffer) throws -> BSON {
-        fatalError("Unimplemented")
+        guard let value = buffer.readInteger(endianness: .little, as: Int64.self) else {
+            throw InternalError(message: "Cannot read 64-bit integer")
+        }
+        return .int64(value)
     }
 
     func write(to buffer: inout ByteBuffer) throws {
-        fatalError("Unimplemented")
+        buffer.writeInteger(self, endianness: .little, as: Int64.self)
     }
 }
