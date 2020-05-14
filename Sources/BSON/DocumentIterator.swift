@@ -29,7 +29,7 @@ public struct DocumentIterator: IteratorProtocol {
     public mutating func next() -> (String, BSON)? {
         // swiftlint:disable:previous cyclomatic_complexity
         let typeByte = UInt32(self.buffer.readInteger(as: UInt8.self) ?? BSONType.invalid.toByte)
-        guard let type = BSONType(rawValue: typeByte) else {
+        guard let type = BSONType(rawValue: typeByte), type != .invalid else {
             return nil
         }
 
@@ -40,7 +40,7 @@ public struct DocumentIterator: IteratorProtocol {
 
         switch type {
         case .invalid:
-            return nil
+            return nil // This will never be reached
         case .double:
             fatalError("Unimplemented")
         case .string:
