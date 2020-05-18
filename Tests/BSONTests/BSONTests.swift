@@ -36,7 +36,7 @@ public func retrieveSpecTestFiles<T: Decodable>(
     subdirectory: String? = nil,
     asType _: T.Type
 ) throws -> [(String, T)] {
-    var path = "\(BSONTestCase.specsPath)/\(specName)/tests"
+    var path = "\(BSONTestCase.specsPath)/\(specName)"
     if let sd = subdirectory {
         path += "/\(sd)"
     }
