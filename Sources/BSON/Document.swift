@@ -1,6 +1,7 @@
 import Foundation
 import NIO
 
+/// This shared allocator instance should be used for all underlying bytebuffer creation
 private let BSON_ALLOCATOR = ByteBufferAllocator()
 
 extension ByteBuffer {
@@ -39,25 +40,29 @@ public struct Document {
     internal init(_ elements: [BSON]) { fatalError("Unimplemented") }
 
     internal init(keyValuePairs: [(String, BSON)]) {
-        self.keySet = Set()
+        self.keySet = Set(keyValuePairs.map { $0.0 })
+        guard self.keySet.count == keyValuePairs.count else {
+            fatalError("Dictionary \(keyValuePairs) contains duplicate keys")
+        }
+
         self._buffer = BSON_ALLOCATOR.buffer(capacity: 100)
 
-        var size: Int32 = 0
-        // reserve space for our size to be calculated
+        let start = self._buffer.writerIndex
+
+        // reserve space for our size that will be calculated
         self._buffer.writeInteger(0, endianness: .little, as: Int32.self)
 
         for (key, bson) in keyValuePairs {
-            self.keySet.insert(key)
-            size += Int32(self._buffer.writeInteger(UInt8(bson.bsonValue.bsonType.rawValue), as: UInt8.self))
-            size += Int32(self._buffer.writeCString(key))
-            let indexBefore = self._buffer.writerIndex
+            self._buffer.writeInteger(UInt8(bson.bsonValue.bsonType.rawValue), as: UInt8.self)
+            self._buffer.writeCString(key)
             // swiftlint:disable:next force_try
             try! bson.bsonValue.write(to: &self._buffer)
-            size += Int32(self._buffer.writerIndex - indexBefore)
         }
         self._buffer.writeInteger(0, as: UInt8.self)
-        size += 1
 
+        guard let size = Int32(exactly: self._buffer.writerIndex - start) else {
+            fatalError("BSON too large")
+        }
         self._buffer.setInteger(size, at: 0, endianness: .little, as: Int32.self)
     }
 
@@ -176,12 +181,7 @@ public struct Document {
      * A true BSON null is returned as `BSON.null`.
      */
     public subscript(dynamicMember member: String) -> BSON? {
-        get {
-            for (key, value) in self where key == member {
-                return value
-            }
-            return nil
-        }
+        get { self[member] }
         set { fatalError("Unimplemented") }
     }
 }

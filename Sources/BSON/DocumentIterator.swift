@@ -27,64 +27,23 @@ public struct DocumentIterator: IteratorProtocol {
 
     /// Advances to the next element and returns it, or nil if no next element exists.
     public mutating func next() -> (String, BSON)? {
-        // swiftlint:disable:previous cyclomatic_complexity
         let typeByte = UInt32(self.buffer.readInteger(as: UInt8.self) ?? BSONType.invalid.toByte)
         guard let type = BSONType(rawValue: typeByte), type != .invalid else {
             return nil
         }
-
         guard let key = try? self.buffer.readCString() else {
-            // throw ParseError(message: "Bad BSON")
             return nil
         }
-
-        switch type {
-        case .invalid:
-            return nil // This will never be reached
-        case .double:
-            fatalError("Unimplemented")
-        case .string:
-            fatalError("Unimplemented")
-        case .document:
-            fatalError("Unimplemented")
-        case .array:
-            fatalError("Unimplemented")
-        case .binary:
-            fatalError("Unimplemented")
-        case .undefined:
-            fatalError("Unimplemented")
-        case .objectId:
-            fatalError("Unimplemented")
-        case .bool:
-            fatalError("Unimplemented")
-        case .datetime:
-            fatalError("Unimplemented")
-        case .null:
-            fatalError("Unimplemented")
-        case .regex:
-            fatalError("Unimplemented")
-        case .dbPointer:
-            fatalError("Unimplemented")
-        case .code:
-            fatalError("Unimplemented")
-        case .symbol:
-            fatalError("Unimplemented")
-        case .codeWithScope:
-            fatalError("Unimplemented")
-        case .int32:
-            return try? (key, Int32.read(from: &self.buffer))
-        case .timestamp:
-            fatalError("Unimplemented")
-        case .int64:
-            return try? (key, Int64.read(from: &self.buffer))
-        case .decimal128:
-            fatalError("Unimplemented")
-        case .minKey:
-            fatalError("Unimplemented")
-        case .maxKey:
-            fatalError("Unimplemented")
+        guard let bson = try? DocumentIterator.bsonTypeMap[type]?.read(from: &buffer) else {
+            return nil
         }
+        return (key, bson)
     }
+
+    private static let bsonTypeMap: [BSONType: BSONValue.Type] = [
+        .int32: Int32.self,
+        .int64: Int64.self
+    ]
 
     /// Finds the key in the underlying buffer, and returns the [startIndex, endIndex) containing the corresponding
     /// element.
