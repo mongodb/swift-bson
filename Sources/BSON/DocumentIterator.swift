@@ -8,7 +8,7 @@ extension Document: Sequence {
     public typealias SubSequence = Document
 
     /// Returns a `Bool` indicating whether the document is empty.
-    public var isEmpty: Bool { fatalError("Unimplemented") }
+    public var isEmpty: Bool { self.size == 5 }
 
     /// Returns a `DocumentIterator` over the values in this `Document`.
     public func makeIterator() -> DocumentIterator {
@@ -19,15 +19,17 @@ extension Document: Sequence {
 public struct DocumentIterator: IteratorProtocol {
     /// The buffer we are iterating over.
     private var buffer: ByteBuffer
+    private let size: Int
 
     internal init(over buffer: ByteBuffer) {
         self.buffer = buffer
-        _ = self.buffer.readInteger(as: Int32.self) // put the readerIndex at the first key
+        // puts the readerIndex at the first key
+        self.size = Int(self.buffer.readInteger(endianness: .little, as: Int32.self) ?? 5)
     }
 
     /// Advances to the next element and returns it, or nil if no next element exists.
     public mutating func next() -> (String, BSON)? {
-        let typeByte = UInt32(self.buffer.readInteger(as: UInt8.self) ?? BSONType.invalid.toByte)
+        let typeByte = self.buffer.readInteger(as: UInt8.self) ?? BSONType.invalid.rawValue
         guard let type = BSONType(rawValue: typeByte), type != .invalid else {
             return nil
         }
