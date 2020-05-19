@@ -70,8 +70,4 @@ public enum BSONType: UInt8 {
     case minKey = 0xFF
     /// Special type which compares higher than all other possible BSON element values
     case maxKey = 0x7F
-
-    public var toByte: UInt8 {
-        UInt8(self.rawValue)
-    }
 }

@@ -1,7 +1,7 @@
 import Foundation
 import NIO
 
-/// This shared allocator instance should be used for all underlying bytebuffer creation
+/// This shared allocator instance should be used for all underlying `ByteBuffer` creation.
 private let BSON_ALLOCATOR = ByteBufferAllocator()
 
 extension ByteBuffer {
@@ -13,16 +13,18 @@ extension ByteBuffer {
 
     internal mutating func readCString() throws -> String? {
         var string = ""
-        for _ in 0..<0xFFFFFE {
+        for i in 0..<0xFFFFFE {
             if let b = self.readBytes(length: 1) {
                 if b[0] == 0 {
                     return string
                 }
-                // swiftlint:disable:next force_unwrapping
-                string += String(bytes: b, encoding: .utf8)!
+                guard let character = String(bytes: b, encoding: .utf8) else {
+                    throw InternalError(message: "Cannot decode CString, byte: \(b) at position \(i) as utf8")
+                }
+                string += character
             }
         }
-        throw InternalError(message: "C String too long")
+        throw InternalError(message: "Failed to read CString, possibly missing null terminator?")
     }
 }
 
@@ -55,20 +57,17 @@ public struct Document {
         for (key, bson) in keyValuePairs {
             self._buffer.writeInteger(UInt8(bson.bsonValue.bsonType.rawValue), as: UInt8.self)
             self._buffer.writeCString(key)
-            // swiftlint:disable:next force_try
-            try! bson.bsonValue.write(to: &self._buffer)
+            bson.bsonValue.write(to: &self._buffer)
         }
         self._buffer.writeInteger(0, as: UInt8.self)
 
         guard let size = Int32(exactly: self._buffer.writerIndex - start) else {
-            fatalError("BSON too large")
+            fatalError("Data is \(self._buffer.writerIndex - start) bytes, "
+                + "but maximum allowed BSON document size is \(Int32.max) bytes")
         }
+        // BSON null terminator
         self._buffer.setInteger(size, at: 0, endianness: .little, as: Int32.self)
     }
-
-    internal init(fromJSON json: Data) throws { fatalError("Unimplemented") }
-    /// Create BSON Document from JSON String
-    public init(fromJSON json: String) throws { fatalError("Unimplemented") }
 
     /// Initializes a new, empty `Document`.
     public init() {
@@ -90,6 +89,7 @@ public struct Document {
     public init(fromBSON bson: Data, validate: Bool = true) throws {
         if validate {
             // Pull apart the underlying binary into [KeyValuePair], should reveal issues
+            // TODO(SWIFT-866): Add validation
             fatalError("Not Implemented")
         } else {
             // trust the incoming format
@@ -224,7 +224,7 @@ extension Document: BSONValue {
         fatalError("Unimplemented")
     }
 
-    func write(to buffer: inout ByteBuffer) throws {
+    func write(to buffer: inout ByteBuffer) {
         fatalError("Unimplemented")
     }
 }
