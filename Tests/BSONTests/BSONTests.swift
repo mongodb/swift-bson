@@ -76,7 +76,6 @@ public extension BSONDocument {
         return bytes
     }
 }
-
 public func makeByteString(from bytes: [UInt8]) -> String {
     var string = ""
     for byte in bytes {

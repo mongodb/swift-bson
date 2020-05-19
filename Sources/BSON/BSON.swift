@@ -12,6 +12,9 @@ public enum BSON {
     /// A BSON int64.
     case int64(Int64)
 
+    /// A BSON Decimal128
+    case decimal128(Decimal128)
+
     /// Initialize a `BSON` from an integer. On 64-bit systems, this will result in an `.int64`. On 32-bit systems,
     /// this will result in an `.int32`.
     public init(_ int: Int) {
@@ -72,6 +75,8 @@ extension BSON {
         case let .int32(v):
             return v
         case let .int64(v):
+            return v
+        case let .decimal128(v):
             return v
         }
     }

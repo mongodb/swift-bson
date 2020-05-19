@@ -41,6 +41,23 @@ final class DocumentTests: BSONTestCase {
         expect(testDoc.toByteString()).to(equal(bsonBytes.toByteString()))
     }
 
+    func testDecimal128Encoding() {
+        let testDoc: BSONDocument = ["dec128": .decimal128(try! Decimal128(fromString: "2.000"))]
+        var bsonBytes: [UInt8] = []
+        // 18_00_00_00 13 dec128 00 D0070000000000000000000000003A30 00
+        bsonBytes += [BSONType.decimal128.toByte] // type
+        bsonBytes += Array("dec128".utf8) // key
+        bsonBytes += [0x00] // null byte
+        // LE Decimal128 2.000
+        bsonBytes += [0xD0, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x3A, 0x30]
+        bsonBytes += [0x00] // finisher null
+
+        let size = Int32(bsonBytes.count + 4)
+        bsonBytes = withUnsafeBytes(of: size.littleEndian, [UInt8].init) + bsonBytes
+
+        expect(testDoc.toByteString()).to(equal(bsonBytes.toByteString()))
+    }
+
     func testCount() {
         expect(DocumentTests.testDoc).to(haveCount(3))
     }

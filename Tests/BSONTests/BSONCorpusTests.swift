@@ -3,6 +3,7 @@ import Foundation
 import Nimble
 import XCTest
 
+@available(OSX 10.13, *)
 final class BSONCorpusTests: BSONTestCase {
     /// Test case that includes 'canonical' forms of BSON and Extended JSON that are deemed equivalent and may provide
     /// additional cases or metadata for additional assertions.
@@ -103,7 +104,8 @@ final class BSONCorpusTests: BSONTestCase {
     func testBSONCorpus() throws {
         let INCLUDED_CORPUS_TESTS = [
             "Int32 type",
-            "Int64 type"
+            "Int64 type",
+            "Decimal128"
         ]
 
         let shouldRun: (String, String) -> Bool = { testFileDesc, testDesc in
