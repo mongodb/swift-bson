@@ -17,7 +17,7 @@ internal protocol BSONValue {
 }
 
 /// The possible types of BSON values and their corresponding integer values.
-public enum BSONType: UInt32 {
+public enum BSONType: UInt8 {
     /// An invalid type
     case invalid = 0x00
     /// 64-bit binary floating point
@@ -63,10 +63,6 @@ public enum BSONType: UInt32 {
     case minKey = 0xFF
     /// Special type which compares higher than all other possible BSON element values
     case maxKey = 0x7F
-
-    public var toByte: UInt8 {
-        UInt8(self.rawValue)
-    }
 }
 
 // Conformances of Swift types we don't own to BSONValue:

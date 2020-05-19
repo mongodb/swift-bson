@@ -36,6 +36,13 @@ public struct Document {
 
     private var _buffer: ByteBuffer
 
+    internal var size: Int {
+        guard let size = self.buffer.getInteger(at: 0, endianness: .little, as: Int32.self) else {
+            return 5
+        }
+        return Int(size)
+    }
+
     /// An unordered set containing the keys in this document.
     private var keySet: Set<String>
 
@@ -48,6 +55,12 @@ public struct Document {
         }
 
         self._buffer = BSON_ALLOCATOR.buffer(capacity: 100)
+
+        guard !self.keySet.isEmpty else {
+            // 5 byte count as Int32 + null byte
+            self._buffer.writeBytes([5, 0, 0, 0] + [0])
+            return
+        }
 
         let start = self._buffer.writerIndex
 

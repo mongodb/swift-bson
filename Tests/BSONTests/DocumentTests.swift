@@ -13,7 +13,7 @@ final class DocumentTests: BSONTestCase {
     func testInt32Encoding() {
         let testDoc: Document = ["int32": .int32(32)]
         var bsonBytes: [UInt8] = []
-        bsonBytes += [BSONType.int32.toByte] // type
+        bsonBytes += [BSONType.int32.rawValue] // type
         bsonBytes += Array("int32".utf8) // key
         bsonBytes += [0x00] // null byte
         bsonBytes += [0x20, 0x00, 0x00, 0x00] // value of 32 LE
@@ -27,7 +27,7 @@ final class DocumentTests: BSONTestCase {
         let testDoc: Document = ["int64": .int64(64)]
         var bsonBytes: [UInt8] = []
         // bsonBytes += [0x10, 0x00, 0x00, 0x00] // size
-        bsonBytes += [BSONType.int64.toByte] // type
+        bsonBytes += [BSONType.int64.rawValue] // type
         bsonBytes += Array("int64".utf8) // key
         bsonBytes += [0x00] // null byte
         bsonBytes += [0x40, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00] // value of 64 LE

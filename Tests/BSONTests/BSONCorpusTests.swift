@@ -230,7 +230,7 @@ final class BSONCorpusTests: BSONTestCase {
         testFile: BSONCorpusTestFile,
         description: String
     ) throws {
-        switch BSONType(rawValue: UInt32(testFile.bsonType.dropFirst(2), radix: 16)!)! {
+        switch BSONType(rawValue: UInt8(testFile.bsonType.dropFirst(2), radix: 16)!)! {
         case .invalid:
             _ = ()
         // "top level document" uses 0x00 for the bson type
