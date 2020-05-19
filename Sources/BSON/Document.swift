@@ -20,26 +20,24 @@ public struct Document {
     public init() { fatalError("Unimplemented") }
 
     /**
-     * Initializes a new `Document` from the provided BSON data. If validate is `true` (the default), validates that
-     * the data is specification-compliant BSON.
+     * Initializes a new `Document` from the provided BSON data.
      *
      * - Throws:
      *   - `InvalidArgumentError` if the data passed is invalid BSON
      *
      * - SeeAlso: http://bsonspec.org/
      */
-    public init(fromBSON bson: Data, validate: Bool = true) throws { fatalError("Unimplemented") }
+    public init(fromBSON bson: Data) throws { fatalError("Unimplemented") }
 
     /**
-     * Initializes a new `Document` from the provided BSON data. If validate is `true` (the default), validates that
-     * the data is specification-compliant BSON.
+     * Initializes a new `Document` from the provided BSON data.
      *
      * - Throws:
      *   - `InvalidArgumentError` if the data passed is invalid BSON
      *
      * - SeeAlso: http://bsonspec.org/
      */
-    public init(fromBSON bson: ByteBuffer, validate: Bool = true) throws { fatalError("Unimplemented") }
+    public init(fromBSON bson: ByteBuffer) throws { fatalError("Unimplemented") }
 
     /// The keys in this `Document`.
     public var keys: [String] { fatalError("Unimplemented") }
