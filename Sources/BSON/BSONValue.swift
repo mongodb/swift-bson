@@ -13,7 +13,7 @@ internal protocol BSONValue {
     static func read(from buffer: inout ByteBuffer) throws -> BSON
 
     /// Writes this value's BSON byte representation to the provided ByteBuffer.
-    func write(to buffer: inout ByteBuffer) throws
+    func write(to buffer: inout ByteBuffer)
 }
 
 /// The possible types of BSON values and their corresponding integer values.
@@ -78,12 +78,12 @@ extension Int32: BSONValue {
 
     static func read(from buffer: inout ByteBuffer) throws -> BSON {
         guard let value = buffer.readInteger(endianness: .little, as: Int32.self) else {
-            throw InternalError(message: "Cannot read 32-bit integer")
+            throw InternalError(message: "Not enough bytes remain to read 32-bit integer")
         }
         return .int32(value)
     }
 
-    func write(to buffer: inout ByteBuffer) throws {
+    func write(to buffer: inout ByteBuffer) {
         buffer.writeInteger(self, endianness: .little, as: Int32.self)
     }
 }
@@ -95,12 +95,12 @@ extension Int64: BSONValue {
 
     static func read(from buffer: inout ByteBuffer) throws -> BSON {
         guard let value = buffer.readInteger(endianness: .little, as: Int64.self) else {
-            throw InternalError(message: "Cannot read 64-bit integer")
+            throw InternalError(message: "Not enough bytes remain to read 64-bit integer")
         }
         return .int64(value)
     }
 
-    func write(to buffer: inout ByteBuffer) throws {
+    func write(to buffer: inout ByteBuffer) {
         buffer.writeInteger(self, endianness: .little, as: Int64.self)
     }
 }
