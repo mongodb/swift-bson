@@ -106,21 +106,7 @@ final class BSONCorpusTests: BSONTestCase {
             "Int64 type"
         ]
 
-        // let SKIPPED_CORPUS_TESTS = [
-        //     /* CDRIVER-1879, can't make Code with embedded NIL */
-        //     "Javascript Code": ["Embedded nulls"],
-        //     "Javascript Code with Scope": ["Unicode and embedded null in code string, empty scope"],
-        //     "Top-level document validity": [
-        //         // CDRIVER-2223, legacy extended JSON $date syntax uses numbers
-        //         "Bad $date (number, not string or hash)",
-        //         // TODO: SWIFT-330: unskip these
-        //         "Invalid BSON type low range",
-        //         "Invalid BSON type high range"
-        //     ]
-        // ]
-
         let shouldRun: (String, String) -> Bool = { testFileDesc, testDesc in
-            // SKIPPED_CORPUS_TESTS[testFileDesc]?.contains { $0 == testDesc } == true
             INCLUDED_CORPUS_TESTS.contains(testFileDesc)
         }
 
@@ -160,7 +146,7 @@ final class BSONCorpusTests: BSONTestCase {
 
         // for cB input:
         // native_to_bson( bson_to_native(cB) ) = cB
-        let docFromCB = try Document(fromBSON: cBData, validate: false)
+        let docFromCB = try Document(fromBSON: cBData)
         expect(docFromCB.toByteString()).to(equal([UInt8](cBData).toByteString()))
 
         // test round tripping through documents
@@ -254,6 +240,6 @@ final class BSONCorpusTests: BSONTestCase {
             XCTFail("\(description): Unable to interpret bson as Data")
             return
         }
-        expect(try Document(fromBSON: data, validate: true)).to(throwError(), description: description)
+        expect(try Document(fromBSON: data)).to(throwError(), description: description)
     }
 }
