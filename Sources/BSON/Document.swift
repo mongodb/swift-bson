@@ -3,6 +3,8 @@ import NIO
 
 /// This shared allocator instance should be used for all underlying `ByteBuffer` creation.
 private let BSON_ALLOCATOR = ByteBufferAllocator()
+/// Maximum BSON document size in bytes
+private let BSON_MAX_SIZE = 0x100000
 
 extension ByteBuffer {
     @discardableResult
@@ -11,17 +13,19 @@ extension ByteBuffer {
         return written
     }
 
-    internal mutating func readCString() throws -> String? {
+    internal mutating func readCString() throws -> String {
         var string = ""
-        for i in 0..<0xFFFFFE {
+        for i in 0..<BSON_MAX_SIZE {
             if let b = self.readBytes(length: 1) {
                 if b[0] == 0 {
                     return string
                 }
                 guard let character = String(bytes: b, encoding: .utf8) else {
-                    throw InternalError(message: "Cannot decode CString, byte: \(b) at position \(i) as utf8")
+                    throw InternalError(message: "Failed to read CString, byte: \(b) at position \(i) as utf8")
                 }
                 string += character
+            } else {
+                throw InternalError(message: "Failed to read CString, unable to read byte from \(self)")
             }
         }
         throw InternalError(message: "Failed to read CString, possibly missing null terminator?")
@@ -57,8 +61,7 @@ public struct Document {
         self._buffer = BSON_ALLOCATOR.buffer(capacity: 100)
 
         guard !self.keySet.isEmpty else {
-            // 5 byte count as Int32 + null byte
-            self._buffer.writeBytes([5, 0, 0, 0] + [0])
+            self = Document()
             return
         }
 
@@ -91,40 +94,46 @@ public struct Document {
     }
 
     /**
-     * Initializes a new `Document` from the provided BSON data. If validate is `true` (the default), validates that
-     * the data is specification-compliant BSON.
+     * Initializes a new `Document` from the provided BSON data.
      *
      * - Throws:
      *   - `InvalidArgumentError` if the data passed is invalid BSON
      *
      * - SeeAlso: http://bsonspec.org/
      */
-    public init(fromBSON bson: Data, validate: Bool = true) throws {
-        if validate {
-            // Pull apart the underlying binary into [KeyValuePair], should reveal issues
-            // TODO(SWIFT-866): Add validation
-            fatalError("Not Implemented")
-        } else {
-            // trust the incoming format
-            self.keySet = Set()
-            self._buffer = BSON_ALLOCATOR.buffer(capacity: bson.count)
-            self._buffer.writeBytes(bson)
-            for (key, _) in self {
-                self.keySet.insert(key)
-            }
+    public init(fromBSON bson: Data) throws {
+        guard Document.isValidBSON(bson) else {
+            throw InternalError(message: "Found \(bson) is invalid BSON")
+        }
+        self = Document(fromUnsafeBSON: bson)
+    }
+
+    internal init(fromUnsafeBSON bson: Data) {
+        // trust the incoming format
+        self.keySet = Set()
+        self._buffer = BSON_ALLOCATOR.buffer(capacity: bson.count)
+        self._buffer.writeBytes(bson)
+        for (key, _) in self {
+            self.keySet.insert(key)
         }
     }
 
     /**
-     * Initializes a new `Document` from the provided BSON data. If validate is `true` (the default), validates that
-     * the data is specification-compliant BSON.
+     * Initializes a new `Document` from the provided BSON data.
      *
      * - Throws:
      *   - `InvalidArgumentError` if the data passed is invalid BSON
      *
      * - SeeAlso: http://bsonspec.org/
      */
-    public init(fromBSON bson: ByteBuffer, validate: Bool = true) throws { fatalError("Unimplemented") }
+    public init(fromBSON bson: ByteBuffer) throws {
+        guard Document.isValidBSON(bson) else {
+            throw InternalError(message: "Found \(bson) is invalid BSON")
+        }
+        self = Document(fromUnsafeBSON: bson)
+    }
+
+    internal init(fromUnsafeBSON bson: ByteBuffer) { fatalError("Unimplemented") }
 
     /// The keys in this `Document`.
     public var keys: [String] { self.map { key, _ in key } }
@@ -196,6 +205,18 @@ public struct Document {
     public subscript(dynamicMember member: String) -> BSON? {
         get { self[member] }
         set { fatalError("Unimplemented") }
+    }
+
+    internal static func isValidBSON(_ bson: Data) -> Bool {
+        // Pull apart the underlying binary into [KeyValuePair], should reveal issues
+        // TODO(SWIFT-866): Add validation
+        true
+    }
+
+    internal static func isValidBSON(_ bson: ByteBuffer) -> Bool {
+        // Pull apart the underlying binary into [KeyValuePair], should reveal issues
+        // TODO(SWIFT-866): Add validation
+        true
     }
 }
 
