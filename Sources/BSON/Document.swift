@@ -14,27 +14,33 @@ extension ByteBuffer {
     }
 
     internal mutating func readCString() throws -> String {
+        let string = try self.getCString(at: self.readerIndex)
+        self.moveReaderIndex(forwardBy: string.utf8.count + 1)
+        return string
+    }
+
+    internal func getCString(at offset: Int) throws -> String {
         var string = ""
         for i in 0..<BSON_MAX_SIZE {
-            if let b = self.readBytes(length: 1) {
+            if let b = self.getBytes(at: offset + i, length: 1) {
                 if b[0] == 0 {
                     return string
                 }
                 guard let character = String(bytes: b, encoding: .utf8) else {
-                    throw InternalError(message: "Failed to read CString, byte: \(b) at position \(i) as utf8")
+                    throw BSONInternalError("Failed to read CString, byte: \(b) at position \(i) as utf8")
                 }
                 string += character
             } else {
-                throw InternalError(message: "Failed to read CString, unable to read byte from \(self)")
+                throw BSONInternalError("Failed to read CString, unable to read byte from \(self)")
             }
         }
-        throw InternalError(message: "Failed to read CString, possibly missing null terminator?")
+        throw BSONInternalError("Failed to read CString, possibly missing null terminator?")
     }
 }
 
 /// A struct representing the BSON document type.
 @dynamicMemberLookup
-public struct Document {
+public struct BSONDocument {
     /// The element type of a document: a tuple containing an individual key-value pair.
     public typealias KeyValuePair = (key: String, value: BSON)
 
@@ -61,7 +67,7 @@ public struct Document {
         self._buffer = BSON_ALLOCATOR.buffer(capacity: 100)
 
         guard !self.keySet.isEmpty else {
-            self = Document()
+            self = BSONDocument()
             return
         }
 
@@ -85,7 +91,7 @@ public struct Document {
         self._buffer.setInteger(size, at: 0, endianness: .little, as: Int32.self)
     }
 
-    /// Initializes a new, empty `Document`.
+    /// Initializes a new, empty `BSONDocument`.
     public init() {
         self.keySet = Set()
         self._buffer = BSON_ALLOCATOR.buffer(capacity: 5)
@@ -94,7 +100,7 @@ public struct Document {
     }
 
     /**
-     * Initializes a new `Document` from the provided BSON data.
+     * Initializes a new `BSONDocument` from the provided BSON data.
      *
      * - Throws:
      *   - `InvalidArgumentError` if the data passed is invalid BSON
@@ -102,10 +108,10 @@ public struct Document {
      * - SeeAlso: http://bsonspec.org/
      */
     public init(fromBSON bson: Data) throws {
-        guard Document.isValidBSON(bson) else {
-            throw InternalError(message: "Found \(bson) is invalid BSON")
+        guard BSONDocument.isValidBSON(bson) else {
+            throw BSONInternalError("Found \(bson) is invalid BSON")
         }
-        self = Document(fromUnsafeBSON: bson)
+        self = BSONDocument(fromUnsafeBSON: bson)
     }
 
     internal init(fromUnsafeBSON bson: Data) {
@@ -119,7 +125,7 @@ public struct Document {
     }
 
     /**
-     * Initializes a new `Document` from the provided BSON data.
+     * Initializes a new `BSONDocument` from the provided BSON data.
      *
      * - Throws:
      *   - `InvalidArgumentError` if the data passed is invalid BSON
@@ -127,18 +133,18 @@ public struct Document {
      * - SeeAlso: http://bsonspec.org/
      */
     public init(fromBSON bson: ByteBuffer) throws {
-        guard Document.isValidBSON(bson) else {
-            throw InternalError(message: "Found \(bson) is invalid BSON")
+        guard BSONDocument.isValidBSON(bson) else {
+            throw BSONInternalError("Found \(bson) is invalid BSON")
         }
-        self = Document(fromUnsafeBSON: bson)
+        self = BSONDocument(fromUnsafeBSON: bson)
     }
 
     internal init(fromUnsafeBSON bson: ByteBuffer) { fatalError("Unimplemented") }
 
-    /// The keys in this `Document`.
+    /// The keys in this `BSONDocument`.
     public var keys: [String] { self.map { key, _ in key } }
 
-    /// The values in this `Document`.
+    /// The values in this `BSONDocument`.
     public var values: [BSON] { self.map { _, val in val } }
 
     /// The number of (key, value) pairs stored at the top level of this document.
@@ -152,18 +158,18 @@ public struct Document {
     /// Returns a `Data` containing a copy of the raw BSON data backing this document.
     public func toData() -> Data { Data(self._buffer.readableBytesView) }
 
-    /// Returns a `Boolean` indicating whether this `Document` contains the provided key.
+    /// Returns a `Boolean` indicating whether this `BSONDocument` contains the provided key.
     public func hasKey(_ key: String) -> Bool { self.keySet.contains(key) }
 
     /**
      * Allows getting and setting values on the document via subscript syntax.
      * For example:
      *  ```
-     *  let d = Document()
+     *  let d = BSONDocument()
      *  d["a"] = 1
      *  print(d["a"]) // prints 1
      *  ```
-     * A nil return value indicates that the key does not exist in the  `Document`. A true BSON null is returned as
+     * A nil return value indicates that the key does not exist in the  `BSONDocument`. A true BSON null is returned as
      * `BSON.null`.
      */
     public subscript(key: String) -> BSON? {
@@ -182,7 +188,7 @@ public struct Document {
      *
      * For example:
      *  ```
-     *  let d: Document = ["hello": "world"]
+     *  let d: BSONDocument = ["hello": "world"]
      *  print(d["hello", default: "foo"]) // prints "world"
      *  print(d["a", default: "foo"]) // prints "foo"
      *  ```
@@ -195,11 +201,11 @@ public struct Document {
      * Allows getting and setting values on the document using dot-notation syntax.
      * For example:
      *  ```
-     *  let d = Document()
+     *  let d = BSONDocument()
      *  d.a = 1
      *  print(d.a) // prints 1
      *  ```
-     * A nil return value indicates that the key does not exist in the `Document`.
+     * A nil return value indicates that the key does not exist in the `BSONDocument`.
      * A true BSON null is returned as `BSON.null`.
      */
     public subscript(dynamicMember member: String) -> BSON? {
@@ -220,36 +226,36 @@ public struct Document {
     }
 }
 
-/// An extension of `Document` to add the capability to be initialized with a dictionary literal.
-extension Document: ExpressibleByDictionaryLiteral {
+/// An extension of `BSONDocument` to add the capability to be initialized with a dictionary literal.
+extension BSONDocument: ExpressibleByDictionaryLiteral {
     /**
-     * Initializes a `Document` using a dictionary literal where the keys are `Strings` and the values are `BSON`s.
+     * Initializes a `BSONDocument` using a dictionary literal where the keys are `Strings` and the values are `BSON`s.
      * For example:
-     * `d: Document = ["a" : 1 ]`
+     * `d: BSONDocument = ["a" : 1 ]`
      *
      * - Parameters:
      *   - dictionaryLiteral: a [String: BSON]
      *
-     * - Returns: a new `Document`
+     * - Returns: a new `BSONDocument`
      */
     public init(dictionaryLiteral keyValuePairs: (String, BSON)...) {
         self.init(keyValuePairs: keyValuePairs)
     }
 }
 
-extension Document: Hashable {
+extension BSONDocument: Hashable {
     public func hash(into hasher: inout Hasher) {
         fatalError("Unimplemented")
     }
 }
 
-extension Document: Equatable {
-    public static func == (lhs: Document, rhs: Document) -> Bool {
+extension BSONDocument: Equatable {
+    public static func == (lhs: BSONDocument, rhs: BSONDocument) -> Bool {
         fatalError("Unimplemented")
     }
 }
 
-extension Document: BSONValue {
+extension BSONDocument: BSONValue {
     var bsonType: BSONType { fatalError("Unimplemented") }
 
     var bson: BSON { fatalError("Unimplemented") }
