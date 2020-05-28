@@ -4,7 +4,7 @@ import Foundation
 /// - SeeAlso: bsonspec.org
 public enum BSON {
     /// A BSON document.
-    case document(Document)
+    case document(BSONDocument)
 
     /// A BSON int32.
     case int32(Int32)
@@ -44,7 +44,7 @@ public enum BSON {
     }
 
     /// If this `BSON` is a `.document`, return it as a `Document`. Otherwise, return nil.
-    public var documentValue: Document? {
+    public var documentValue: BSONDocument? {
         guard case let .document(d) = self else {
             return nil
         }
@@ -55,10 +55,10 @@ public enum BSON {
 /// Extension providing the internal API of `BSON`
 extension BSON {
     /// List of all BSONValue types. Can be used to exhaustively check each one at runtime.
-    internal static var allBSONTypes: [BSONValue.Type] = [
-        Document.self,
-        Int32.self,
-        Int64.self
+    internal static var allBSONTypes: [BSONType: BSONValue.Type] = [
+        .document: BSONDocument.self,
+        .int32: Int32.self,
+        .int64: Int64.self
     ]
 
     /// Get the associated `BSONValue` to this `BSON` case.
@@ -84,7 +84,7 @@ extension BSON: ExpressibleByIntegerLiteral {
 
 extension BSON: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (String, BSON)...) {
-        self = .document(Document(keyValuePairs: elements))
+        self = .document(BSONDocument(keyValuePairs: elements))
     }
 }
 

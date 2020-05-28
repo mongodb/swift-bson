@@ -74,7 +74,7 @@ extension Int32: BSONValue {
 
     static func read(from buffer: inout ByteBuffer) throws -> BSON {
         guard let value = buffer.readInteger(endianness: .little, as: Int32.self) else {
-            throw InternalError(message: "Not enough bytes remain to read 32-bit integer")
+            throw BSONInternalError("Not enough bytes remain to read 32-bit integer")
         }
         return .int32(value)
     }
@@ -91,7 +91,7 @@ extension Int64: BSONValue {
 
     static func read(from buffer: inout ByteBuffer) throws -> BSON {
         guard let value = buffer.readInteger(endianness: .little, as: Int64.self) else {
-            throw InternalError(message: "Not enough bytes remain to read 64-bit integer")
+            throw BSONInternalError("Not enough bytes remain to read 64-bit integer")
         }
         return .int64(value)
     }

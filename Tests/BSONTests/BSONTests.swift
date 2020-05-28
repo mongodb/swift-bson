@@ -1,6 +1,7 @@
 import BSON
 import Foundation
 import Nimble
+import NIO
 import XCTest
 
 open class BSONTestCase: XCTestCase {
@@ -51,20 +52,12 @@ public func retrieveSpecTestFiles<T: Decodable>(
         }
 }
 
-public extension Document {
+public extension BSONDocument {
     func toByteString() -> String {
         guard let bytes = self.buffer.getBytes(at: 0, length: self.buffer.readableBytes) else {
             return ""
         }
-        var string = ""
-        for byte in bytes {
-            if (33 < byte) && (byte < 126) {
-                string += String(UnicodeScalar(byte))
-            } else {
-                string += "\\x" + String(format: "%02X", byte)
-            }
-        }
-        return string
+        return BSONTests.toByteString(bytes)
     }
 
     func readAllBytes() -> [UInt8] {
@@ -75,19 +68,44 @@ public extension Document {
     }
 }
 
-extension Document: NMBCollection {}
+public func makeByteString(from bytes: [UInt8]) -> String {
+    var string = ""
+    for byte in bytes {
+        if (33 < byte) && (byte < 126) {
+            string += String(UnicodeScalar(byte))
+        } else {
+            string += "\\x" + String(format: "%02X", byte)
+        }
+    }
+    return string + ", \(String(format: "0x%02X", bytes.count))"
+}
+
+extension BSONDocument: NMBCollection {}
+
+func toByteString(_ bytes: [UInt8]?) -> String {
+    guard let defbytes = bytes else {
+        return "none"
+    }
+    var string = ""
+    for byte in defbytes {
+        if (33 < byte) && (byte < 126) {
+            string += String(UnicodeScalar(byte))
+        } else {
+            string += "\\x" + String(format: "%02X", byte)
+        }
+    }
+    return string
+}
+
+public func toByteString(buffer: ByteBuffer) -> String {
+    "ByteBuffer{" +
+        "data: \"\(BSONTests.toByteString(buffer.getBytes(at: 0, length: buffer.capacity)))\"" +
+        "len: \(buffer.capacity) or \(String(buffer.capacity, radix: 16))}"
+}
 
 public extension Array where Element == UInt8 {
     func toByteString() -> String {
-        var string = ""
-        for byte in self {
-            if (33 < byte) && (byte < 126) {
-                string += String(UnicodeScalar(byte))
-            } else {
-                string += "\\x" + String(format: "%02X", byte)
-            }
-        }
-        return string
+        BSONTests.toByteString(self)
     }
 }
 
