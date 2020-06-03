@@ -19,6 +19,15 @@ open class BSONTestCase: XCTestCase {
         }
         return path
     }
+
+    struct TestError: Error {
+        let message: String
+    }
+
+    func fail(_ message: String = "This should not happen") -> Never {
+        XCTFail(message)
+        fatalError(message)
+    }
 }
 
 public struct TestError: LocalizedError {

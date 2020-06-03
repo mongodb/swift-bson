@@ -2,41 +2,11 @@ import Foundation
 import NIO
 
 /// This shared allocator instance should be used for all underlying `ByteBuffer` creation.
-private let BSON_ALLOCATOR = ByteBufferAllocator()
+internal let BSON_ALLOCATOR = ByteBufferAllocator()
 /// Maximum BSON document size in bytes
-private let BSON_MAX_SIZE = 0x100000
-
-extension ByteBuffer {
-    @discardableResult
-    internal mutating func writeCString(_ string: String) -> Int {
-        let written = self.writeString(string + "\0")
-        return written
-    }
-
-    internal mutating func readCString() throws -> String {
-        let string = try self.getCString(at: self.readerIndex)
-        self.moveReaderIndex(forwardBy: string.utf8.count + 1)
-        return string
-    }
-
-    internal func getCString(at offset: Int) throws -> String {
-        var string = ""
-        for i in 0..<BSON_MAX_SIZE {
-            if let b = self.getBytes(at: offset + i, length: 1) {
-                if b[0] == 0 {
-                    return string
-                }
-                guard let character = String(bytes: b, encoding: .utf8) else {
-                    throw BSONInternalError("Failed to read CString, byte: \(b) at position \(i) as utf8")
-                }
-                string += character
-            } else {
-                throw BSONInternalError("Failed to read CString, unable to read byte from \(self)")
-            }
-        }
-        throw BSONInternalError("Failed to read CString, possibly missing null terminator?")
-    }
-}
+internal let BSON_MAX_SIZE = 16_000_000
+/// Minimum BSON document size in bytes
+internal let BSON_MIN_SIZE = 5
 
 /// A struct representing the BSON document type.
 @dynamicMemberLookup
@@ -47,8 +17,8 @@ public struct BSONDocument {
     private var _buffer: ByteBuffer
 
     internal var size: Int {
-        guard let size = self.buffer.getInteger(at: 0, endianness: .little, as: Int32.self) else {
-            return 5
+        guard let size = self._buffer.getInteger(at: 0, endianness: .little, as: Int32.self) else {
+            fatalError("Cannot read size of BSON from buffer")
         }
         return Int(size)
     }
@@ -76,10 +46,10 @@ public struct BSONDocument {
         // reserve space for our size that will be calculated
         self._buffer.writeInteger(0, endianness: .little, as: Int32.self)
 
-        for (key, bson) in keyValuePairs {
-            self._buffer.writeInteger(UInt8(bson.bsonValue.bsonType.rawValue), as: UInt8.self)
+        for (key, value) in keyValuePairs {
+            self._buffer.writeInteger(value.bsonValue.bsonType.rawValue, as: UInt8.self)
             self._buffer.writeCString(key)
-            bson.bsonValue.write(to: &self._buffer)
+            value.bsonValue.write(to: &self._buffer)
         }
         self._buffer.writeInteger(0, as: UInt8.self)
 
@@ -109,7 +79,7 @@ public struct BSONDocument {
      */
     public init(fromBSON bson: Data) throws {
         guard BSONDocument.isValidBSON(bson) else {
-            throw BSONInternalError("Found \(bson) is invalid BSON")
+            throw BSONError.InvalidArgumentError(message: "Found `\([UInt8](bson))` is invalid BSON")
         }
         self = BSONDocument(fromUnsafeBSON: bson)
     }
@@ -133,8 +103,8 @@ public struct BSONDocument {
      * - SeeAlso: http://bsonspec.org/
      */
     public init(fromBSON bson: ByteBuffer) throws {
-        guard BSONDocument.isValidBSON(bson) else {
-            throw BSONInternalError("Found \(bson) is invalid BSON")
+        if !BSONDocument.isValidBSON(bson) {
+            throw BSONError.InternalError(message: "Found \(bson) is invalid BSON")
         }
         self = BSONDocument(fromUnsafeBSON: bson)
     }
@@ -256,7 +226,7 @@ extension BSONDocument: Equatable {
 }
 
 extension BSONDocument: BSONValue {
-    var bsonType: BSONType { fatalError("Unimplemented") }
+    static var bsonType: BSONType { fatalError("Unimplemented") }
 
     var bson: BSON { fatalError("Unimplemented") }
 

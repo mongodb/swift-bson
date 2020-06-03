@@ -103,7 +103,7 @@ final class BSONCorpusTests: BSONTestCase {
     func testBSONCorpus() throws {
         let INCLUDED_CORPUS_TESTS = [
             "Int32 type",
-            "Int64 type",
+            "Int64 type"
         ]
 
         let shouldRun: (String, String) -> Bool = { testFileDesc, testDesc in
