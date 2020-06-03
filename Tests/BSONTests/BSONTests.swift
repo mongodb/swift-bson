@@ -76,17 +76,6 @@ public extension BSONDocument {
         return bytes
     }
 }
-public func makeByteString(from bytes: [UInt8]) -> String {
-    var string = ""
-    for byte in bytes {
-        if (33 < byte) && (byte < 126) {
-            string += String(UnicodeScalar(byte))
-        } else {
-            string += "\\x" + String(format: "%02X", byte)
-        }
-    }
-    return string + ", \(String(format: "0x%02X", bytes.count))"
-}
 
 extension BSONDocument: NMBCollection {}
 

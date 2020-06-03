@@ -34,7 +34,7 @@ public struct UInt128: Equatable, Hashable {
     }
 }
 
-public struct Decimal128: BSONValue, Equatable, Hashable, CustomStringConvertible {
+public struct BSONDecimal128: BSONValue, Equatable, Hashable, CustomStringConvertible {
     private static let DIGITS_RE = #"(?:\d+)"#
     private static let INDICATOR_RE = #"(?:e|E)"#
     private static let SIGN_RE = #"[+-]"#
@@ -65,7 +65,7 @@ public struct Decimal128: BSONValue, Equatable, Hashable, CustomStringConvertibl
         case nan = 6
     }
 
-    public enum Decimal128Errors: Error {
+    public enum BSONDecimal128Errors: Error {
         case Overflow
         case Underflow
         case Clamping
@@ -73,7 +73,7 @@ public struct Decimal128: BSONValue, Equatable, Hashable, CustomStringConvertibl
         case Syntax
     }
 
-    public var bsonType: BSONType { .decimal128 }
+    public static var bsonType: BSONType { .decimal128 }
 
     public var bson: BSON { .decimal128(self) }
 
@@ -83,9 +83,9 @@ public struct Decimal128: BSONValue, Equatable, Hashable, CustomStringConvertibl
     public var value: UInt128
 
     /// Determines if the value is Not a Number
-    public var isNaN: Bool { Decimal128.NAN == self.value }
+    public var isNaN: Bool { BSONDecimal128.NAN == self.value }
     /// Determines if the value is Infinity
-    public var isInf: Bool { Decimal128.INFINITY == self.value || Decimal128.NEG_INFINITY == self.value }
+    public var isInf: Bool { BSONDecimal128.INFINITY == self.value || BSONDecimal128.NEG_INFINITY == self.value }
 
     internal init(fromUInt128 value: UInt128) {
         self.value = value
@@ -93,10 +93,10 @@ public struct Decimal128: BSONValue, Equatable, Hashable, CustomStringConvertibl
 
     public init(fromString repr: String) throws {
         // swiftlint:disable:previous cyclomatic_complexity
-        let regex = try NSRegularExpression(pattern: Decimal128.DECIMAL128_RE)
+        let regex = try NSRegularExpression(pattern: BSONDecimal128.DECIMAL128_RE)
         let wholeRepr = NSRange(repr.startIndex..<repr.endIndex, in: repr)
         guard let match: NSTextCheckingResult = regex.firstMatch(in: repr, range: wholeRepr) else {
-            throw Decimal128Errors.Syntax
+            throw BSONDecimal128Errors.Syntax
         }
 
         var sign = 1
@@ -130,10 +130,10 @@ public struct Decimal128: BSONValue, Equatable, Hashable, CustomStringConvertibl
         let decimalPartNSRange = match.range(at: REGroups.decimalPart.rawValue)
         guard decimalPartNSRange.location != NSNotFound,
             let decimalPartRange = Range(decimalPartNSRange, in: repr) else {
-            throw Decimal128Errors.Syntax
+            throw BSONDecimal128Errors.Syntax
         }
         let decimalPart = String(repr[decimalPartRange])
-        var digits = try Decimal128.convertToDigitsArray(decimalPart)
+        var digits = try BSONDecimal128.convertToDigitsArray(decimalPart)
 
         var exponent = 0
         let exponentPartRange = match.range(at: REGroups.exponentPart.rawValue)
@@ -143,27 +143,27 @@ public struct Decimal128: BSONValue, Equatable, Hashable, CustomStringConvertibl
         if decimalPart.contains(".") {
             let pointIndex = decimalPart.firstIndex(of: ".") ?? decimalPart.endIndex
             exponent -= decimalPart.distance(from: pointIndex, to: decimalPart.endIndex) - 1
-            if exponent < Decimal128.EXPONENT_MIN {
-                exponent = Decimal128.EXPONENT_MIN
+            if exponent < BSONDecimal128.EXPONENT_MIN {
+                exponent = BSONDecimal128.EXPONENT_MIN
             }
         }
 
         guard !digits.isEmpty else {
             // This is not possible because of the regex
-            throw Decimal128Errors.Syntax
+            throw BSONDecimal128Errors.Syntax
         }
 
-        while exponent > Decimal128.EXPONENT_MAX && digits.count <= Decimal128.PERCISION_DIGITS {
+        while exponent > BSONDecimal128.EXPONENT_MAX && digits.count <= BSONDecimal128.PERCISION_DIGITS {
             // Exponent is too large, try shifting zeros into the coeffecient
             digits.append(0)
             exponent -= 1
         }
 
-        while exponent < Decimal128.EXPONENT_MIN && !digits.isEmpty {
+        while exponent < BSONDecimal128.EXPONENT_MIN && !digits.isEmpty {
             // Exponent is too small, try taking zeros off the coeffcient
             if digits.count == 1 && digits[0] == 0 {
-                // throw Decimal128Errors.Clamping (this is allowed though b/c its zero)
-                exponent = Decimal128.EXPONENT_MIN
+                // throw BSONDecimal128Errors.Clamping (this is allowed though b/c its zero)
+                exponent = BSONDecimal128.EXPONENT_MIN
                 break
             }
 
@@ -175,16 +175,16 @@ public struct Decimal128: BSONValue, Equatable, Hashable, CustomStringConvertibl
 
             if digits.last != 0 {
                 // We don't end in a zero and our exponent is too small
-                throw Decimal128Errors.Underflow
+                throw BSONDecimal128Errors.Underflow
             }
         }
 
-        guard (exponent >= Decimal128.EXPONENT_MIN) && (exponent <= Decimal128.EXPONENT_MAX) else {
-            throw Decimal128Errors.Rounding
+        guard (exponent >= BSONDecimal128.EXPONENT_MIN) && (exponent <= BSONDecimal128.EXPONENT_MAX) else {
+            throw BSONDecimal128Errors.Rounding
         }
 
-        guard digits.count <= Decimal128.PERCISION_DIGITS else {
-            throw Decimal128Errors.Overflow
+        guard digits.count <= BSONDecimal128.PERCISION_DIGITS else {
+            throw BSONDecimal128Errors.Overflow
         }
 
         var significand = UInt128(hi: 0x0, lo: 0x0)
@@ -215,7 +215,7 @@ public struct Decimal128: BSONValue, Equatable, Hashable, CustomStringConvertibl
         }
 
         self.value = UInt128(hi: 0, lo: significand.lo)
-        let biased_exponent = exponent + Decimal128.EXPONENT_BIAS
+        let biased_exponent = exponent + BSONDecimal128.EXPONENT_BIAS
 
         // Encode combination, exponent, and significand.
         if (significand.hi >> 49) & 1 == 1 {
@@ -248,7 +248,7 @@ public struct Decimal128: BSONValue, Equatable, Hashable, CustomStringConvertibl
                     continue
                 }
                 if (digit < asciiZero) && (digit > asciiNine) {
-                    throw Decimal128Errors.Syntax
+                    throw BSONDecimal128Errors.Syntax
                 }
                 if digit == asciiZero && leadingZero {
                     continue
@@ -270,13 +270,13 @@ public struct Decimal128: BSONValue, Equatable, Hashable, CustomStringConvertibl
             let hi = buffer.readInteger(endianness: .little, as: UInt64.self),
             let lo = buffer.readInteger(endianness: .little, as: UInt64.self)
         else {
-            throw InternalError(message: "Cannot read 64-bit integer")
+            throw BSONError.InternalError(message: "Cannot read 64-bit integer")
         }
-        let decimal128 = Decimal128(fromUInt128: UInt128(hi: hi, lo: lo))
+        let decimal128 = BSONDecimal128(fromUInt128: UInt128(hi: hi, lo: lo))
         return .decimal128(decimal128)
     }
 
-    public func write(to buffer: inout ByteBuffer) throws {
+    public func write(to buffer: inout ByteBuffer) {
         buffer.writeInteger(self.value.lo, endianness: .little, as: UInt64.self)
         buffer.writeInteger(self.value.hi, endianness: .little, as: UInt64.self)
     }

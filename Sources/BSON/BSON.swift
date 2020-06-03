@@ -13,7 +13,7 @@ public enum BSON {
     case int64(Int64)
 
     /// A BSON Decimal128
-    case decimal128(Decimal128)
+    case decimal128(BSONDecimal128)
 
     /// Initialize a `BSON` from an integer. On 64-bit systems, this will result in an `.int64`. On 32-bit systems,
     /// this will result in an `.int32`.
