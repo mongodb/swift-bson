@@ -26,12 +26,4 @@ extension ByteBuffer {
         }
         throw BSONError.InternalError(message: "Failed to read CString, possibly missing null terminator?")
     }
-
-    /// Get a BSONType byte from self returns .invalid for unknown types.
-    internal func getBSONType(at position: Int) -> BSONType {
-        guard let bsonType = self.getInteger(at: position).flatMap({ BSONType(rawValue: $0) }) else {
-            return .invalid
-        }
-        return bsonType
-    }
 }
