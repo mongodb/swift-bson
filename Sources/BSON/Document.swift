@@ -78,9 +78,7 @@ public struct BSONDocument {
      * - SeeAlso: http://bsonspec.org/
      */
     public init(fromBSON bson: Data) throws {
-        guard BSONDocument.isValidBSON(bson) else {
-            throw BSONError.InvalidArgumentError(message: "Found `\([UInt8](bson))` is invalid BSON")
-        }
+        try BSONDocument.validate(bson)
         self = BSONDocument(fromUnsafeBSON: bson)
     }
 
@@ -103,9 +101,7 @@ public struct BSONDocument {
      * - SeeAlso: http://bsonspec.org/
      */
     public init(fromBSON bson: ByteBuffer) throws {
-        if !BSONDocument.isValidBSON(bson) {
-            throw BSONError.InternalError(message: "Found \(bson) is invalid BSON")
-        }
+        try BSONDocument.validate(bson)
         self = BSONDocument(fromUnsafeBSON: bson)
     }
 
@@ -183,16 +179,14 @@ public struct BSONDocument {
         set { fatalError("Unimplemented") }
     }
 
-    internal static func isValidBSON(_ bson: Data) -> Bool {
+    internal static func validate(_ bson: Data) throws {
         // Pull apart the underlying binary into [KeyValuePair], should reveal issues
         // TODO(SWIFT-866): Add validation
-        true
     }
 
-    internal static func isValidBSON(_ bson: ByteBuffer) -> Bool {
+    internal static func validate(_ bson: ByteBuffer) throws {
         // Pull apart the underlying binary into [KeyValuePair], should reveal issues
         // TODO(SWIFT-866): Add validation
-        true
     }
 }
 
