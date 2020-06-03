@@ -2,7 +2,7 @@ import NIO
 
 internal protocol BSONValue {
     /// The `BSONType` associated with this value.
-    var bsonType: BSONType { get }
+    static var bsonType: BSONType { get }
 
     /// A `BSON` corresponding to this `BSONValue`.
     var bson: BSON { get }
@@ -14,6 +14,13 @@ internal protocol BSONValue {
 
     /// Writes this value's BSON byte representation to the provided ByteBuffer.
     func write(to buffer: inout ByteBuffer)
+}
+
+/// Convenience extension to get static bsonType from an instance
+extension BSONValue {
+    internal var bsonType: BSONType {
+        Self.bsonType
+    }
 }
 
 /// The possible types of BSON values and their corresponding integer values.
@@ -63,40 +70,4 @@ public enum BSONType: UInt8 {
     case minKey = 0xFF
     /// Special type which compares higher than all other possible BSON element values
     case maxKey = 0x7F
-}
-
-// Conformances of Swift types we don't own to BSONValue:
-
-extension Int32: BSONValue {
-    var bsonType: BSONType { .int32 }
-
-    var bson: BSON { .int32(self) }
-
-    static func read(from buffer: inout ByteBuffer) throws -> BSON {
-        guard let value = buffer.readInteger(endianness: .little, as: Int32.self) else {
-            throw BSONInternalError("Not enough bytes remain to read 32-bit integer")
-        }
-        return .int32(value)
-    }
-
-    func write(to buffer: inout ByteBuffer) {
-        buffer.writeInteger(self, endianness: .little, as: Int32.self)
-    }
-}
-
-extension Int64: BSONValue {
-    var bsonType: BSONType { .int64 }
-
-    var bson: BSON { .int64(self) }
-
-    static func read(from buffer: inout ByteBuffer) throws -> BSON {
-        guard let value = buffer.readInteger(endianness: .little, as: Int64.self) else {
-            throw BSONInternalError("Not enough bytes remain to read 64-bit integer")
-        }
-        return .int64(value)
-    }
-
-    func write(to buffer: inout ByteBuffer) {
-        buffer.writeInteger(self, endianness: .little, as: Int64.self)
-    }
 }
