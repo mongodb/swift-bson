@@ -8,7 +8,7 @@ extension BSONDocument: Sequence {
     public typealias SubSequence = BSONDocument
 
     /// Returns a `Bool` indicating whether the document is empty.
-    public var isEmpty: Bool { self.size == 5 }
+    public var isEmpty: Bool { self.keySet.isEmpty }
 
     /// Returns a `DocumentIterator` over the values in this `Document`.
     public func makeIterator() -> BSONDocumentIterator {
@@ -19,32 +19,44 @@ extension BSONDocument: Sequence {
 public struct BSONDocumentIterator: IteratorProtocol {
     /// The buffer we are iterating over.
     private var buffer: ByteBuffer
-    private let size: Int32
 
     internal init(over buffer: ByteBuffer) {
         self.buffer = buffer
         // moves readerIndex to first key's type indicator
-        self.size = self.buffer.readInteger(endianness: .little, as: Int32.self) ?? 5
+        self.buffer.moveReaderIndex(to: 4)
     }
 
     /// Advances to the next element and returns it, or nil if no next element exists.
     public mutating func next() -> (String, BSON)? {
-        let typeByte = self.buffer.readInteger(as: UInt8.self) ?? BSONType.invalid.rawValue
+        guard let typeByte = self.buffer.readInteger(as: UInt8.self) else {
+            fatalError("BSONDocumentIterator Failed: Cannot read from \(self.buffer)")
+        }
+
         guard let type = BSONType(rawValue: typeByte), type != .invalid else {
-            return nil
+            guard self.buffer.readableBytes != 0 else {
+                // Iteration exhuasted!
+                return nil
+            }
+            fatalError("BSONDocumentIterator Failed: Invalid type, \(typeByte)")
         }
-        guard let key = try? self.buffer.readCString() else {
-            return nil
+
+        do {
+            let key = try self.buffer.readCString()
+            guard let bson = try BSON.allBSONTypes[type]?.read(from: &buffer) else {
+                throw BSONError.InternalError(message: "Cannot read unknown type: \(type)")
+            }
+            return (key, bson)
+        } catch let error as BSONErrorProtocol {
+            fatalError("BSONDocumentIterator Failed: \(error)")
+        } catch {
+            // do catch needs to be exhuastive
+            fatalError("BSONDocumentIterator Failed")
         }
-        guard let bson = try? BSON.allBSONTypes[type]?.read(from: &buffer) else {
-            return nil
-        }
-        return (key, bson)
     }
 
     /// Finds the key in the underlying buffer, and returns the [startIndex, endIndex) containing the corresponding
-    /// element (includes from beginning of key to end of value).
-    internal func findByteRange(for keyString: String) -> (startIndex: Int, length: Int) {
+    /// element.
+    internal func findByteRange(for key: String) -> (startIndex: Int, endIndex: Int) {
         fatalError("Unimplemented")
     }
 }
