@@ -42,10 +42,10 @@ final class DocumentTests: BSONTestCase {
     }
 
     func testDecimal128Encoding() {
-        let testDoc: BSONDocument = ["dec128": .decimal128(try! Decimal128(fromString: "2.000"))]
+        let testDoc: BSONDocument = ["dec128": .decimal128(try! BSONDecimal128(fromString: "2.000"))]
         var bsonBytes: [UInt8] = []
         // 18_00_00_00 13 dec128 00 D0070000000000000000000000003A30 00
-        bsonBytes += [BSONType.decimal128.toByte] // type
+        bsonBytes += [BSONType.decimal128.rawValue] // type
         bsonBytes += Array("dec128".utf8) // key
         bsonBytes += [0x00] // null byte
         // LE Decimal128 2.000

@@ -56,6 +56,14 @@ public extension BSON {
         }
         return d
     }
+
+    /// If this `BSON` is a `.document`, return it as a `BSONDocument`. Otherwise, return nil.
+    var decimal128Value: BSONDecimal128? {
+        guard case let .decimal128(d) = self else {
+            return nil
+        }
+        return d
+    }
 }
 
 /// Extension providing the internal API of `BSON`
@@ -64,7 +72,8 @@ extension BSON {
     internal static var allBSONTypes: [BSONType: BSONValue.Type] = [
         .document: BSONDocument.self,
         .int32: Int32.self,
-        .int64: Int64.self
+        .int64: Int64.self,
+        .decimal128: BSONDecimal128.self
     ]
 
     /// Get the associated `BSONValue` to this `BSON` case.
