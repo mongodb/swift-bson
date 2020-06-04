@@ -28,36 +28,127 @@ public struct BSONDocumentIterator: IteratorProtocol {
 
     /// Advances to the next element and returns it, or nil if no next element exists.
     public mutating func next() -> (String, BSON)? {
-        guard let typeByte = self.buffer.readInteger(as: UInt8.self) else {
-            fatalError("BSONDocumentIterator Failed: Cannot read from \(self.buffer)")
-        }
-
+        let typeByte = self.buffer.readInteger(as: UInt8.self) ?? BSONType.invalid.rawValue
         guard let type = BSONType(rawValue: typeByte), type != .invalid else {
-            guard self.buffer.readableBytes != 0 else {
-                // Iteration exhuasted!
+            return nil
+        }
+        guard let key = try? self.buffer.readCString() else {
+            return nil
+        }
+        guard let bson = try? BSON.allBSONTypes[type]?.read(from: &buffer) else {
+            return nil
+        }
+        return (key, bson)
+    }
+
+    /**
+     * Find the starting index and length of a BSON Element
+     * - Parameter for: the key used to locate the element
+     */
+    internal func findByteRange(for key: String) -> (startIndex: Int, length: Int)? {
+        let key = [UInt8](key.utf8 + [0])
+
+        let typeIndicatorSize = 1
+
+        var start = 4
+        while self.buffer.readableBytes > key.count {
+            guard let view = self.buffer.getBytes(at: start + 1, length: key.count) else {
+                // Cannot read bytes of length key
                 return nil
             }
-            fatalError("BSONDocumentIterator Failed: Invalid type, \(typeByte)")
+
+            if key == view {
+                // found element
+                guard let size = BSONDocumentIterator.size(at: start, in: self.buffer) else {
+                    return nil
+                }
+                return (start, key.count + size + typeIndicatorSize)
+            }
+
+            start += 1
+        }
+        return nil
+    }
+
+    private static let bsonSizeMap: [BSONType: Int] = [
+        .bool: 1,
+        .datetime: 8,
+        .decimal128: 16,
+        .double: 8,
+        .int32: 4,
+        .int64: 8,
+        .maxKey: 0,
+        .minKey: 0,
+        .null: 0,
+        .objectId: 12,
+        .timestamp: 8,
+        .undefined: 0
+    ]
+
+    /**
+     * Get the size of a BSON Value
+     * Examples:
+     * - A BSON Int64 will return 8
+     * - A BSON Array [Int64(1), Int64(2)] will return 27
+     *
+     * - Parameter at: the index into the buffer where the type indicator for the element is
+     * - Parameter in: the buffer to read type and size information from
+     */
+    internal static func size(at position: Int, in buffer: ByteBuffer) -> Int? {
+        let type = buffer.getBSONType(at: position)
+
+        guard type != .invalid else {
+            return nil
+        }
+
+        if let size = bsonSizeMap[type] {
+            return size
         }
 
         do {
-            let key = try self.buffer.readCString()
-            guard let bson = try BSON.allBSONTypes[type]?.read(from: &buffer) else {
-                throw BSONError.InternalError(message: "Cannot read unknown type: \(type)")
+            let key = try buffer.getBSONKey(at: position + 1)
+            // types with sizes encoded into the bson
+            let typesWithSizes = [BSONType]([.string, .binary, .code, .symbol])
+            if typesWithSizes.contains(type) {
+                guard let size = buffer.getInteger(
+                    at: position + key.count + 1, endianness: .little, as: Int32.self
+                ) else {
+                    return nil
+                }
+                // add 4 for the size int32
+                return Int(size) + 4
             }
-            return (key, bson)
-        } catch let error as BSONErrorProtocol {
-            fatalError("BSONDocumentIterator Failed: \(error)")
-        } catch {
-            // do catch needs to be exhuastive
-            fatalError("BSONDocumentIterator Failed")
-        }
-    }
 
-    /// Finds the key in the underlying buffer, and returns the [startIndex, endIndex) containing the corresponding
-    /// element.
-    internal func findByteRange(for key: String) -> (startIndex: Int, endIndex: Int) {
-        fatalError("Unimplemented")
+            let typesWithSizesUninclusize = [BSONType]([.codeWithScope, .document, .array])
+            if typesWithSizesUninclusize.contains(type) {
+                guard let size = buffer.getInteger(
+                    at: position + key.count + 1, endianness: .little, as: Int32.self
+                ) else {
+                    return nil
+                }
+                // add 4 for the size int32
+                return Int(size)
+            }
+
+            // types that need their size calculated
+            if type == .regex {
+                do {
+                    let key = try buffer.getCString(at: position + 1).utf8
+                    let regexLength = try buffer.getCString(at: position + 1 + key.count + 1).utf8.count + 1
+                    let flagsLength = try buffer.getCString(
+                        at: position + 1 + key.count + 1 + regexLength
+                    ).utf8.count + 1
+                    let valueSize = regexLength + flagsLength
+                    return valueSize
+                } catch {
+                    return nil
+                }
+            }
+
+            return nil
+        } catch {
+            return nil
+        }
     }
 }
 
@@ -77,6 +168,12 @@ extension BSONDocument {
      * - Throws: An error if `isIncluded` throws an error.
      */
     public func filter(_ isIncluded: (KeyValuePair) throws -> Bool) rethrows -> BSONDocument {
-        fatalError("Unimplemented")
+        var pairs: [KeyValuePair] = []
+        for keyValuePair in self {
+            if try isIncluded(keyValuePair) {
+                pairs.append(keyValuePair)
+            }
+        }
+        return BSONDocument(keyValuePairs: pairs)
     }
 }
