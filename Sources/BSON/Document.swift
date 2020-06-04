@@ -16,15 +16,15 @@ public struct BSONDocument {
 
     private var _buffer: ByteBuffer
 
-    internal var size: Int {
-        guard let size = self._buffer.getInteger(at: 0, endianness: .little, as: Int32.self) else {
-            fatalError("Cannot read size of BSON from buffer")
+    internal var byteLength: Int {
+        guard let byteLength = self._buffer.getInteger(at: 0, endianness: .little, as: Int32.self) else {
+            fatalError("Cannot read byteLength of BSON from buffer")
         }
-        return Int(size)
+        return Int(byteLength)
     }
 
     /// An unordered set containing the keys in this document.
-    private var keySet: Set<String>
+    internal private(set) var keySet: Set<String>
 
     internal init(_ elements: [BSON]) { fatalError("Unimplemented") }
 
@@ -43,7 +43,7 @@ public struct BSONDocument {
 
         let start = self._buffer.writerIndex
 
-        // reserve space for our size that will be calculated
+        // reserve space for our byteLength that will be calculated
         self._buffer.writeInteger(0, endianness: .little, as: Int32.self)
 
         for (key, value) in keyValuePairs {
@@ -51,14 +51,15 @@ public struct BSONDocument {
             self._buffer.writeCString(key)
             value.bsonValue.write(to: &self._buffer)
         }
+        // BSON null terminator
         self._buffer.writeInteger(0, as: UInt8.self)
 
-        guard let size = Int32(exactly: self._buffer.writerIndex - start) else {
+        guard let byteLength = Int32(exactly: self._buffer.writerIndex - start) else {
             fatalError("Data is \(self._buffer.writerIndex - start) bytes, "
                 + "but maximum allowed BSON document size is \(Int32.max) bytes")
         }
-        // BSON null terminator
-        self._buffer.setInteger(size, at: 0, endianness: .little, as: Int32.self)
+        // Set byteLength in reserved space
+        self._buffer.setInteger(byteLength, at: 0, endianness: .little, as: Int32.self)
     }
 
     /// Initializes a new, empty `BSONDocument`.
@@ -78,18 +79,19 @@ public struct BSONDocument {
      * - SeeAlso: http://bsonspec.org/
      */
     public init(fromBSON bson: Data) throws {
-        try BSONDocument.validate(bson)
-        self = BSONDocument(fromUnsafeBSON: bson)
+        var buffer = BSON_ALLOCATOR.buffer(capacity: bson.count)
+        buffer.writeBytes(bson)
+        buffer.moveReaderIndex(to: 0)
+        try BSONDocument.validate(buffer)
+        self = BSONDocument(fromUnsafeBSON: buffer)
     }
 
     internal init(fromUnsafeBSON bson: Data) {
         // trust the incoming format
-        self.keySet = Set()
-        self._buffer = BSON_ALLOCATOR.buffer(capacity: bson.count)
-        self._buffer.writeBytes(bson)
-        for (key, _) in self {
-            self.keySet.insert(key)
-        }
+        var buffer = BSON_ALLOCATOR.buffer(capacity: bson.count)
+        buffer.writeBytes(bson)
+        buffer.moveReaderIndex(to: 0)
+        self = BSONDocument(fromUnsafeBSON: buffer)
     }
 
     /**
@@ -105,7 +107,13 @@ public struct BSONDocument {
         self = BSONDocument(fromUnsafeBSON: bson)
     }
 
-    internal init(fromUnsafeBSON bson: ByteBuffer) { fatalError("Unimplemented") }
+    internal init(fromUnsafeBSON bson: ByteBuffer) {
+        self.keySet = Set()
+        self._buffer = bson
+        for (key, _) in self {
+            self.keySet.insert(key)
+        }
+    }
 
     /// The keys in this `BSONDocument`.
     public var keys: [String] { self.map { key, _ in key } }
@@ -177,11 +185,6 @@ public struct BSONDocument {
     public subscript(dynamicMember member: String) -> BSON? {
         get { self[member] }
         set { fatalError("Unimplemented") }
-    }
-
-    internal static func validate(_ bson: Data) throws {
-        // Pull apart the underlying binary into [KeyValuePair], should reveal issues
-        // TODO(SWIFT-866): Add validation
     }
 
     internal static func validate(_ bson: ByteBuffer) throws {
