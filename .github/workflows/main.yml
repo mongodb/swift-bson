@@ -2,13 +2,8 @@
 
 name: Format/lint
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
-on:
-  push:
-    branches: [ master, gh-actions ]
-  pull_request:
-    branches: [ master ]
+# Controls when the action will run. Triggers the workflow on push or pull request events
+on: [push, pull_request]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -22,3 +17,5 @@ jobs:
     - uses: actions/checkout@v2
     - name: GitHub Action for SwiftLint
       uses: norio-nomura/action-swiftlint@3.1.0
+      with:
+          args: --strict
