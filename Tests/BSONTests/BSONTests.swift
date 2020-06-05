@@ -88,6 +88,40 @@ public extension BSONDocument {
     }
 }
 
+struct DocElem {
+    let key: String
+    let value: SwiftBSON
+}
+
+enum SwiftBSON {
+    case document([DocElem])
+    case other(BSON)
+}
+
+extension BSONDocument {
+    internal init(fromArray array: [DocElem]) {
+        self.init()
+
+        for elem in array {
+            switch elem.value {
+            case let .document(els):
+                self[elem.key] = .document(BSONDocument(fromArray: els))
+            case let .other(b):
+                self[elem.key] = b
+            }
+        }
+    }
+
+    internal func toArray() -> [DocElem] {
+        self.map { kvp in
+            if let subdoc = kvp.value.documentValue {
+                return DocElem(key: kvp.key, value: .document(subdoc.toArray()))
+            }
+            return DocElem(key: kvp.key, value: .other(kvp.value))
+        }
+    }
+}
+
 /// Useful extensions to the Data type for testing purposes
 extension Data {
     init?(hexString: String) {

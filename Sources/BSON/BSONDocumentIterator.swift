@@ -27,9 +27,9 @@ public struct BSONDocumentIterator: IteratorProtocol {
     }
 
     /// Advances to the next element and returns it, or nil if no next element exists.
-    public mutating func next() -> (String, BSON)? {
+    public mutating func next() -> BSONDocument.KeyValuePair? {
         guard self.buffer.readableBytes != 0 else {
-            // Iteration has been exhuasted
+            // Iteration has been exhausted
             return nil
         }
 
@@ -37,11 +37,12 @@ public struct BSONDocumentIterator: IteratorProtocol {
             fatalError("BSONDocumentIterator Failed: Cannot read from \(self.buffer)")
         }
 
+        guard typeByte != 0 else {
+            // Iteration exhausted after we've read the null terminator (special case)
+            return nil
+        }
+
         guard let type = BSONType(rawValue: typeByte), type != .invalid else {
-            if typeByte == 0 {
-                // Iteration exhuasted after we've read the null terminator (special case)
-                return nil
-            }
             fatalError("BSONDocumentIterator Failed: Invalid type, \(typeByte)")
         }
 
@@ -50,7 +51,7 @@ public struct BSONDocumentIterator: IteratorProtocol {
             guard let bson = try BSON.allBSONTypes[type]?.read(from: &buffer) else {
                 throw BSONError.InternalError(message: "Cannot read unknown type: \(type)")
             }
-            return (key, bson)
+            return (key: key, value: bson)
         } catch {
             fatalError("BSONDocumentIterator.next() failed: \(error)")
         }
