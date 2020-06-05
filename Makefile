@@ -5,12 +5,6 @@ else
 	FILTERARG =
 endif
 
-ifdef DOCSVERSION
-	DOCSARG = --module-version $(DOCSVERSION)
-else
-	DOCSARG =
-endif
-
 # if no value provided assume sourcery is in the user's PATH
 SOURCERY ?= sourcery
 
@@ -40,10 +34,9 @@ test-pretty:
 	@$(call check_for_gem,xcpretty)
 	@set -o pipefail && swift test $(FILTERARG) 2>&1 | xcpretty
 
-SOURCES := $(shell find . -name "*.swift" | grep -v ".build")
 lint:
-	@swiftformat $(SOURCES)
-	@swiftlint autocorrect $(SOURCES)
+	@swiftformat .
+	@swiftlint autocorrect
 	@swiftlint lint --strict --quiet
 
 # MacOS only
