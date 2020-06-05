@@ -51,6 +51,7 @@ functions:
               set -o xtrace
               export PROJECT_DIRECTORY="$PROJECT_DIRECTORY"
               export PROJECT="${project}"
+              export INSTALL_DIR="${PROJECT_DIRECTORY}/opt"
            EOT
            # See what we've done
            cat expansion.yml
@@ -60,14 +61,50 @@ functions:
       params:
         file: src/expansion.yml
 
-  "install dependencies":
+  "install swift":
     - command: shell.exec
       params:
         working_dir: "src"
         script: |
           ${PREPARE_SHELL}
           SWIFT_VERSION=${SWIFT_VERSION} \
-            sh ${PROJECT_DIRECTORY}/.evergreen/install-dependencies.sh
+            sh ${PROJECT_DIRECTORY}/.evergreen/install-swift.sh
+
+  "format":
+  - command: shell.exec
+    type: test
+    params:
+      working_dir: "src"
+      script: |
+        ${PREPARE_SHELL}
+        SWIFT_VERSION=${SWIFT_VERSION} \
+          bash ${PROJECT_DIRECTORY}/.evergreen/install-tools.sh swiftformat
+        SWIFT_VERSION=${SWIFT_VERSION} \
+        ${PROJECT_DIRECTORY}/opt/swiftformat/.build/release/swiftformat --lint --quiet .
+
+  "lint":
+    - command: shell.exec
+      type: test
+      params:
+        working_dir: "src"
+        script: |
+          ${PREPARE_SHELL}
+          SWIFT_VERSION=${SWIFT_VERSION} \
+            bash ${PROJECT_DIRECTORY}/.evergreen/install-tools.sh swiftlint
+          LINUX_SOURCEKIT_LIB_PATH=${PROJECT_DIRECTORY}/opt/swiftenv/versions/${SWIFT_VERSION}/usr/lib \
+            ${PROJECT_DIRECTORY}/opt/swiftlint/.build/release/swiftlint lint --strict --quiet
+
+  "sourcery":
+  - command: shell.exec
+    type: test
+    params:
+      working_dir: "src"
+      script: |
+        ${PREPARE_SHELL}
+        SWIFT_VERSION=${SWIFT_VERSION} \
+          bash ${PROJECT_DIRECTORY}/.evergreen/install-tools.sh sourcery
+        make linuxmain SOURCERY=${PROJECT_DIRECTORY}/opt/sourcery/bin/sourcery
+        git diff --exit-code Tests/LinuxMain.swift
 
   "run tests":
     - command: shell.exec
@@ -81,12 +118,21 @@ functions:
 
 pre:
   - func: "fetch source"
-  - func: "install dependencies"
+  - func: "install swift"
 
 tasks:
     - name: "test"
       commands:
         - func: "run tests"
+    - name: "check-format"
+      commands:
+        - func: "format"
+    - name: "check-lint"
+      commands:
+        - func: "lint"
+    - name: "check-sourcery"
+      commands:
+        - func: "sourcery"
 
 axes:
   - id: os-fully-featured
@@ -100,7 +146,7 @@ axes:
         display_name: "Ubuntu 16.04"
         run_on: ubuntu1604-test
 
-      - id: macos-1014
+      - id: macos-10.14
         display_name: "macOS 10.14"
         run_on: macos-1014
 
@@ -114,14 +160,31 @@ axes:
       - id: "5.2"
         display_name: "Swift 5.2"
         variables:
-           SWIFT_VERSION: "5.2"
+           SWIFT_VERSION: "5.2.4"
 
 buildvariants:
 
 - matrix_name: "tests-all"
+  display_name: "${swift-version} ${os-fully-featured}"
   matrix_spec:
     os-fully-featured: "*"
     swift-version: "*"
-  display_name: "${swift-version} ${os-fully-featured}}"
   tasks:
     - name: "test"
+
+- matrix_name: "sourcery"
+  display_name: "Check Sourcery"
+  matrix_spec:
+    os-fully-featured: "macos-10.14"
+    swift-version: "5.2"
+  tasks:
+    - name: "check-sourcery"
+
+- matrix_name: "format-lint"
+  display_name: "Format and Lint"
+  matrix_spec:
+    os-fully-featured: "ubuntu-18.04"
+    swift-version: "5.2"
+  tasks:
+    - name: "check-format"
+    - name: "check-lint"

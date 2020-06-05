@@ -4,7 +4,7 @@ set -o errexit  # Exit the script with error if any of the commands fail
 
 # variables
 PROJECT_DIRECTORY=${PROJECT_DIRECTORY:-$PWD}
-SWIFT_VERSION=${SWIFT_VERSION:-5.1}
+SWIFT_VERSION=${SWIFT_VERSION:-5.2.4}
 INSTALL_DIR="${PROJECT_DIRECTORY}/opt"
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 
