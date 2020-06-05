@@ -1,14 +1,16 @@
 import NIO
 
 extension ByteBuffer {
-    /// Write null terminated UTF-8 string to ByteBuffer starting at writerIndex
+    /// Write null terminated string into this ByteBuffer using UTF-8 encoding,
+    /// moving the writer index forward by the byte length of string + 1 (for null terminator).
     @discardableResult
     internal mutating func writeCString(_ string: String) -> Int {
         let written = self.writeString(string + "\0")
         return written
     }
 
-    /// Attempts to read null terminated UTF-8 string from ByteBuffer starting at the readerIndex
+    /// Read bytes off this ByteBuffer until encountering null, decoding it as String using the UTF-8 encoding.
+    /// moving the reader index forward by the byte length of string + 1 (for null terminator).
     internal mutating func readCString() throws -> String {
         var bytes: [UInt8] = []
         for _ in 0..<BSON_MAX_SIZE {
