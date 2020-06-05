@@ -19,7 +19,7 @@ extension ByteBuffer {
             }
             guard b[0] != 0 else {
                 guard let string = String(bytes: bytes, encoding: .utf8) else {
-                    throw BSONError.InternalError(message: "Failed to decode BSONKey as UTF8: \(bytes)")
+                    throw BSONError.InternalError(message: "Failed to decode CString as UTF8: \(bytes)")
                 }
                 return string
             }

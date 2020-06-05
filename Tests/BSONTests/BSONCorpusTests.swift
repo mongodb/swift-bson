@@ -29,11 +29,11 @@ final class BSONCorpusTests: BSONTestCase {
         /// are escaped.
         let relaxedExtJSON: String?
 
-        /// An (uppercase) big-endian hex representation of a BSON byte string that is technically parseable, but
+        /// An (uppercase) big-endian hex representation of a BSON byte string that is technically parsable, but
         /// not in compliance with the BSON spec.
         let degenerateBSON: String?
 
-        /// A string containing an invalid form of Canonical Extended JSON that is still parseable according to
+        /// A string containing an invalid form of Canonical Extended JSON that is still parsable according to
         /// type-specific rules. (For example, "1e100" instead of "1E+100".)
         let degenerateExtJSON: String?
 
@@ -76,7 +76,7 @@ final class BSONCorpusTests: BSONTestCase {
             case description, bsonType = "bson_type", valid, parseErrors, decodeErrors, deprecated
         }
 
-        /// Human-readable rdescription of the file.
+        /// Human-readable description of the file.
         let description: String
 
         /// Hex string of the first byte of a BSON element (e.g. "0x01" for type "double").
@@ -134,9 +134,10 @@ final class BSONCorpusTests: BSONTestCase {
                     // BSONDocument -> Swift data type -> BSONDocument.
                     // At the end, the new BSONDocument should be identical to the original one.
                     // If not, our BSONDocument translation layer is lossy and/or buggy.
-                    let nativeFromDoc = Array(docFromCB)
-                    let docFromNative = BSONDocument(keyValuePairs: nativeFromDoc)
-                    expect(docFromNative.toData()).to(equal(cBData))
+                    // TODO(SWIFT-867): Enable these lines when you can do subscript assignment
+                    // let nativeFromDoc = docFromCB.toArray()
+                    // let docFromNative = BSONDocument(fromArray: nativeFromDoc)
+                    // expect(docFromNative.toData()).to(equal(cBData))
 
                     // native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ
                     // expect(docFromCB.canonicalExtendedJSON).to(cleanEqual(test.canonicalExtJSON))
