@@ -19,15 +19,6 @@ open class BSONTestCase: XCTestCase {
         }
         return path
     }
-
-    struct TestError: Error {
-        let message: String
-    }
-
-    func fail(_ message: String = "This should not happen") -> Never {
-        XCTFail(message)
-        fatalError(message)
-    }
 }
 
 public struct TestError: LocalizedError {
@@ -54,6 +45,7 @@ public func retrieveSpecTestFiles<T: Decodable>(
         .contentsOfDirectory(atPath: path)
         .filter { $0.hasSuffix(".json") }
         .map { filename in
+            // TODO: update here to use BSONDecoder for more coverage
             let url = URL(fileURLWithPath: "\(path)/\(filename)")
             let data = try Data(contentsOf: url, options: .mappedIfSafe)
             let jsonResult = try JSONDecoder().decode(T.self, from: data)
@@ -61,60 +53,38 @@ public func retrieveSpecTestFiles<T: Decodable>(
         }
 }
 
-public extension BSONDocument {
-    func toByteString() -> String {
-        guard let bytes = self.buffer.getBytes(at: 0, length: self.buffer.readableBytes) else {
-            return ""
-        }
-        return BSONTests.toByteString(bytes)
-    }
-
-    func readAllBytes() -> [UInt8] {
-        guard let bytes = self.buffer.getBytes(at: 0, length: self.buffer.readableBytes) else {
-            return []
-        }
-        return bytes
-    }
-}
-
-public func makeByteString(from bytes: [UInt8]) -> String {
-    var string = ""
-    for byte in bytes {
-        if (33 < byte) && (byte < 126) {
-            string += String(UnicodeScalar(byte))
-        } else {
-            string += "\\x" + String(format: "%02X", byte)
-        }
-    }
-    return string + ", \(String(format: "0x%02X", bytes.count))"
-}
-
-extension BSONDocument: NMBCollection {}
-
 func toByteString(_ bytes: [UInt8]?) -> String {
-    guard let defbytes = bytes else {
+    guard let bytes = bytes else {
         return "none"
     }
     var string = ""
-    for byte in defbytes {
+    for byte in bytes {
+        var byteStr = ""
         if (33 < byte) && (byte < 126) {
-            string += String(UnicodeScalar(byte))
+            byteStr = " " + String(UnicodeScalar(byte))
         } else {
-            string += "\\x" + String(format: "%02X", byte)
+            byteStr = String(format: "%02X", byte)
         }
+        string += (string.isEmpty ? "" : " ") + byteStr
     }
     return string
 }
 
-public func toByteString(buffer: ByteBuffer) -> String {
-    "ByteBuffer{" +
-        "data: \"\(BSONTests.toByteString(buffer.getBytes(at: 0, length: buffer.capacity)))\"" +
-        "len: \(buffer.capacity) or \(String(buffer.capacity, radix: 16))}"
+public extension Array where Element == UInt8 {
+    var byteString: String {
+        BSONTests.toByteString(self)
+    }
 }
 
-public extension Array where Element == UInt8 {
-    func toByteString() -> String {
-        BSONTests.toByteString(self)
+public extension ByteBuffer {
+    var byteString: String {
+        BSONTests.toByteString(self.getBytes(at: 0, length: self.readableBytes))
+    }
+}
+
+public extension BSONDocument {
+    var byteString: String {
+        BSONTests.toByteString(self.buffer.getBytes(at: 0, length: self.buffer.readableBytes))
     }
 }
 

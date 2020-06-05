@@ -81,7 +81,6 @@ public struct BSONDocument {
     public init(fromBSON bson: Data) throws {
         var buffer = BSON_ALLOCATOR.buffer(capacity: bson.count)
         buffer.writeBytes(bson)
-        buffer.moveReaderIndex(to: 0)
         try BSONDocument.validate(buffer)
         self = BSONDocument(fromUnsafeBSON: buffer)
     }
@@ -90,7 +89,6 @@ public struct BSONDocument {
         // trust the incoming format
         var buffer = BSON_ALLOCATOR.buffer(capacity: bson.count)
         buffer.writeBytes(bson)
-        buffer.moveReaderIndex(to: 0)
         self = BSONDocument(fromUnsafeBSON: buffer)
     }
 

@@ -1,4 +1,4 @@
-import BSON
+@testable import BSON
 import Foundation
 import Nimble
 import XCTest
@@ -73,13 +73,10 @@ final class BSONCorpusTests: BSONTestCase {
     /// A BSON corpus test file for an individual BSON type.
     struct BSONCorpusTestFile: Decodable {
         enum CodingKeys: String, CodingKey {
-            case name, description, bsonType = "bson_type", valid, parseErrors, decodeErrors, deprecated
+            case description, bsonType = "bson_type", valid, parseErrors, decodeErrors, deprecated
         }
 
-        /// filename, added by runner
-        let name: String?
-
-        /// Human-readable description of the file.
+        /// Human-readable rdescription of the file.
         let description: String
 
         /// Hex string of the first byte of a BSON element (e.g. "0x01" for type "double").
@@ -113,133 +110,122 @@ final class BSONCorpusTests: BSONTestCase {
         for (_, testFile) in try retrieveSpecTestFiles(specName: "bson-corpus", asType: BSONCorpusTestFile.self) {
             if let validityTests = testFile.valid {
                 for test in validityTests where shouldRun(testFile.description, test.description) {
-                    try doValidityTest(test, testFile, description: "\(testFile.description)-\(test.description)")
+                    guard let cBData = Data(hexString: test.canonicalBSON) else {
+                        XCTFail("Unable to interpret canonical_bson as Data")
+                        return
+                    }
+
+                    // guard let cEJData = test.canonicalExtJSON.data(using: .utf8) else {
+                    //     XCTFail("Unable to interpret canonical_extjson as Data")
+                    //     return
+                    // }
+
+                    // let lossy = test.lossy ?? false
+
+                    // for cB input:
+                    // native_to_bson( bson_to_native(cB) ) = cB
+                    let docFromCB = try BSONDocument(fromBSON: cBData)
+                    expect(docFromCB.toData()).to(equal(cBData))
+
+                    // test round tripping through documents
+                    // We create an array by reading every element out of the document (and therefore out of the
+                    // BSONDocument). We then create a new document and append each element of the array to it.
+                    // Once that is done, every element in the original document will have gone from
+                    // BSONDocument -> Swift data type -> BSONDocument.
+                    // At the end, the new BSONDocument should be identical to the original one.
+                    // If not, our BSONDocument translation layer is lossy and/or buggy.
+                    let nativeFromDoc = Array(docFromCB)
+                    let docFromNative = BSONDocument(keyValuePairs: nativeFromDoc)
+                    expect(docFromNative.toData()).to(equal(cBData))
+
+                    // native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ
+                    // expect(docFromCB.canonicalExtendedJSON).to(cleanEqual(test.canonicalExtJSON))
+
+                    // native_to_relaxed_extended_json( bson_to_native(cB) ) = rEJ (if rEJ exists)
+                    // if let rEJ = test.relaxedExtJSON {
+                    //     expect(try Document(fromBSON: cBData).extendedJSON).to(cleanEqual(rEJ))
+                    // }
+
+                    // for cEJ input:
+                    // native_to_canonical_extended_json( json_to_native(cEJ) ) = cEJ
+                    // expect(try Document(fromJSON: cEJData).canonicalExtendedJSON)
+                    //        .to(cleanEqual(test.canonicalExtJSON))
+
+                    // // native_to_bson( json_to_native(cEJ) ) = cB (unless lossy)
+                    // if !lossy {
+                    //     expect(try Document(fromJSON: cEJData).rawBSON).to(equal(cBData))
+                    // }
+
+                    // for dB input (if it exists):
+                    // if let dB = test.degenerateBSON {
+                    //     guard let dBData = Data(hexString: dB) else {
+                    //         XCTFail("Unable to interpret degenerate_bson as Data")
+                    //         return
+                    //     }
+
+                    //     // bson_to_canonical_extended_json(dB) = cEJ
+                    //     expect(try Document(fromBSON: dBData).canonicalExtendedJSON)
+                    //         .to(cleanEqual(test.canonicalExtJSON))
+
+                    //     // bson_to_relaxed_extended_json(dB) = rEJ (if rEJ exists)
+                    //     if let rEJ = test.relaxedExtJSON {
+                    //         expect(try Document(fromBSON: dBData).extendedJSON).to(cleanEqual(rEJ))
+                    //     }
+                    // }
+
+                    // for dEJ input (if it exists):
+                    // if let dEJ = test.degenerateExtJSON {
+                    //     // native_to_canonical_extended_json( json_to_native(dEJ) ) = cEJ
+                    //     expect(try Document(fromJSON: dEJ).canonicalExtendedJSON)
+                    //           .to(cleanEqual(test.canonicalExtJSON))
+
+                    //     // native_to_bson( json_to_native(dEJ) ) = cB (unless lossy)
+                    //     if !lossy {
+                    //         expect(try Document(fromJSON: dEJ).rawBSON).to(equal(cBData))
+                    //     }
+                    // }
+
+                    // for rEJ input (if it exists):
+                    // if let rEJ = test.relaxedExtJSON {
+                    //     // native_to_relaxed_extended_json( json_to_native(rEJ) ) = rEJ
+                    //     expect(try Document(fromJSON: rEJ).extendedJSON).to(cleanEqual(rEJ))
+                    // }
                 }
             }
 
+            continue // TODO(SWIFT-866): Remove after validation implemented
+
             if let parseErrorTests = testFile.parseErrors {
                 for test in parseErrorTests where shouldRun(testFile.description, test.description) {
-                    // try doParseErrorTest(test, testFile, description: "\(testFile.description)-\(test.description)")
+                    let description = "\(testFile.description)-\(test.description)"
+
+                    switch BSONType(rawValue: UInt8(testFile.bsonType.dropFirst(2), radix: 16)!)! {
+                    case .invalid: // "top level document" uses 0x00 for the bson type
+                        _ = ()
+                    // expect(try BSONDocument(fromJSON: test.string)).to(throwError(), description: description)
+                    case .decimal128:
+                        _ = ()
+                    // expect(BSONDecimal128(test.string)).to(beNil(), description: description)
+                    default:
+                        throw TestError(
+                            message: "\(description): parse error tests not implemented"
+                                + "for bson type \(testFile.bsonType)"
+                        )
+                    }
                 }
             }
 
             if let decodeErrors = testFile.decodeErrors {
                 for test in decodeErrors where shouldRun(testFile.description, test.description) {
-                    // try doDecodeErrorTest(test, testFile, description: "\(testFile.description)-\(test.description)")
+                    let description = "\(testFile.description)-\(test.description)"
+
+                    guard let data = Data(hexString: test.bson) else {
+                        XCTFail("\(description): Unable to interpret bson as Data")
+                        return
+                    }
+                    expect(try BSONDocument(fromBSON: data)).to(throwError(), description: description)
                 }
             }
         }
-    }
-
-    func doValidityTest(_ test: BSONCorpusValidityTest, _ testFile: BSONCorpusTestFile, description: String) throws {
-        guard let cBData = Data(hexString: test.canonicalBSON) else {
-            XCTFail("Unable to interpret canonical_bson as Data")
-            return
-        }
-
-        // guard let cEJData = test.canonicalExtJSON.data(using: .utf8) else {
-        //     XCTFail("Unable to interpret canonical_extjson as Data")
-        //     return
-        // }
-
-        // let lossy = test.lossy ?? false
-
-        // for cB input:
-        // native_to_bson( bson_to_native(cB) ) = cB
-        let docFromCB = try BSONDocument(fromBSON: cBData)
-        expect(docFromCB.toByteString()).to(equal([UInt8](cBData).toByteString()))
-
-        // test round tripping through documents
-        // We create an array by reading every element out of the document (and therefore out of the
-        // bson_t). We then create a new document and append each element of the array to it. Once that
-        // is done, every element in the original document will have gone from bson_t -> Swift data type
-        // -> bson_t. At the end, the new bson_t should be identical to the original one. If not, our bson_t
-        // translation layer is lossy and/or buggy.
-        // let nativeFromDoc = docFromCB.toArray()
-        // let docFromNative = BSONDocument(fromArray: nativeFromDoc)
-        // expect(docFromNative.rawBSON).to(equal(cBData))
-
-        // native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ
-        // expect(docFromCB.canonicalExtendedJSON).to(cleanEqual(test.canonicalExtJSON))
-
-        // native_to_relaxed_extended_json( bson_to_native(cB) ) = rEJ (if rEJ exists)
-        // if let rEJ = test.relaxedExtJSON {
-        //     expect(try BSONDocument(fromBSON: cBData).extendedJSON).to(cleanEqual(rEJ))
-        // }
-
-        // for cEJ input:
-        // native_to_canonical_extended_json( json_to_native(cEJ) ) = cEJ
-        // expect(try BSONDocument(fromJSON: cEJData).canonicalExtendedJSON).to(cleanEqual(test.canonicalExtJSON))
-
-        // native_to_bson( json_to_native(cEJ) ) = cB (unless lossy)
-        // if !lossy {
-        //     expect(try BSONDocument(fromJSON: cEJData).rawBSON).to(equal(cBData))
-        // }
-
-        // for dB input (if it exists):
-        // if let dB = test.degenerateBSON {
-        //     guard let dBData = Data(hexString: dB) else {
-        //         XCTFail("Unable to interpret degenerate_bson as Data")
-        //         return
-        //     }
-
-        //     // bson_to_canonical_extended_json(dB) = cEJ
-        //     expect(try BSONDocument(fromBSON: dBData).canonicalExtendedJSON)
-        //         .to(cleanEqual(test.canonicalExtJSON))
-
-        //     // bson_to_relaxed_extended_json(dB) = rEJ (if rEJ exists)
-        //     if let rEJ = test.relaxedExtJSON {
-        //         expect(try BSONDocument(fromBSON: dBData).extendedJSON).to(cleanEqual(rEJ))
-        //     }
-        // }
-
-        // for dEJ input (if it exists):
-        // if let dEJ = test.degenerateExtJSON {
-        //     // native_to_canonical_extended_json( json_to_native(dEJ) ) = cEJ
-        //     expect(try BSONDocument(fromJSON: dEJ).canonicalExtendedJSON).to(cleanEqual(test.canonicalExtJSON))
-
-        //     // native_to_bson( json_to_native(dEJ) ) = cB (unless lossy)
-        //     if !lossy {
-        //         expect(try BSONDocument(fromJSON: dEJ).rawBSON).to(equal(cBData))
-        //     }
-        // }
-
-        // for rEJ input (if it exists):
-        // if let rEJ = test.relaxedExtJSON {
-        //     // native_to_relaxed_extended_json( json_to_native(rEJ) ) = rEJ
-        //     expect(try BSONDocument(fromJSON: rEJ).extendedJSON).to(cleanEqual(rEJ))
-        // }
-    }
-
-    func doParseErrorTest(
-        test: BSONCorpusParseErrorTest,
-        testFile: BSONCorpusTestFile,
-        description: String
-    ) throws {
-        switch BSONType(rawValue: UInt8(testFile.bsonType.dropFirst(2), radix: 16)!)! {
-        case .invalid:
-            _ = ()
-        // "top level document" uses 0x00 for the bson type
-        // expect(try BSONDocument(fromJSON: test.string)).to(throwError(), description: description)
-        case .decimal128:
-            _ = ()
-        // expect(Decimal128(test.string)).to(beNil(), description: description)
-        default:
-            throw TestError(
-                message: "\(description): parse error tests not implemented for bson type \(testFile.bsonType)"
-            )
-        }
-    }
-
-    func doDecodeErrorTest(
-        test: BSONCorpusDecodeErrorTest,
-        testFile: BSONCorpusTestFile,
-        description: String
-    ) throws {
-        guard let data = Data(hexString: test.bson) else {
-            XCTFail("\(description): Unable to interpret bson as Data")
-            return
-        }
-        expect(try BSONDocument(fromBSON: data)).to(throwError(), description: description)
     }
 }
