@@ -188,8 +188,62 @@ public struct BSONDocument {
     }
 
     internal static func validate(_ bson: ByteBuffer) throws {
-        // Pull apart the underlying binary into [KeyValuePair], should reveal issues
-        // TODO(SWIFT-866): Add validation
+        // swiftlint:disable:previous cyclomatic_complexity
+        guard let bsonSize = bson.getInteger(at: 0, endianness: .little, as: Int32.self),
+            bsonSize >= BSON_MIN_SIZE && bsonSize <= BSON_MAX_SIZE else {
+            throw BSONError.InvalidArgumentError(message: "Cannot read byteLength from buffer")
+        }
+        guard let last = bson.getInteger(at: Int(bsonSize) - 1, as: UInt8.self), last == 0x00 else {
+            throw BSONError.InvalidArgumentError(message: "Buffer does not end in null terminator")
+        }
+        guard bsonSize >= BSON_MIN_SIZE && bsonSize <= BSON_MAX_SIZE else {
+            // Too small or too big
+            throw BSONError.InvalidArgumentError(message: "Cannot validate bson with byteLength \(bsonSize)")
+        }
+
+        if bsonSize == BSON_MIN_SIZE {
+            // Empty document is a valid document
+            return
+        }
+
+        var index = 4 // the first key's type
+        while index < (bsonSize - 1) {
+            let type = bson.getBSONType(at: index)
+            guard type != .invalid else {
+                throw BSONError.InvalidArgumentError(message: "BSON contains invlaid type")
+            }
+
+            guard let size = BSONDocumentIterator.size(at: index, in: bson) else {
+                throw BSONError.InvalidArgumentError(message: "Cannot obtain size of \(type) element")
+            }
+
+            index += 1
+
+            let key = try bson.getBSONKey(at: index)
+            index += key.count
+
+            if type == .array || type == .document {
+                guard let valueBuffer = bson.viewBytes(at: index, length: size) else {
+                    throw BSONError.InvalidArgumentError(message: "Cannot read \(type) from buffer")
+                }
+                // recursive check
+                try BSONDocument.validate(ByteBuffer(valueBuffer))
+            }
+
+            if type == .codeWithScope {
+                index += 4
+                guard let stringSize = bson.getInteger(at: index, endianness: .little, as: Int32.self) else {
+                    throw BSONError.InvalidArgumentError(message: "Cannot read code string from buffer")
+                }
+                index += Int(stringSize)
+                guard let scopeBuffer = bson.viewBytes(at: index, length: size) else {
+                    throw BSONError.InvalidArgumentError(message: "Cannot read scope doc from buffer")
+                }
+                // recursive check on scope doc
+                try BSONDocument.validate(ByteBuffer(scopeBuffer))
+            }
+            index += size
+        }
     }
 }
 
