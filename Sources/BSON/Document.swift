@@ -4,7 +4,7 @@ import NIO
 /// This shared allocator instance should be used for all underlying `ByteBuffer` creation.
 internal let BSON_ALLOCATOR = ByteBufferAllocator()
 /// Maximum BSON document size in bytes
-internal let BSON_MAX_SIZE = 16_000_000
+internal let BSON_MAX_SIZE = 0x1000000
 /// Minimum BSON document size in bytes
 internal let BSON_MIN_SIZE = 5
 
@@ -34,7 +34,7 @@ public struct BSONDocument {
             fatalError("Dictionary \(keyValuePairs) contains duplicate keys")
         }
 
-        self._buffer = BSON_ALLOCATOR.buffer(capacity: 100)
+        self._buffer = BSON_ALLOCATOR.buffer(capacity: 0)
 
         guard !self.keySet.isEmpty else {
             self = BSONDocument()
@@ -65,7 +65,7 @@ public struct BSONDocument {
     /// Initializes a new, empty `BSONDocument`.
     public init() {
         self.keySet = Set()
-        self._buffer = BSON_ALLOCATOR.buffer(capacity: 5)
+        self._buffer = BSON_ALLOCATOR.buffer(capacity: 0)
         self._buffer.writeInteger(5, endianness: .little, as: Int32.self)
         self._buffer.writeBytes([0])
     }
@@ -81,15 +81,7 @@ public struct BSONDocument {
     public init(fromBSON bson: Data) throws {
         var buffer = BSON_ALLOCATOR.buffer(capacity: bson.count)
         buffer.writeBytes(bson)
-        try BSONDocument.validate(buffer)
-        self = BSONDocument(fromUnsafeBSON: buffer)
-    }
-
-    internal init(fromUnsafeBSON bson: Data) {
-        // trust the incoming format
-        var buffer = BSON_ALLOCATOR.buffer(capacity: bson.count)
-        buffer.writeBytes(bson)
-        self = BSONDocument(fromUnsafeBSON: buffer)
+        self = try BSONDocument(fromBSON: buffer)
     }
 
     /**
@@ -125,7 +117,7 @@ public struct BSONDocument {
     /// A copy of the `ByteBuffer` backing this document, containing raw BSON data. As `ByteBuffer`s implement
     /// copy-on-write, this copy will share byte storage with this document until either the document or the returned
     /// buffer is mutated.
-    public var buffer: ByteBuffer { ByteBuffer(self._buffer.readableBytesView) }
+    public var buffer: ByteBuffer { self._buffer }
 
     /// Returns a `Data` containing a copy of the raw BSON data backing this document.
     public func toData() -> Data { Data(self._buffer.readableBytesView) }
@@ -221,15 +213,15 @@ extension BSONDocument: Equatable {
 }
 
 extension BSONDocument: BSONValue {
-    static var bsonType: BSONType { fatalError("Unimplemented") }
+    internal static var bsonType: BSONType { fatalError("Unimplemented") }
 
-    var bson: BSON { fatalError("Unimplemented") }
+    internal var bson: BSON { fatalError("Unimplemented") }
 
-    static func read(from buffer: inout ByteBuffer) throws -> BSON {
+    internal static func read(from buffer: inout ByteBuffer) throws -> BSON {
         fatalError("Unimplemented")
     }
 
-    func write(to buffer: inout ByteBuffer) {
+    internal func write(to buffer: inout ByteBuffer) {
         fatalError("Unimplemented")
     }
 }
