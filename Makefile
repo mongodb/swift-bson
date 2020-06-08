@@ -24,6 +24,7 @@ project:
 
 linuxmain:
 	$(SOURCERY) --sources Tests/ --exclude-sources Tests/DisabledTests/ --templates Tests/LinuxMain.stencil --output Tests/LinuxMain.swift
+	# Tail the stenciled file to remove the sourcery inserted header, so you don't get version # conflicts in CI
 	@tail -n +5 Tests/LinuxMain.swift > Tests/LinuxMain.swift.tmp
 	@mv Tests/LinuxMain.swift.tmp Tests/LinuxMain.swift
 
