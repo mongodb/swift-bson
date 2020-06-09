@@ -2,7 +2,7 @@ import NIO
 
 internal protocol BSONValue {
     /// The `BSONType` associated with this value.
-    var bsonType: BSONType { get }
+    static var bsonType: BSONType { get }
 
     /// A `BSON` corresponding to this `BSONValue`.
     var bson: BSON { get }
@@ -13,11 +13,18 @@ internal protocol BSONValue {
     static func read(from buffer: inout ByteBuffer) throws -> BSON
 
     /// Writes this value's BSON byte representation to the provided ByteBuffer.
-    func write(to buffer: inout ByteBuffer) throws
+    func write(to buffer: inout ByteBuffer)
+}
+
+/// Convenience extension to get static bsonType from an instance
+extension BSONValue {
+    internal var bsonType: BSONType {
+        Self.bsonType
+    }
 }
 
 /// The possible types of BSON values and their corresponding integer values.
-public enum BSONType: UInt32 {
+public enum BSONType: UInt8 {
     /// An invalid type
     case invalid = 0x00
     /// 64-bit binary floating point
@@ -63,34 +70,4 @@ public enum BSONType: UInt32 {
     case minKey = 0xFF
     /// Special type which compares higher than all other possible BSON element values
     case maxKey = 0x7F
-}
-
-// Conformances of Swift types we don't own to BSONValue:
-
-extension Int32: BSONValue {
-    var bsonType: BSONType { fatalError("Unimplemented") }
-
-    var bson: BSON { fatalError("Unimplemented") }
-
-    static func read(from buffer: inout ByteBuffer) throws -> BSON {
-        fatalError("Unimplemented")
-    }
-
-    func write(to buffer: inout ByteBuffer) throws {
-        fatalError("Unimplemented")
-    }
-}
-
-extension Int64: BSONValue {
-    var bsonType: BSONType { fatalError("Unimplemented") }
-
-    var bson: BSON { fatalError("Unimplemented") }
-
-    static func read(from buffer: inout ByteBuffer) throws -> BSON {
-        fatalError("Unimplemented")
-    }
-
-    func write(to buffer: inout ByteBuffer) throws {
-        fatalError("Unimplemented")
-    }
 }
