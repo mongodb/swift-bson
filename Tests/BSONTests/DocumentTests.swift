@@ -11,7 +11,7 @@ final class DocumentTests: BSONTestCase {
     ]
 
     func testCount() {
-        expect(DocumentTests.testDoc).to(haveCount(3))
+        expect(DocumentTests.testDoc.count).to(equal(3))
     }
 
     func testKeys() {

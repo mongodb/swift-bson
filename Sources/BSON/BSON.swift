@@ -227,7 +227,7 @@ extension BSON {
     }
 
     /// If this `BSON` is a `.array`, return it as a `[BSON]`. Otherwise, return nil.
-    var arrayValue: [BSON]? {
+    public var arrayValue: [BSON]? {
         guard case let .array(d) = self else {
             return nil
         }
@@ -235,7 +235,7 @@ extension BSON {
     }
 
     /// If this `BSON` is a `.bool`, return it as a `Bool`. Otherwise, return nil.
-    var boolValue: Bool? {
+    public var boolValue: Bool? {
         guard case let .bool(d) = self else {
             return nil
         }
@@ -243,7 +243,7 @@ extension BSON {
     }
 
     /// If this `BSON` is a `.date`, return it as a `Date`. Otherwise, return nil.
-    var dateValue: Date? {
+    public var dateValue: Date? {
         guard case let .datetime(d) = self else {
             return nil
         }
@@ -251,7 +251,7 @@ extension BSON {
     }
 
     /// If this `BSON` is a `.double`, return it as a `Double`. Otherwise, return nil.
-    var doubleValue: Double? {
+    public var doubleValue: Double? {
         guard case let .double(d) = self else {
             return nil
         }
@@ -259,7 +259,7 @@ extension BSON {
     }
 
     /// If this `BSON` is a `.string`, return it as a `String`. Otherwise, return nil.
-    var stringValue: String? {
+    public var stringValue: String? {
         guard case let .string(d) = self else {
             return nil
         }

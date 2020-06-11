@@ -70,11 +70,6 @@ public struct BSONDocumentIterator: IteratorProtocol {
             self.exhausted = true
             return nil
         }
-        guard let bson = try? BSON.allBSONTypes[type]?.read(from: &buffer) else {
-            return nil
-        }
-        return (key, bson)
-    }
 
         guard let type = BSONType(rawValue: typeByte), type != .invalid else {
             throw BSONIterationError(
