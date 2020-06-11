@@ -31,4 +31,14 @@ final class DocumentTests: BSONTestCase {
     func testDynamicMemberLookup() {
         expect(DocumentTests.testDoc.int).to(equal(0xBAD1DEA))
     }
+
+    func testModifying() {
+        var doc: BSONDocument = ["a": .int32(32), "b": .int64(64), "c": 20]
+        doc["a"] = .int32(45) // change
+        doc["c"] = .int32(90) // change type
+        doc["b"] = nil // delete
+        doc["d"] = 3 // append
+        let res: BSONDocument = ["a": .int32(45), "c": .int32(90), "d": 3]
+        expect(doc.buffer.byteString).to(equal(res.buffer.byteString))
+    }
 }

@@ -135,9 +135,9 @@ final class BSONCorpusTests: BSONTestCase {
                     // At the end, the new BSONDocument should be identical to the original one.
                     // If not, our BSONDocument translation layer is lossy and/or buggy.
                     // TODO(SWIFT-867): Enable these lines when you can do subscript assignment
-                    // let nativeFromDoc = docFromCB.toArray()
-                    // let docFromNative = BSONDocument(fromArray: nativeFromDoc)
-                    // expect(docFromNative.toData()).to(equal(cBData))
+                    let nativeFromDoc = docFromCB.toArray()
+                    let docFromNative = BSONDocument(fromArray: nativeFromDoc)
+                    expect(docFromNative.toData()).to(equal(cBData))
 
                     // native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ
                     // expect(docFromCB.canonicalExtendedJSON).to(cleanEqual(test.canonicalExtJSON))

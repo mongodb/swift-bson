@@ -67,18 +67,18 @@ public struct BSONDocumentIterator: IteratorProtocol {
 
     /// Finds the key in the underlying buffer, and returns the [startIndex, endIndex) containing the corresponding
     /// element.
-    internal func findByteRange(for searchKey: String) -> (startIndex: Int, length: Int)? {
+    internal func findByteRange(for searchKey: String) -> (startIndex: Int, endIndex: Int)? {
         var iter = BSONDocumentIterator(over: self.buffer)
         while true {
-            let starterIndex = iter.buffer.readerIndex
+            let startIndex = iter.buffer.readerIndex
             guard let (key, _) = iter.next() else {
                 // Iteration ended without finding a match
                 return nil
             }
-            let enderIndex = iter.buffer.readerIndex
+            let endIndex = iter.buffer.readerIndex
 
             if key == searchKey {
-                return (startIndex: starterIndex, length: enderIndex - starterIndex)
+                return (startIndex: startIndex, endIndex: endIndex)
             }
         }
     }

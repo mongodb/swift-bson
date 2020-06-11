@@ -14,19 +14,26 @@ public struct BSONDocument {
     /// The element type of a document: a tuple containing an individual key-value pair.
     public typealias KeyValuePair = (key: String, value: BSON)
 
-    private var _buffer: ByteBuffer
+    internal var _buffer: ByteBuffer
 
     internal var byteLength: Int {
-        guard let byteLength = self._buffer.getInteger(at: 0, endianness: .little, as: Int32.self) else {
-            fatalError("Cannot read byteLength of BSON from buffer")
+        get {
+            guard let byteLength = self._buffer.getInteger(at: 0, endianness: .little, as: Int32.self) else {
+                fatalError("Cannot read byteLength of BSON from buffer")
+            }
+            return Int(byteLength)
         }
-        return Int(byteLength)
+        set {
+            self._buffer.setInteger(Int32(newValue), at: 0, endianness: .little, as: Int32.self)
+        }
     }
 
     /// An unordered set containing the keys in this document.
     internal private(set) var keySet: Set<String>
 
-    internal init(_ elements: [BSON]) { fatalError("Unimplemented") }
+    internal init(_ elements: [BSON]) {
+        self = BSONDocument(keyValuePairs: elements.enumerated().map { i, element in (String(i), element) })
+    }
 
     internal init(keyValuePairs: [(String, BSON)]) {
         self.keySet = Set(keyValuePairs.map { $0.0 })
@@ -46,10 +53,8 @@ public struct BSONDocument {
         // reserve space for our byteLength that will be calculated
         self._buffer.writeInteger(0, endianness: .little, as: Int32.self)
 
-        for (key, value) in keyValuePairs {
-            self._buffer.writeInteger(value.bsonValue.bsonType.rawValue, as: UInt8.self)
-            self._buffer.writeCString(key)
-            value.bsonValue.write(to: &self._buffer)
+        for element in keyValuePairs {
+            BSONDocument.appendElement(element, to: &self._buffer)
         }
         // BSON null terminator
         self._buffer.writeInteger(0, as: UInt8.self)
@@ -143,7 +148,13 @@ public struct BSONDocument {
             }
             return nil
         }
-        set { fatalError("Unimplemented") }
+        set {
+            do {
+                try self.setElement((key: key, value: newValue))
+            } catch {
+                fatalError("\(error)")
+            }
+        }
     }
 
     /**
@@ -158,7 +169,7 @@ public struct BSONDocument {
      *  ```
      */
     public subscript(key: String, default defaultValue: @autoclosure () -> BSON) -> BSON {
-        fatalError("Unimplemented")
+        self[key] ?? defaultValue()
     }
 
     /**
@@ -174,7 +185,74 @@ public struct BSONDocument {
      */
     public subscript(dynamicMember member: String) -> BSON? {
         get { self[member] }
-        set { fatalError("Unimplemented") }
+        set { self[member] = newValue }
+    }
+
+    /**
+     * Sets a BSON element with the corresponding key
+     * if element.value is nil the element is deleted from the BSON
+     */
+    internal mutating func setElement(_ element: (key: String, value: BSON?)) throws {
+        if !self.keySet.contains(element.key), let value = element.value {
+            // appending new key
+            self.keySet.insert(element.key)
+            self._buffer.moveWriterIndex(to: self.byteLength - 1) // setup to overwrite null terminator
+            let size = BSONDocument.appendElement((element.key, value), to: &self._buffer)
+            self._buffer.writeInteger(0, endianness: .little, as: UInt8.self) // add back in our null terminator
+            self.byteLength += size
+            return
+        }
+
+        let iter = BSONDocumentIterator(over: self._buffer)
+
+        guard let (start, end) = iter.findByteRange(for: element.key) else {
+            throw BSONError.InternalError(message: "Cannot find \(element.key) to delete")
+        }
+
+        var newBuffer = BSON_ALLOCATOR.buffer(capacity: 0)
+
+        guard
+            let prefix = self._buffer.getBytes(at: 0, length: start),
+            let suffix = self._buffer.getBytes(at: end, length: self.byteLength - end)
+        else {
+            throw BSONError.InternalError(
+                message: "Cannot slice buffer from " +
+                    "0 to len \(start) and from \(end) to len \(self.byteLength - end) : \(self._buffer)"
+            )
+        }
+
+        newBuffer.writeBytes(prefix)
+
+        var newSize = self.byteLength - (end - start)
+        if let value = element.value {
+            // Overwriting
+            let size = BSONDocument.appendElement((element.key, value), to: &newBuffer)
+            newSize += size
+
+            guard newSize != BSON_MAX_SIZE else {
+                throw BSONError.DocumentTooLargeError(value: value.bsonValue, forKey: element.key)
+            }
+        } else {
+            // Deleteing
+            self.keySet.remove(element.key)
+        }
+
+        newBuffer.writeBytes(suffix)
+
+        self._buffer = newBuffer
+        self.byteLength = newSize
+        guard self.byteLength == self._buffer.readableBytes else {
+            fatalError("I think the bson is \(self.byteLength) but I can only read \(self._buffer.readableBytes)")
+        }
+    }
+
+    @discardableResult
+    internal static func appendElement(_ element: BSONDocument.KeyValuePair, to buffer: inout ByteBuffer) -> Int {
+        let writer = buffer.writerIndex
+        buffer.writeInteger(element.value.bsonValue.bsonType.rawValue, as: UInt8.self)
+        buffer.writeCString(element.key)
+        element.value.bsonValue.write(to: &buffer)
+        return buffer.writerIndex - writer
     }
 
     internal static func validate(_ bson: ByteBuffer) throws {
@@ -202,26 +280,27 @@ extension BSONDocument: ExpressibleByDictionaryLiteral {
 
 extension BSONDocument: Hashable {
     public func hash(into hasher: inout Hasher) {
-        fatalError("Unimplemented")
+        hasher.combine(self.buffer)
     }
 }
 
 extension BSONDocument: Equatable {
     public static func == (lhs: BSONDocument, rhs: BSONDocument) -> Bool {
-        fatalError("Unimplemented")
+        lhs.buffer == rhs.buffer
     }
 }
 
 extension BSONDocument: BSONValue {
-    internal static var bsonType: BSONType { fatalError("Unimplemented") }
+    internal static var bsonType: BSONType { .document }
 
-    internal var bson: BSON { fatalError("Unimplemented") }
+    internal var bson: BSON { .document(self) }
 
     internal static func read(from buffer: inout ByteBuffer) throws -> BSON {
-        fatalError("Unimplemented")
+        .document(try BSONDocument(fromBSON: buffer))
     }
 
     internal func write(to buffer: inout ByteBuffer) {
-        fatalError("Unimplemented")
+        var doc = ByteBuffer(self._buffer.readableBytesView)
+        buffer.writeBuffer(&doc)
     }
 }

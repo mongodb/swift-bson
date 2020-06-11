@@ -16,13 +16,13 @@ final class DocumentIteratorTests: BSONTestCase {
         let iter = d.makeIterator()
         let range = iter.findByteRange(for: "item1")!
 
-        let slice = d.buffer.getBytes(at: range.startIndex, length: range.length)
+        let slice = d.buffer.getBytes(at: range.startIndex, length: range.endIndex - range.startIndex)
         var bsonBytes: [UInt8] = []
         bsonBytes += [BSONType.int32.rawValue] // type
         bsonBytes += [UInt8]("item1".utf8) // key
         bsonBytes += [0x00] // null byte
         bsonBytes += [0x20, 0x00, 0x00, 0x00] // value of 32 LE
-        expect([range.startIndex, range.length]).to(equal([15, bsonBytes.count]))
+        expect([range.startIndex, range.endIndex - range.startIndex]).to(equal([15, bsonBytes.count]))
         expect(slice).to(equal(bsonBytes))
     }
 }
