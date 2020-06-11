@@ -39,7 +39,7 @@ public struct BSONDocumentIterator: IteratorProtocol {
      * Advances to the next element and returns it, or nil if no next element exists.
      * - Throws:
      */
-    private mutating func _next() throws -> BSONDocument.KeyValuePair? {
+    internal mutating func _next() throws -> BSONDocument.KeyValuePair? {
         guard self.buffer.readableBytes != 0 else {
             // Iteration has been exhausted
             return nil

@@ -257,7 +257,9 @@ public struct BSONDocument {
 
     internal static func validate(_ bson: ByteBuffer) throws {
         // Pull apart the underlying binary into [KeyValuePair], should reveal issues
-        // TODO(SWIFT-866): Add validation
+        var iter = BSONDocumentIterator(over: bson)
+        // Implicitly validate with iterator
+        while let _ = try iter._next() {}
     }
 }
 
@@ -296,7 +298,15 @@ extension BSONDocument: BSONValue {
     internal var bson: BSON { .document(self) }
 
     internal static func read(from buffer: inout ByteBuffer) throws -> BSON {
-        .document(try BSONDocument(fromBSON: buffer))
+        let reader = buffer.readerIndex
+        guard let byteLength = buffer.readInteger(endianness: .little, as: Int32.self) else {
+            throw BSONError.InternalError(message: "Cannot read document byte length")
+        }
+        buffer.moveReaderIndex(to: reader)
+        guard let bytes = buffer.readBytes(length: Int(byteLength)) else {
+            throw BSONError.InternalError(message: "Cannot read document contents")
+        }
+        return .document(try BSONDocument(fromBSON: Data(bytes)))
     }
 
     internal func write(to buffer: inout ByteBuffer) {

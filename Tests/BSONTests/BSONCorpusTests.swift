@@ -194,9 +194,8 @@ final class BSONCorpusTests: BSONTestCase {
                 }
             }
 
-            continue // TODO(SWIFT-866): Remove after validation implemented
-
             if let parseErrorTests = testFile.parseErrors {
+                continue // TODO: EXT JSON support required
                 for test in parseErrorTests where shouldRun(testFile.description, test.description) {
                     let description = "\(testFile.description)-\(test.description)"
 
