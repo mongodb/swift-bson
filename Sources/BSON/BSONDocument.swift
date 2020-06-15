@@ -14,7 +14,7 @@ public struct BSONDocument {
     /// The element type of a document: a tuple containing an individual key-value pair.
     public typealias KeyValuePair = (key: String, value: BSON)
 
-    internal var _buffer: ByteBuffer
+    private var _buffer: ByteBuffer
 
     internal var byteLength: Int {
         get {
@@ -53,8 +53,8 @@ public struct BSONDocument {
         // reserve space for our byteLength that will be calculated
         self._buffer.writeInteger(0, endianness: .little, as: Int32.self)
 
-        for element in keyValuePairs {
-            BSONDocument.append(element: element, to: &self._buffer)
+        for (key, value) in keyValuePairs {
+            BSONDocument.append(key: key, of: value, to: &self._buffer)
         }
         // BSON null terminator
         self._buffer.writeInteger(0, as: UInt8.self)
@@ -193,18 +193,17 @@ public struct BSONDocument {
      * if element.value is nil the element is deleted from the BSON
      */
     internal mutating func set(key: String, of value: BSON?) throws {
-        if !self.keySet.contains(key), let value = value {
+        if !self.keySet.contains(key) {
+            guard let value = value else {
+                // no-op: key does not exist and the value is nil
+                return
+            }
             // appending new key
             self.keySet.insert(key)
             self._buffer.moveWriterIndex(to: self.byteLength - 1) // setup to overwrite null terminator
-            let size = BSONDocument.append(element: (key, value), to: &self._buffer)
+            let size = BSONDocument.append(key: key, of: value, to: &self._buffer)
             self._buffer.writeInteger(0, endianness: .little, as: UInt8.self) // add back in our null terminator
             self.byteLength += size
-            return
-        }
-
-        guard value != nil || self.keySet.contains(key) else {
-            // no-op: trying to delete a key that doesn't exist
             return
         }
 
@@ -231,10 +230,10 @@ public struct BSONDocument {
         var newSize = self.byteLength - (end - start)
         if let value = value {
             // Overwriting
-            let size = BSONDocument.append(element: (key, value), to: &newBuffer)
+            let size = BSONDocument.append(key: key, of: value, to: &newBuffer)
             newSize += size
 
-            guard newSize != BSON_MAX_SIZE else {
+            guard newSize <= BSON_MAX_SIZE else {
                 throw BSONError.DocumentTooLargeError(value: value.bsonValue, forKey: key)
             }
         } else {
@@ -247,17 +246,18 @@ public struct BSONDocument {
         self._buffer = newBuffer
         self.byteLength = newSize
         guard self.byteLength == self._buffer.readableBytes else {
-            fatalError("I think the bson is \(self.byteLength) but I can only read \(self._buffer.readableBytes)")
+            fatalError("BSONDocument's encoded byte length is \(self.byteLength) however the" +
+                "buffer has \(self._buffer.readableBytes) readable bytes")
         }
     }
 
     /// Appends element to underlying BSON bytes, returns the size of the element appended: type + key + value
     @discardableResult
-    internal static func append(element: BSONDocument.KeyValuePair, to buffer: inout ByteBuffer) -> Int {
+    internal static func append(key: String, of value: BSON, to buffer: inout ByteBuffer) -> Int {
         let writer = buffer.writerIndex
-        buffer.writeInteger(element.value.bsonValue.bsonType.rawValue, as: UInt8.self)
-        buffer.writeCString(element.key)
-        element.value.bsonValue.write(to: &buffer)
+        buffer.writeInteger(value.bsonValue.bsonType.rawValue, as: UInt8.self)
+        buffer.writeCString(key)
+        value.bsonValue.write(to: &buffer)
         return buffer.writerIndex - writer
     }
 
@@ -271,7 +271,7 @@ public struct BSONDocument {
             throw BSONError.InvalidArgumentError(message: "Validation Failed: BSON cannot be \(byteLength) bytes long")
         }
 
-        guard byteLength == bson.writerIndex else {
+        guard byteLength == bson.readableBytes else {
             throw BSONError.InvalidArgumentError(message: "Validation Failed: Cannot read \(byteLength) from bson")
         }
 
