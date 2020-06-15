@@ -59,7 +59,7 @@ public enum BSON {
 /// Value getters
 extension BSON {
     /// If this `BSON` is an `.int32`, return it as an `Int32`. Otherwise, return nil.
-    public var int32Value: Int32? {
+    var int32Value: Int32? {
         guard case let .int32(i) = self else {
             return nil
         }
@@ -67,7 +67,7 @@ extension BSON {
     }
 
     /// If this `BSON` is an `.int64`, return it as an `Int64`. Otherwise, return nil.
-    public var int64Value: Int64? {
+    var int64Value: Int64? {
         guard case let .int64(i) = self else {
             return nil
         }
@@ -75,7 +75,7 @@ extension BSON {
     }
 
     /// If this `BSON` is a `.document`, return it as a `BSONDocument`. Otherwise, return nil.
-    public var documentValue: BSONDocument? {
+    var documentValue: BSONDocument? {
         guard case let .document(d) = self else {
             return nil
         }
