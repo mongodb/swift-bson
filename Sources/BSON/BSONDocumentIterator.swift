@@ -46,7 +46,10 @@ public struct BSONDocumentIterator: IteratorProtocol {
         }
 
         guard let typeByte = self.buffer.readInteger(as: UInt8.self) else {
-            throw BSONError.InternalError(message: "BSONDocumentIterator Failed: Cannot read from \(self.buffer)")
+            throw BSONIterationError(
+                buffer: self.buffer,
+                message: "Cannot read type indicator from bson"
+            )
         }
 
         guard typeByte != 0 else {
@@ -55,27 +58,36 @@ public struct BSONDocumentIterator: IteratorProtocol {
         }
 
         guard let type = BSONType(rawValue: typeByte), type != .invalid else {
-            throw BSONError.InternalError(message: "BSONDocumentIterator Failed: Invalid type, \(typeByte)")
+            throw BSONIterationError(
+                buffer: self.buffer,
+                typeByte: typeByte,
+                message: "Invalid type indicator"
+            )
         }
 
         let key = try self.buffer.readCString()
         guard let bson = try BSON.allBSONTypes[type]?.read(from: &buffer) else {
-            throw BSONError.InternalError(message: "Cannot read unknown type: \(type)")
+            throw BSONIterationError(
+                buffer: self.buffer,
+                key: key,
+                type: type,
+                typeByte: typeByte,
+                message: "Cannot decode type"
+            )
         }
         return (key: key, value: bson)
     }
 
     /// Finds the key in the underlying buffer, and returns the [startIndex, endIndex) containing the corresponding
     /// element.
-    internal func findByteRange(for searchKey: String) -> (startIndex: Int, endIndex: Int)? {
-        var iter = BSONDocumentIterator(over: self.buffer)
+    internal mutating func findByteRange(for searchKey: String) -> (startIndex: Int, endIndex: Int)? {
         while true {
-            let startIndex = iter.buffer.readerIndex
-            guard let (key, _) = iter.next() else {
+            let startIndex = self.buffer.readerIndex
+            guard let (key, _) = self.next() else {
                 // Iteration ended without finding a match
                 return nil
             }
-            let endIndex = iter.buffer.readerIndex
+            let endIndex = self.buffer.readerIndex
 
             if key == searchKey {
                 return (startIndex: startIndex, endIndex: endIndex)
