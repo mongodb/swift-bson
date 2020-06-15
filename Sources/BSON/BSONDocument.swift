@@ -93,7 +93,8 @@ public struct BSONDocument {
      * Initializes a new `BSONDocument` from the provided BSON data.
      *
      * - Throws:
-     *   - `InvalidArgumentError` if the data passed is invalid BSON
+     *   - `InvalidArgumentError` if the data passed is invalid BSON,
+     *      ByteBuffer must have `readableBytes` equal to the BSON's leading size indicator
      *
      * - SeeAlso: http://bsonspec.org/
      */
