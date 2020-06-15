@@ -3,7 +3,6 @@ import Foundation
 import Nimble
 import XCTest
 
-@available(OSX 10.13, *)
 final class BSONCorpusTests: BSONTestCase {
     /// Test case that includes 'canonical' forms of BSON and Extended JSON that are deemed equivalent and may provide
     /// additional cases or metadata for additional assertions.
@@ -110,9 +109,6 @@ final class BSONCorpusTests: BSONTestCase {
                         XCTFail("Unable to interpret canonical_bson as Data")
                         return
                     }
-                    let description = "\(testFile.description)-\(test.description)"
-
-                    print("VALID: \(description)")
 
                     // guard let cEJData = test.canonicalExtJSON.data(using: .utf8) else {
                     //     XCTFail("Unable to interpret canonical_extjson as Data")
