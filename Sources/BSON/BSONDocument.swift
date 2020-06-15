@@ -310,6 +310,13 @@ public struct BSONDocument {
                         continue
                     }
                 }
+                if let array = value.arrayValue {
+                    for item in array {
+                        if let doc = item.documentValue {
+                            try BSONDocument.validate(doc.buffer)
+                        }
+                    }
+                }
             }
         }
     }
