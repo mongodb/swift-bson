@@ -44,6 +44,8 @@ opt_in_rules:
 excluded:
   - .build
   - Package.swift
+  - Tests/LinuxMain.swift
+  - opt/*
 
 trailing_whitespace:
   ignores_comments: false

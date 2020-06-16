@@ -34,40 +34,65 @@ functions:
       params:
         working_dir: "src"
         script: |
-           # Get the current unique version of this checkout
-           if [ "${is_patch}" = "true" ]; then
-              CURRENT_VERSION=$(git describe)-patch-${version_id}
-           else
-              CURRENT_VERSION=latest
-           fi
+          # Get the current unique version of this checkout
+          if [ "${is_patch}" = "true" ]; then
+             CURRENT_VERSION=$(git describe)-patch-${version_id}
+          else
+             CURRENT_VERSION=latest
+          fi
 
-           export PROJECT_DIRECTORY="$(pwd)"
+          export PROJECT_DIRECTORY="$(pwd)"
 
-           cat <<EOT > expansion.yml
-           CURRENT_VERSION: "$CURRENT_VERSION"
-           PROJECT_DIRECTORY: "$PROJECT_DIRECTORY"
-           PREPARE_SHELL: |
-              set -o errexit
-              set -o xtrace
-              export PROJECT_DIRECTORY="$PROJECT_DIRECTORY"
-              export PROJECT="${project}"
-           EOT
-           # See what we've done
-           cat expansion.yml
+          cat <<EOT > expansion.yml
+          CURRENT_VERSION: "$CURRENT_VERSION"
+          PROJECT_DIRECTORY: "$PROJECT_DIRECTORY"
+          PREPARE_SHELL: |
+             set -o errexit
+             set -o xtrace
+             export PROJECT_DIRECTORY="$PROJECT_DIRECTORY"
+             export PROJECT="${project}"
+             export INSTALL_DIR="${PROJECT_DIRECTORY}/opt"
+          EOT
+          # See what we've done
+          cat expansion.yml
 
     # Load the expansion file to make an evergreen variable with the current unique version
     - command: expansions.update
       params:
         file: src/expansion.yml
 
-  "install dependencies":
+  "install swift":
     - command: shell.exec
       params:
         working_dir: "src"
         script: |
           ${PREPARE_SHELL}
           SWIFT_VERSION=${SWIFT_VERSION} \
-            sh ${PROJECT_DIRECTORY}/.evergreen/install-dependencies.sh
+            sh ${PROJECT_DIRECTORY}/.evergreen/install-swift.sh
+
+  "format":
+    - command: shell.exec
+      type: test
+      params:
+        working_dir: "src"
+        script: |
+          ${PREPARE_SHELL}
+          SWIFT_VERSION=${SWIFT_VERSION} \
+            bash ${PROJECT_DIRECTORY}/.evergreen/install-tools.sh swiftformat
+          SWIFT_VERSION=${SWIFT_VERSION} \
+          ${PROJECT_DIRECTORY}/opt/swiftformat/.build/release/swiftformat --verbose --lint .
+
+  "lint":
+    - command: shell.exec
+      type: test
+      params:
+        working_dir: "src"
+        script: |
+          ${PREPARE_SHELL}
+          SWIFT_VERSION=${SWIFT_VERSION} \
+            bash ${PROJECT_DIRECTORY}/.evergreen/install-tools.sh swiftlint
+          LINUX_SOURCEKIT_LIB_PATH=${PROJECT_DIRECTORY}/opt/swiftenv/versions/${SWIFT_VERSION}/usr/lib \
+            ${PROJECT_DIRECTORY}/opt/swiftlint/.build/release/swiftlint --strict --quiet
 
   "run tests":
     - command: shell.exec
@@ -81,12 +106,18 @@ functions:
 
 pre:
   - func: "fetch source"
-  - func: "install dependencies"
+  - func: "install swift"
 
 tasks:
-    - name: "test"
-      commands:
-        - func: "run tests"
+  - name: "test"
+    commands:
+      - func: "run tests"
+  - name: "check-format"
+    commands:
+      - func: "format"
+  - name: "check-lint"
+    commands:
+      - func: "lint"
 
 axes:
   - id: os-fully-featured
@@ -100,7 +131,7 @@ axes:
         display_name: "Ubuntu 16.04"
         run_on: ubuntu1604-test
 
-      - id: macos-1014
+      - id: macos-10.14
         display_name: "macOS 10.14"
         run_on: macos-1014
 
@@ -110,18 +141,26 @@ axes:
       - id: "5.1"
         display_name: "Swift 5.1"
         variables:
-           SWIFT_VERSION: "5.1.4"
+          SWIFT_VERSION: "5.1.4"
       - id: "5.2"
         display_name: "Swift 5.2"
         variables:
-           SWIFT_VERSION: "5.2"
+          SWIFT_VERSION: "5.2.4"
 
 buildvariants:
+  - matrix_name: "tests-all"
+    display_name: "${swift-version} ${os-fully-featured}"
+    matrix_spec:
+      os-fully-featured: "*"
+      swift-version: "*"
+    tasks:
+      - name: "test"
 
-- matrix_name: "tests-all"
-  matrix_spec:
-    os-fully-featured: "*"
-    swift-version: "*"
-  display_name: "${swift-version} ${os-fully-featured}}"
-  tasks:
-    - name: "test"
+  - matrix_name: "format-lint"
+    display_name: "Format and Lint"
+    matrix_spec:
+      os-fully-featured: "ubuntu-18.04"
+      swift-version: "5.2"
+    tasks:
+      - name: "check-format"
+      - name: "check-lint"
