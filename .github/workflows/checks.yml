@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Checks
+name: Check
 
 # Controls when the action will run. Triggers the workflow on push or pull request events
 on: [push, pull_request]
@@ -29,7 +29,7 @@ jobs:
       - name: Get swiftlint
         run: brew install swiftlint
       - name: Run swiftlint
-        run: swiftlint lint --strict $(git diff --diff-filter=ACMRT --stat --cached --name-only '*.swift')
+        run: swiftlint lint --strict
 
   swiftformat:
     runs-on: macos-latest
@@ -38,4 +38,4 @@ jobs:
       - name: Get swiftformat
         run: brew install swiftformat
       - name: Run swiftformat
-        run: swiftformat --lint $(git diff --diff-filter=ACMRT --stat --cached --name-only '*.swift')
+        run: swiftformat --verbose --lint .
