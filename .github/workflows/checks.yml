@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Sourcery Check
+name: Checks
 
 # Controls when the action will run. Triggers the workflow on push or pull request events
 on: [push, pull_request]
@@ -21,3 +21,21 @@ jobs:
         run: make linuxmain
       - name: Check Sourcery Diff
         run: git diff --exit-code Tests/LinuxMain.swift
+
+  swiftlint:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get swiftlint
+        run: brew install swiftlint
+      - name: Run swiftlint
+        run: swiftlint lint --strict $(git diff --diff-filter=ACMRT --stat --cached --name-only '*.swift')
+
+  swiftformat:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get swiftformat
+        run: brew install swiftformat
+      - name: Run swiftformat
+        run: swiftformat --lint $(git diff --diff-filter=ACMRT --stat --cached --name-only '*.swift')
