@@ -1,21 +1,23 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Format/lint
+name: Sourcery Check
 
 # Controls when the action will run. Triggers the workflow on push or pull request events
 on: [push, pull_request]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  lint:
+  sourcery:
     # The type of runner that the job will run on
-    runs-on: ubuntu-18.04
+    runs-on: macos-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
-    - name: GitHub Action for SwiftLint
-      uses: norio-nomura/action-swiftlint@3.1.0
-      with:
-          args: --strict
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+      - name: Get Sourcery
+        run: brew install sourcery
+      - name: Run Sourcery
+        run: make linuxmain
+      - name: Check Sourcery Diff
+        run: git diff --exit-code Tests/LinuxMain.swift
