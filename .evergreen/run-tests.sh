@@ -25,4 +25,4 @@ swiftenv local $SWIFT_VERSION
 swift build
 
 # test the driver
-swift test
+swift test --enable-test-discovery

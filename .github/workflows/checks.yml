@@ -3,25 +3,10 @@
 name: Check
 
 # Controls when the action will run. Triggers the workflow on push or pull request events
-on: [push, pull_request]
+on: [pull_request]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  sourcery:
-    # The type of runner that the job will run on
-    runs-on: macos-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
-      - name: Get Sourcery
-        run: brew install sourcery
-      - name: Run Sourcery
-        run: make linuxmain
-      - name: Check Sourcery Diff
-        run: git diff --exit-code Tests/LinuxMain.swift
-
   swiftlint:
     runs-on: macos-latest
     steps:

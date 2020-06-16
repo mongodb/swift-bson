@@ -22,18 +22,12 @@ project:
 	@$(call check_for_gem,xcodeproj)
 	ruby etc/add_json_files.rb
 
-linuxmain:
-	$(SOURCERY) --sources Tests/ --exclude-sources Tests/DisabledTests/ --templates Tests/LinuxMain.stencil --output Tests/LinuxMain.swift
-	# Tail the stenciled file to remove the sourcery inserted header, so you don't get version # conflicts in CI
-	@tail -n +5 Tests/LinuxMain.swift > Tests/LinuxMain.swift.tmp
-	@mv Tests/LinuxMain.swift.tmp Tests/LinuxMain.swift
-
 test:
-	swift test -v $(FILTERARG)
+	swift test --enable-test-discovery -v $(FILTERARG)
 
 test-pretty:
 	@$(call check_for_gem,xcpretty)
-	@set -o pipefail && swift test $(FILTERARG) 2>&1 | xcpretty
+	set -o pipefail && swift test --enable-test-discovery $(FILTERARG) 2>&1 | xcpretty
 
 lint:
 	@swiftformat .
