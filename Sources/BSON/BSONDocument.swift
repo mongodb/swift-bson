@@ -97,8 +97,7 @@ public struct BSONDocument {
      * The buffer must have readableBytes equal to the BSON's leading size indicator.
      *
      * - Throws:
-     *   - `InvalidArgumentError` if the data passed is invalid BSON,
-     *      ByteBuffer must have `readableBytes` equal to the BSON's leading size indicator
+     *   - `InvalidArgumentError` if the data passed is invalid BSON
      *
      * - SeeAlso: http://bsonspec.org/
      */
