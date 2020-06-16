@@ -28,18 +28,17 @@ public struct BSONDocumentIterator: IteratorProtocol {
 
     /// Advances to the next element and returns it, or nil if no next element exists.
     public mutating func next() -> BSONDocument.KeyValuePair? {
-        do {
-            return try self._next()
-        } catch {
-            fatalError("\(error)")
-        }
+        // The only time this would crash is when the document is incorrectly formatted
+        // swiftlint:disable force_try
+        try! self.nextThrowing()
     }
 
     /**
      * Advances to the next element and returns it, or nil if no next element exists.
      * - Throws:
+     *   - `InternalError` if the underlying buffer contains invalid BSON
      */
-    internal mutating func _next() throws -> BSONDocument.KeyValuePair? {
+    internal mutating func nextThrowing() throws -> BSONDocument.KeyValuePair? {
         guard self.buffer.readableBytes != 0 else {
             // Iteration has been exhausted
             return nil
@@ -80,7 +79,7 @@ public struct BSONDocumentIterator: IteratorProtocol {
 
     /// Finds the key in the underlying buffer, and returns the [startIndex, endIndex) containing the corresponding
     /// element.
-    internal mutating func findByteRange(for searchKey: String) -> (startIndex: Int, endIndex: Int)? {
+    internal mutating func findByteRange(for searchKey: String) -> Range<Int>? {
         while true {
             let startIndex = self.buffer.readerIndex
             guard let (key, _) = self.next() else {
@@ -90,7 +89,7 @@ public struct BSONDocumentIterator: IteratorProtocol {
             let endIndex = self.buffer.readerIndex
 
             if key == searchKey {
-                return (startIndex: startIndex, endIndex: endIndex)
+                return startIndex..<endIndex
             }
         }
     }

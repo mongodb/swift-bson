@@ -14,7 +14,10 @@ final class DocumentIteratorTests: BSONTestCase {
     func testFindByteRangeItemsInt32() {
         let d: BSONDocument = ["item0": .int32(32), "item1": .int32(32)]
         var iter = d.makeIterator()
-        let range = iter.findByteRange(for: "item1")!
+        let maybeRange = iter.findByteRange(for: "item1")
+
+        expect(maybeRange).toNot(beNil())
+        let range = maybeRange!
 
         let slice = d.buffer.getBytes(at: range.startIndex, length: range.endIndex - range.startIndex)
         var bsonBytes: [UInt8] = []

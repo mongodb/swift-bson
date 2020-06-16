@@ -42,6 +42,8 @@ public enum BSONError {
     }
 }
 
+/// Standardize the error's emitted from the BSON Iterator
+/// the BSON iterator is used for validation so this should help debug the underlying incorrect binary
 internal func BSONIterationError(
     buffer: ByteBuffer? = nil,
     key: String? = nil,
@@ -54,7 +56,7 @@ internal func BSONIterationError(
         error += " at \(buffer.readerIndex)"
     }
     if let key = key {
-        error += " for \"\(key)\""
+        error += " for '\(key)'"
     }
     if let type = type {
         error += " as \(type)"

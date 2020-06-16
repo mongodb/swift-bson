@@ -41,4 +41,17 @@ final class DocumentTests: BSONTestCase {
         let res: BSONDocument = ["a": .int32(45), "c": .int32(90), "d": 3]
         expect(doc.buffer.byteString).to(equal(res.buffer.byteString))
     }
+
+    func testDelete() {
+        var doc: BSONDocument = ["a": .int32(32), "b": .int64(64), "c": 20]
+        doc["a"] = nil
+        doc["z"] = nil // deleting a key that doesn't exist should be a no-op
+        expect(["b", "c"]).to(equal(doc.keys))
+    }
+
+    func testDefault() {
+        let d: BSONDocument = ["hello": 12]
+        expect(d["hello", default: 0xBAD1DEA]).to(equal(12))
+        expect(d["a", default: 0xBAD1DEA]).to(equal(0xBAD1DEA))
+    }
 }
