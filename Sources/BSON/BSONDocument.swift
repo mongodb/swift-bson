@@ -316,6 +316,8 @@ public struct BSONDocument {
                             try BSONDocument.validate(doc.buffer)
                         }
                     }
+                default:
+                    _ = ()
                 }
             }
         }
