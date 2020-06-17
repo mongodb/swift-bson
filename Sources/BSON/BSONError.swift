@@ -42,8 +42,8 @@ public enum BSONError {
     }
 }
 
-/// Standardize the error's emitted from the BSON Iterator
-/// the BSON iterator is used for validation so this should help debug the underlying incorrect binary
+/// Standardize the errors emitted from the BSON Iterator.
+/// The BSON iterator is used for validation so this should help debug the underlying incorrect binary.
 internal func BSONIterationError(
     buffer: ByteBuffer? = nil,
     key: String? = nil,
