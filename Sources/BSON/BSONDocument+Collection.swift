@@ -41,18 +41,18 @@ extension BSONDocument: Collection {
         var iter = BSONDocumentIterator(over: self)
 
         guard position != 0 else {
-            guard let (k, v) = try? iter._next() else {
+            guard let (k, v) = try? iter.nextThrowing() else {
                 fatalError("Failed get current key and value at \(position)")
             }
             return (k, v)
         }
 
         for pos in 0...(position - 1) {
-            guard (try? iter._next()) != nil else {
+            guard (try? iter.nextThrowing()) != nil else {
                 fatalError("Failed to advance iterator to position \(pos)")
             }
         }
-        guard let (k, v) = try? iter._next() else {
+        guard let (k, v) = try? iter.nextThrowing() else {
             fatalError("Failed get current key and value at \(position)")
         }
         return (k, v)

@@ -169,7 +169,7 @@ public struct BSONDocumentIterator: IteratorProtocol {
         // skip the values between startIndex and endIndex. this has better performance than calling next, because
         // it doesn't pull the unneeded key/values out of the iterator
         for _ in startIndex..<endIndex {
-            if (try? iter._next()) == nil {
+            if (try? iter.nextThrowing()) == nil {
                 // we ran out of values
                 break
             }
