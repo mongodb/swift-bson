@@ -92,6 +92,32 @@ public struct BSONBinary: Equatable, Hashable {
         self.data = buffer
     }
 
+    internal init(bytes: [UInt8], subtype: Subtype) throws {
+        if [Subtype.uuid, Subtype.uuidDeprecated].contains(subtype) && bytes.count != 16 {
+            throw BSONError.InvalidArgumentError(
+                message:
+                "Binary data with UUID subtype must be 16 bytes, but bytes has \(bytes.count) bytes"
+            )
+        }
+
+        self.subtype = subtype
+        var buffer = BSON_ALLOCATOR.buffer(capacity: bytes.count)
+        buffer.writeBytes(bytes)
+        self.data = buffer
+    }
+
+    internal init(buffer: ByteBuffer, subtype: Subtype) throws {
+        if [Subtype.uuid, Subtype.uuidDeprecated].contains(subtype) && buffer.readableBytes != 16 {
+            throw BSONError.InvalidArgumentError(
+                message:
+                "Binary data with UUID subtype must be 16 bytes, but buffer has \(buffer.readableBytes) bytes"
+            )
+        }
+
+        self.subtype = subtype
+        self.data = buffer
+    }
+
     /// Initializes a `BSONBinary` instance from a base64 `String` and a `Subtype`.
     /// - Throws:
     ///   - `BSONError.InvalidArgumentError` if the base64 `String` is invalid or if the provided data is
@@ -163,7 +189,7 @@ extension BSONBinary: BSONValue {
         guard let bytes = buffer.readBytes(length: Int(byteLength)) else {
             throw BSONError.InternalError(message: "Cannot read \(byteLength) from buffer for BSONBinary")
         }
-        return .binary(try BSONBinary(data: Data(bytes), subtype: subtype))
+        return .binary(try BSONBinary(bytes: bytes, subtype: subtype))
     }
 
     internal func write(to buffer: inout ByteBuffer) {
