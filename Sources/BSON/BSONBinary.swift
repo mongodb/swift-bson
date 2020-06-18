@@ -72,38 +72,23 @@ public struct BSONBinary: Equatable, Hashable {
             uuidt.12, uuidt.13, uuidt.14, uuidt.15
         ])
 
-        try self.init(data: uuidData, subtype: BSONBinary.Subtype.uuid)
+        self = try BSONBinary(data: uuidData, subtype: BSONBinary.Subtype.uuid)
     }
 
-    /// Initializes a `BSONBinary` instance from a `Data` object and a `UInt8` subtype.
+    /// Initializes a `BSONBinary` instance from a `Data` object and a `Subtype` subtype.
+    /// This will always create a copy of the data.
     /// - Throws:
     ///   - `BSONError.InvalidArgumentError` if the provided data is incompatible with the specified subtype.
     public init(data: Data, subtype: Subtype) throws {
-        if [Subtype.uuid, Subtype.uuidDeprecated].contains(subtype) && data.count != 16 {
-            throw BSONError.InvalidArgumentError(
-                message:
-                "Binary data with UUID subtype must be 16 bytes, but data has \(data.count) bytes"
-            )
-        }
-
-        self.subtype = subtype
         var buffer = BSON_ALLOCATOR.buffer(capacity: data.count)
         buffer.writeBytes(data)
-        self.data = buffer
+        self = try BSONBinary(buffer: buffer, subtype: subtype)
     }
 
     internal init(bytes: [UInt8], subtype: Subtype) throws {
-        if [Subtype.uuid, Subtype.uuidDeprecated].contains(subtype) && bytes.count != 16 {
-            throw BSONError.InvalidArgumentError(
-                message:
-                "Binary data with UUID subtype must be 16 bytes, but bytes has \(bytes.count) bytes"
-            )
-        }
-
-        self.subtype = subtype
         var buffer = BSON_ALLOCATOR.buffer(capacity: bytes.count)
         buffer.writeBytes(bytes)
-        self.data = buffer
+        self = try BSONBinary(buffer: buffer, subtype: subtype)
     }
 
     internal init(buffer: ByteBuffer, subtype: Subtype) throws {
