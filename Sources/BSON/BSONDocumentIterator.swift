@@ -19,9 +19,11 @@ extension BSONDocument: Sequence {
 public struct BSONDocumentIterator: IteratorProtocol {
     /// The buffer we are iterating over.
     private var buffer: ByteBuffer
+    private var exhausted: Bool
 
     internal init(over buffer: ByteBuffer) {
         self.buffer = buffer
+        self.exhausted = false
         // moves readerIndex to first key's type indicator
         self.buffer.moveReaderIndex(to: 4)
     }
@@ -41,6 +43,12 @@ public struct BSONDocumentIterator: IteratorProtocol {
     internal mutating func nextThrowing() throws -> BSONDocument.KeyValuePair? {
         guard self.buffer.readableBytes != 0 else {
             // Iteration has been exhausted
+            guard self.exhausted else {
+                throw BSONIterationError(
+                    buffer: self.buffer,
+                    message: "There are no readable bytes remaining but a null terminator was not encountered"
+                )
+            }
             return nil
         }
 
@@ -53,6 +61,13 @@ public struct BSONDocumentIterator: IteratorProtocol {
 
         guard typeByte != 0 else {
             // Iteration exhausted after we've read the null terminator (special case)
+            guard self.buffer.readableBytes == 0 else {
+                throw BSONIterationError(
+                    buffer: self.buffer,
+                    message: "Bytes remain after document iteration exhausted"
+                )
+            }
+            self.exhausted = true
             return nil
         }
 
