@@ -98,23 +98,8 @@ final class BSONCorpusTests: BSONTestCase {
 
     // swiftlint:disable:next cyclomatic_complexity
     func testBSONCorpus() throws {
-        let INCLUDED_CORPUS_TESTS = [
-            "Int32 type",
-            "Int64 type",
-            "Boolean",
-            "DateTime",
-            "Array",
-            "Document type (sub-documents)",
-            "Double type",
-            "String",
-            "Symbol",
-            "Timestamp type",
-            "Binary type",
-            "Regular Expression type"
-        ]
-
         let shouldRun: (String, String) -> Bool = { testFileDesc, testDesc in
-            INCLUDED_CORPUS_TESTS.contains(testFileDesc)
+            testFileDesc != "Decimal128"
         }
 
         for (_, testFile) in try retrieveSpecTestFiles(specName: "bson-corpus", asType: BSONCorpusTestFile.self) {

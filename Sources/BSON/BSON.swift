@@ -40,6 +40,30 @@ public enum BSON {
     /// A BSON Regex
     case regex(BSONRegularExpression)
 
+    /// A BSON ObjectID
+    case objectID(BSONObjectID)
+
+    /// A BSON DBPointer
+    case dbPointer(BSONDBPointer)
+
+    /// A BSON Code
+    case code(BSONCode)
+
+    /// A BSON Code with Scope
+    case codeWithScope(BSONCodeWithScope)
+
+    /// A BSON Null
+    case null
+
+    /// A BSON Undefined
+    case undefined
+
+    /// A BSON MinKey
+    case minKey
+
+    /// A BSON MaxKey
+    case maxKey
+
     /// Initialize a `BSON` from an integer. On 64-bit systems, this will result in an `.int64`. On 32-bit systems,
     /// this will result in an `.int32`.
     public init(_ int: Int) {
@@ -59,7 +83,7 @@ public enum BSON {
 /// Value getters
 extension BSON {
     /// If this `BSON` is an `.int32`, return it as an `Int32`. Otherwise, return nil.
-    var int32Value: Int32? {
+    public var int32Value: Int32? {
         guard case let .int32(i) = self else {
             return nil
         }
@@ -67,7 +91,7 @@ extension BSON {
     }
 
     /// If this `BSON` is an `.int64`, return it as an `Int64`. Otherwise, return nil.
-    var int64Value: Int64? {
+    public var int64Value: Int64? {
         guard case let .int64(i) = self else {
             return nil
         }
@@ -75,7 +99,7 @@ extension BSON {
     }
 
     /// If this `BSON` is a `.document`, return it as a `BSONDocument`. Otherwise, return nil.
-    var documentValue: BSONDocument? {
+    public var documentValue: BSONDocument? {
         guard case let .document(d) = self else {
             return nil
         }
@@ -153,6 +177,38 @@ extension BSON {
         }
         return d
     }
+
+    /// If this `BSON` is a `.objectID`, return it as a `BSONObjectID`. Otherwise, return nil.
+    public var objectIDValue: BSONObjectID? {
+        guard case let .objectID(d) = self else {
+            return nil
+        }
+        return d
+    }
+
+    /// If this `BSON` is a `.dbPointer`, return it as a `BSONDBPointer`. Otherwise, return nil.
+    public var dbPointerValue: BSONDBPointer? {
+        guard case let .dbPointer(d) = self else {
+            return nil
+        }
+        return d
+    }
+
+    /// If this `BSON` is a `.code`, return it as a `BSONCode`. Otherwise, return nil.
+    public var codeValue: BSONCode? {
+        guard case let .code(d) = self else {
+            return nil
+        }
+        return d
+    }
+
+    /// If this `BSON` is a `.codeWithScope`, return it as a `BSONCodeWithScope`. Otherwise, return nil.
+    public var codeWithScopeValue: BSONCodeWithScope? {
+        guard case let .codeWithScope(d) = self else {
+            return nil
+        }
+        return d
+    }
 }
 
 /// Extension providing the internal API of `BSON`
@@ -170,7 +226,15 @@ extension BSON {
         .symbol: BSONSymbol.self,
         .timestamp: BSONTimestamp.self,
         .binary: BSONBinary.self,
-        .regex: BSONRegularExpression.self
+        .regex: BSONRegularExpression.self,
+        .objectID: BSONObjectID.self,
+        .dbPointer: BSONDBPointer.self,
+        .code: BSONCode.self,
+        .codeWithScope: BSONCodeWithScope.self,
+        .null: BSONNull.self,
+        .undefined: BSONUndefined.self,
+        .minKey: BSONMinKey.self,
+        .maxKey: BSONMaxKey.self
     ]
 
     /// Get the associated `BSONValue` to this `BSON` case.
@@ -200,6 +264,22 @@ extension BSON {
             return v
         case let .regex(v):
             return v
+        case let .dbPointer(v):
+            return v
+        case let .objectID(v):
+            return v
+        case let .code(v):
+            return v
+        case let .codeWithScope(v):
+            return v
+        case .null:
+            return BSONNull()
+        case .undefined:
+            return BSONUndefined()
+        case .minKey:
+            return BSONMinKey()
+        case .maxKey:
+            return BSONMaxKey()
         }
     }
 }
