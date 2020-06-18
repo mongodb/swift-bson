@@ -1,4 +1,5 @@
 import Foundation
+import NIO
 
 /// An empty protocol for encapsulating all errors that BSON package can throw.
 public protocol BSONErrorProtocol: LocalizedError {}
@@ -39,4 +40,30 @@ public enum BSONError {
                 " BSON type \(value.bsonType): document too large"
         }
     }
+}
+
+/// Standardize the errors emitted from the BSON Iterator.
+/// The BSON iterator is used for validation so this should help debug the underlying incorrect binary.
+internal func BSONIterationError(
+    buffer: ByteBuffer? = nil,
+    key: String? = nil,
+    type: BSONType? = nil,
+    typeByte: UInt8? = nil,
+    message: String
+) -> BSONError.InternalError {
+    var error = "BSONDocument Iteration Failed:"
+    if let buffer = buffer {
+        error += " at \(buffer.readerIndex)"
+    }
+    if let key = key {
+        error += " for '\(key)'"
+    }
+    if let type = type {
+        error += " as \(type)"
+    }
+    if let typeByte = typeByte {
+        error += " (type: 0x\(String(typeByte, radix: 16).uppercased()))"
+    }
+    error += " \(message)"
+    return BSONError.InternalError(message: error)
 }
