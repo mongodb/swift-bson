@@ -168,7 +168,7 @@ extension BSONBinary: BSONValue {
             guard let bytes = buffer.readBytes(length: Int(oldSize)) else {
                 throw BSONError.InternalError(message: "Cannot read \(oldSize) from buffer for BSONBinary")
             }
-            return .binary(try BSONBinary(data: Data(bytes), subtype: subtype))
+            return .binary(try BSONBinary(bytes: bytes, subtype: subtype))
         }
 
         guard let bytes = buffer.readBytes(length: Int(byteLength)) else {

@@ -39,9 +39,9 @@ public enum BSONType: UInt8 {
     case binary = 0x05
     /// Undefined value - deprecated
     case undefined = 0x06
-    /// A MongoDB ObjectId.
+    /// A MongoDB ObjectID.
     /// - SeeAlso: https://docs.mongodb.com/manual/reference/method/ObjectId/
-    case objectId = 0x07
+    case objectID = 0x07
     /// A boolean
     case bool = 0x08
     /// UTC datetime, stored as UTC milliseconds since the Unix epoch

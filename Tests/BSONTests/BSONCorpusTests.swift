@@ -98,23 +98,8 @@ final class BSONCorpusTests: BSONTestCase {
 
     // swiftlint:disable:next cyclomatic_complexity
     func testBSONCorpus() throws {
-        let INCLUDED_CORPUS_TESTS = [
-            "Int32 type",
-            "Int64 type",
-            "Boolean",
-            "DateTime",
-            "Array",
-            "Document type (sub-documents)",
-            "Double type",
-            "String",
-            "Symbol",
-            "Timestamp type",
-            "Binary type",
-            "Regular Expression type"
-        ]
-
         let shouldRun: (String, String) -> Bool = { testFileDesc, testDesc in
-            INCLUDED_CORPUS_TESTS.contains(testFileDesc)
+            testFileDesc != "Decimal128"
         }
 
         for (_, testFile) in try retrieveSpecTestFiles(specName: "bson-corpus", asType: BSONCorpusTestFile.self) {
@@ -228,7 +213,6 @@ final class BSONCorpusTests: BSONTestCase {
             if let decodeErrors = testFile.decodeErrors {
                 for test in decodeErrors where shouldRun(testFile.description, test.description) {
                     let description = "\(testFile.description)-\(test.description)"
-
                     guard let data = Data(hexString: test.bson) else {
                         XCTFail("\(description): Unable to interpret bson as Data")
                         return
