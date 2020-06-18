@@ -212,6 +212,7 @@ final class BSONCorpusTests: BSONTestCase {
 
             if let decodeErrors = testFile.decodeErrors {
                 for test in decodeErrors where shouldRun(testFile.description, test.description) {
+                    let description = "\(testFile.description)-\(test.description)"
                     guard let data = Data(hexString: test.bson) else {
                         XCTFail("\(description): Unable to interpret bson as Data")
                         return
