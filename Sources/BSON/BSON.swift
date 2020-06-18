@@ -28,6 +28,18 @@ public enum BSON {
     /// A BSON string.
     case string(String)
 
+    /// A BSON Symbol
+    case symbol(BSONSymbol)
+
+    /// A BSON Timestamp
+    case timestamp(BSONTimestamp)
+
+    /// A BSON Binary
+    case binary(BSONBinary)
+
+    /// A BSON Regex
+    case regex(BSONRegularExpression)
+
     /// Initialize a `BSON` from an integer. On 64-bit systems, this will result in an `.int64`. On 32-bit systems,
     /// this will result in an `.int32`.
     public init(_ int: Int) {
@@ -109,6 +121,38 @@ extension BSON {
         }
         return d
     }
+
+    /// If this `BSON` is a `.symbol`, return it as a `BSONSymbol`. Otherwise, return nil.
+    public var symbolValue: BSONSymbol? {
+        guard case let .symbol(d) = self else {
+            return nil
+        }
+        return d
+    }
+
+    /// If this `BSON` is a `.timestamp`, return it as a `BSONTimestamp`. Otherwise, return nil.
+    public var timestampValue: BSONTimestamp? {
+        guard case let .timestamp(d) = self else {
+            return nil
+        }
+        return d
+    }
+
+    /// If this `BSON` is a `.binary`, return it as a `BSONBinary`. Otherwise, return nil.
+    public var binaryValue: BSONBinary? {
+        guard case let .binary(d) = self else {
+            return nil
+        }
+        return d
+    }
+
+    /// If this `BSON` is a `.regex`, return it as a `BSONRegularExpression`. Otherwise, return nil.
+    public var regexValue: BSONRegularExpression? {
+        guard case let .regex(d) = self else {
+            return nil
+        }
+        return d
+    }
 }
 
 /// Extension providing the internal API of `BSON`
@@ -122,7 +166,11 @@ extension BSON {
         .string: String.self,
         .double: Double.self,
         .datetime: Date.self,
-        .array: [BSON].self
+        .array: [BSON].self,
+        .symbol: BSONSymbol.self,
+        .timestamp: BSONTimestamp.self,
+        .binary: BSONBinary.self,
+        .regex: BSONRegularExpression.self
     ]
 
     /// Get the associated `BSONValue` to this `BSON` case.
@@ -143,6 +191,14 @@ extension BSON {
         case let .double(v):
             return v
         case let .string(v):
+            return v
+        case let .symbol(v):
+            return v
+        case let .timestamp(v):
+            return v
+        case let .binary(v):
+            return v
+        case let .regex(v):
             return v
         }
     }

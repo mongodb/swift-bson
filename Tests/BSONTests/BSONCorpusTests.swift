@@ -106,7 +106,11 @@ final class BSONCorpusTests: BSONTestCase {
             "Array",
             "Document type (sub-documents)",
             "Double type",
-            "String"
+            "String",
+            "Symbol",
+            "Timestamp type",
+            "Binary type",
+            "Regular Expression type"
         ]
 
         let shouldRun: (String, String) -> Bool = { testFileDesc, testDesc in
