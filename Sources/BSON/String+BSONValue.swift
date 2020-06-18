@@ -1,11 +1,11 @@
 import NIO
 
 extension String: BSONValue {
-    static var bsonType: BSONType { .string }
+    internal static var bsonType: BSONType { .string }
 
-    var bson: BSON { .string(self) }
+    internal var bson: BSON { .string(self) }
 
-    static func read(from buffer: inout ByteBuffer) throws -> BSON {
+    internal static func read(from buffer: inout ByteBuffer) throws -> BSON {
         guard let length = buffer.readInteger(endianness: .little, as: Int32.self) else {
             throw BSONError.InternalError(message: "Cannot read string length")
         }
@@ -24,7 +24,7 @@ extension String: BSONValue {
         return .string(string)
     }
 
-    func write(to buffer: inout ByteBuffer) {
+    internal func write(to buffer: inout ByteBuffer) {
         buffer.writeInteger(Int32(self.utf8.count + 1), endianness: .little, as: Int32.self)
         buffer.writeBytes(self.utf8)
         buffer.writeInteger(0, as: UInt8.self)
