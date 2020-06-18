@@ -1,11 +1,11 @@
 import NIO
 
 extension Bool: BSONValue {
-    static var bsonType: BSONType { .bool }
+    internal static var bsonType: BSONType { .bool }
 
-    var bson: BSON { .bool(self) }
+    internal var bson: BSON { .bool(self) }
 
-    static func read(from buffer: inout ByteBuffer) throws -> BSON {
+    internal static func read(from buffer: inout ByteBuffer) throws -> BSON {
         guard let value = buffer.readInteger(as: UInt8.self) else {
             throw BSONError.InternalError(message: "Could not read Bool")
         }
@@ -15,7 +15,7 @@ extension Bool: BSONValue {
         return .bool(value == 0 ? false : true)
     }
 
-    func write(to buffer: inout ByteBuffer) {
+    internal func write(to buffer: inout ByteBuffer) {
         buffer.writeBytes([self ? 1 : 0])
     }
 }

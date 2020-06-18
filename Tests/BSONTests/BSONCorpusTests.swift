@@ -3,7 +3,6 @@ import Foundation
 import Nimble
 import XCTest
 
-@available(OSX 10.13, *)
 final class BSONCorpusTests: BSONTestCase {
     /// Test case that includes 'canonical' forms of BSON and Extended JSON that are deemed equivalent and may provide
     /// additional cases or metadata for additional assertions.

@@ -307,7 +307,7 @@ public struct BSONDocument {
                             }
                         }
                     default:
-                        _ = ()
+                        continue
                     }
                 }
             }

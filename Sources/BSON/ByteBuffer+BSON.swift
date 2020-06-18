@@ -10,27 +10,14 @@ extension ByteBuffer {
 
     /// Attempts to read null terminated UTF-8 string from ByteBuffer starting at the readerIndex
     internal mutating func readCString() throws -> String {
-        let string = try self.getCString(at: self.readerIndex)
-        self.moveReaderIndex(forwardBy: string.utf8.count + 1)
-        return string
-    }
-
-    /// Attempts to read null terminated UTF-8 string from ByteBuffer starting at the offset
-    internal func getCString(at offset: Int) throws -> String {
-        let key = try getBSONKey(at: offset).dropLast()
-        guard let string = String(bytes: key, encoding: .utf8) else {
-            throw BSONError.InternalError(message: "Failed to decode BSONKey as UTF8: \(key)")
-        }
-        return string
-    }
-
-    /// Returns the C String key including the null byte, for ease of comparison and byte counting
-    internal func getBSONKey(at offset: Int) throws -> [UInt8] {
         var string: [UInt8] = []
-        for i in 0..<BSON_MAX_SIZE {
-            if let b = self.getBytes(at: offset + i, length: 1) {
+        for _ in 0..<BSON_MAX_SIZE {
+            if let b = self.readBytes(length: 1) {
                 if b[0] == 0 {
-                    return string + [0x00]
+                    guard let s = String(bytes: string, encoding: .utf8) else {
+                        throw BSONError.InternalError(message: "Unable to decode utf8 string from \(string)")
+                    }
+                    return s
                 }
                 string += b
             } else {
@@ -38,13 +25,5 @@ extension ByteBuffer {
             }
         }
         throw BSONError.InternalError(message: "Failed to read CString, possibly missing null terminator?")
-    }
-
-    /// Get a BSONType byte from self returns .invalid for unknown types.
-    internal func getBSONType(at position: Int) -> BSONType {
-        guard let bsonType = self.getInteger(at: position).flatMap({ BSONType(rawValue: $0) }) else {
-            return .invalid
-        }
-        return bsonType
     }
 }
