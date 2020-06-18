@@ -54,7 +54,14 @@ extension BSONCodeWithScope: BSONValue {
         guard let size = buffer.readInteger(endianness: .little, as: Int32.self) else {
             throw BSONError.InternalError(message: "Cannot code with scope size")
         }
-        guard size >= 14, (size - 4) < buffer.readableBytes else {
+        // 14 bytes minimum size =
+        //     min 4 bytes size of CodeWScope
+        //     min 4 bytes size of string + 1 null byte req by string
+        //     min 5 bytes for document
+        guard size >= 14 else {
+            throw BSONError.InternalError(message: "Code with scope has size: \(size) but the minimum size is 14")
+        }
+        guard (size - 4) < buffer.readableBytes else {
             throw BSONError.InternalError(message: "Code with scope has size: \(size) but there "
                 + "are only \(buffer.readableBytes) bytes to read")
         }
@@ -66,7 +73,7 @@ extension BSONCodeWithScope: BSONValue {
         }
         guard (buffer.readerIndex - reader) == size else {
             throw BSONError.InternalError(
-                message: "Stated size: \(size) is not correct read \(buffer.readerIndex - reader)"
+                message: "Stated size: \(size) is not correct, actual size: \(buffer.readerIndex - reader)"
             )
         }
         return .codeWithScope(BSONCodeWithScope(code: code, scope: scope))
