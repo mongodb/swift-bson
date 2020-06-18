@@ -64,22 +64,6 @@ public enum BSON {
     /// A BSON MaxKey
     case maxKey
 
-    /// A BSON Array
-    indirect case array([BSON])
-
-    /// A BSON Boolean
-    case bool(Bool)
-
-    /// A BSON UTC datetime.
-    /// - SeeAlso: https://docs.mongodb.com/manual/reference/bson-types/#date
-    case datetime(Date)
-
-    /// A BSON double.
-    case double(Double)
-
-    /// A BSON string.
-    case string(String)
-
     /// Initialize a `BSON` from an integer. On 64-bit systems, this will result in an `.int64`. On 32-bit systems,
     /// this will result in an `.int32`.
     public init(_ int: Int) {
@@ -221,46 +205,6 @@ extension BSON {
     /// If this `BSON` is a `.codeWithScope`, return it as a `BSONCodeWithScope`. Otherwise, return nil.
     public var codeWithScopeValue: BSONCodeWithScope? {
         guard case let .codeWithScope(d) = self else {
-            return nil
-        }
-        return d
-    }
-
-    /// If this `BSON` is a `.array`, return it as a `[BSON]`. Otherwise, return nil.
-    public var arrayValue: [BSON]? {
-        guard case let .array(d) = self else {
-            return nil
-        }
-        return d
-    }
-
-    /// If this `BSON` is a `.bool`, return it as a `Bool`. Otherwise, return nil.
-    public var boolValue: Bool? {
-        guard case let .bool(d) = self else {
-            return nil
-        }
-        return d
-    }
-
-    /// If this `BSON` is a `.date`, return it as a `Date`. Otherwise, return nil.
-    public var dateValue: Date? {
-        guard case let .datetime(d) = self else {
-            return nil
-        }
-        return d
-    }
-
-    /// If this `BSON` is a `.double`, return it as a `Double`. Otherwise, return nil.
-    public var doubleValue: Double? {
-        guard case let .double(d) = self else {
-            return nil
-        }
-        return d
-    }
-
-    /// If this `BSON` is a `.string`, return it as a `String`. Otherwise, return nil.
-    public var stringValue: String? {
-        guard case let .string(d) = self else {
             return nil
         }
         return d
