@@ -109,10 +109,6 @@ final class BSONCorpusTests: BSONTestCase {
                         XCTFail("Unable to interpret canonical_bson as Data")
                         return
                     }
-                    let description = "\(testFile.description)-\(test.description)"
-
-                    print("VALID: \(description)")
-
                     // guard let cEJData = test.canonicalExtJSON.data(using: .utf8) else {
                     //     XCTFail("Unable to interpret canonical_extjson as Data")
                     //     return

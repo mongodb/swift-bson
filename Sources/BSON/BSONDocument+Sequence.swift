@@ -57,8 +57,7 @@ extension BSONDocument: Sequence {
             return self
         default:
             // get all the key-value pairs from nth index on. subsequence will handle the case where n >= length of doc
-            // by creating an iter and calling advance until the end is reached. this is exactly what calling self.count
-            // would do in that situation via bson_count_keys, so no point in special casing self.count <= n here.
+            // by creating an iter and calling nextThrowing until the end is reached.
             return BSONDocumentIterator.subsequence(of: self, startIndex: n)
         }
     }

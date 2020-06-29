@@ -17,49 +17,6 @@ public struct BSONDocumentIterator: IteratorProtocol {
         self = BSONDocumentIterator(over: doc.buffer)
     }
 
-    /// Returns the current value's type. Assumes the iterator is in a valid position.
-    internal var currentType: BSONType {
-        guard let typeByte = self.buffer.getInteger(at: self.buffer.readerIndex, as: UInt8.self) else {
-            return .invalid
-        }
-        guard let type = BSONType(rawValue: typeByte) else {
-            return .invalid
-        }
-        return type
-    }
-
-    /// Returns the current key. Assumes the iterator is in a valid position.
-    internal var currentKey: String {
-        guard self.buffer.readableBytes != 1 && !self.exhausted else {
-            return ""
-        }
-        do {
-            return try self.buffer.getCString(at: self.buffer.readerIndex + 1)
-        } catch {
-            fatalError("Cannot read current key \(error.localizedDescription)")
-        }
-    }
-
-    /// Returns the current value. Assumes the iterator is in a valid position.
-    internal var currentValue: BSON {
-        var mutBuffer = self.buffer
-
-        let typeIndicator = self.currentType
-        guard typeIndicator != .invalid else {
-            return .null
-        }
-        do {
-            _ = mutBuffer.readBytes(length: 1) // type indicator
-            _ = try mutBuffer.readCString() // BSON Key
-            guard let type = BSON.allBSONTypes[typeIndicator] else {
-                throw BSONError.InternalError(message: "Unable to read type: \(typeIndicator)")
-            }
-            return try type.read(from: &mutBuffer)
-        } catch {
-            fatalError("Cannot obtain current value: \(error.localizedDescription)")
-        }
-    }
-
     /// Advances to the next element and returns it, or nil if no next element exists.
     public mutating func next() -> BSONDocument.KeyValuePair? {
         // The only time this would crash is when the document is incorrectly formatted
@@ -149,6 +106,7 @@ public struct BSONDocumentIterator: IteratorProtocol {
         startIndex: Int = 0,
         endIndex: Int = Int.max
     ) -> BSONDocument {
+        // TODO(SWIFT-911): Improve performance
         guard endIndex >= startIndex else {
             fatalError("endIndex must be >= startIndex")
         }
@@ -158,12 +116,11 @@ public struct BSONDocumentIterator: IteratorProtocol {
         var excludedKeys: [String] = []
 
         for _ in 0..<startIndex {
-            if let next = iter.next() {
-                excludedKeys.append(next.key)
-            } else {
+            guard let next = iter.next() else {
                 // we ran out of values
                 break
             }
+            excludedKeys.append(next.key)
         }
 
         // skip the values between startIndex and endIndex. this has better performance than calling next, because
