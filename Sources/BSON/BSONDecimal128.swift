@@ -339,7 +339,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         let combination = (self.value.hi >> 58) & 0x1F
         if (combination >> 3) == 0b11 {
             if combination == COMBINATION_INFINITY {
-                return self.isNegative ? "-" : "" + "Infinity"
+                return (self.isNegative ? "-" : "") + "Infinity"
             }
             if combination == COMBINATION_NAN {
                 return "NaN"
@@ -385,9 +385,6 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
                 var (quotient, remainder) = UInt128.divideBy1Billion(significand128)
                 significand128 = quotient
                 /* We now have the 9 least significant digits. */
-                if remainder == 0 {
-                    continue
-                }
                 for _ in 0...8 {
                     significand.insert(remainder % 10, at: 0)
                     remainder /= 10
@@ -395,11 +392,15 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             }
         }
 
-        /* Scientific - [-]d.dddE(+/-)dd or [-]dE(+/-)dd */
+        if !isZero, let firstNonZero = significand.firstIndex(where: { $0 != 0 }) {
+            significand = [Int](significand.suffix(from: firstNonZero))
+        }
+
+        /* Scientific - [-]d.ddde(+/-)dd or [-]de(+/-)dd */
         /* Regular    - ddd.ddd */
 
         /*
-         * The scientific exponent checks are dictated by the string conversion
+         * The adjusted_exponent checks are dictated by the string conversion
          * specification.
          *
          * We must check exponent > 0, because if this is the case, the number
@@ -415,8 +416,8 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             representation += String(significand[0], radix: 10)
             representation += significand.count > 1 ? "." : ""
             representation += significand[1..<significand.count].map { String($0, radix: 10) }.joined(separator: "")
-            representation += "e"
-            representation += String(format: "%+d", exponent)
+            representation += "E"
+            representation += String(format: "%+d", adjusted_exponent)
         } else {
             // Regular format
             guard exponent != 0 else {

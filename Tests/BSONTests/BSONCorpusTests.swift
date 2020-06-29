@@ -144,19 +144,13 @@ final class BSONCorpusTests: BSONTestCase {
                         }
                         let extjson = test.canonicalExtJSON.data(using: .ascii)!
                         let jsonResult = try JSONDecoder().decode(Decimal128CanonicalExtJSON.self, from: extjson)
-                        let testDecStr = jsonResult.d.numberDecimal
+                        let decimal128CorpusString = jsonResult.d.numberDecimal
 
-                        let decFromStr = try BSONDecimal128(testDecStr)
-                        let decFromBin = docFromCB.d!.decimal128Value!
+                        let decimal128FromString = try BSONDecimal128(decimal128CorpusString)
+                        let decimal128FromBinary = docFromCB.d!.decimal128Value!
 
-                        print("\n")
-                        print("INPUT:         \(testDecStr)")
-                        print("MADE FROM STR: \(decFromStr)")
-                        print("MADE FROM BIN: \(decFromBin)")
-                        print("\n")
-
-                        expect(decFromBin.description.lowercased()) // from binary
-                            .to(equal(decFromStr.description.lowercased())) // from string
+                        expect(decimal128FromString.description).to(equal(decimal128CorpusString))
+                        expect(decimal128FromBinary.description).to(equal(decimal128CorpusString))
                     }
 
                     // native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ
