@@ -6,16 +6,11 @@ The official MongoDB BSON implementation in Swift!
 
 ## Index
 
-- [Documentation](#documentation)
 - [Bugs/Feature Requests](#bugs--feature-requests)
 - [Installation](#installation)
 - [Example Usage](#example-usage)
   - [Work With and Modify Documents](#work-with-and-modify-documents)
 - [Development Instructions](#development-instructions)
-
-## Documentation
-
-The latest documentation is available [here](https://mongodb.github.io/swift-bson/).
 
 ## Bugs / Feature Requests
 
@@ -35,9 +30,7 @@ Installation is supported via [Swift Package Manager](https://swift.org/package-
 
 ### Install BSON
 
-The driver contains two modules to support a variety of use cases: an asynchronous API in `MongoSwift`, and a synchronous API in `MongoSwiftSync`. The modules share a BSON implementation and a number of core types such as options `struct`s.
-
-To install the driver, add the package and relevant module as a dependency in your project's `Package.swift` file:
+To install the library, add the package as a dependency in your project's `Package.swift` file:
 
 ```swift
 // swift-tools-version:5.1
@@ -49,7 +42,6 @@ let package = Package(
         .package(url: "https://github.com/mongodb/swift-bson.git", from: "VERSION.STRING.HERE"),
     ],
     targets: [
-        // Async module
         .target(name: "MyTarget", dependencies: ["BSON"])
     ]
 )
@@ -93,7 +85,7 @@ Note that `BSONDocument` conforms to `Collection`, so useful methods from [`Sequ
 ## Development Instructions
 
 See our [development guide](https://github.com/mongodb/mongo-swift-driver/blob/master/Guides/Development.md) for the MongoDB driver to get started.
-To run the tests for the bson library you can make use of the Makefile and run: `make test-pretty`
+To run the tests for the BSON library you can make use of the Makefile and run: `make test-pretty` (uses `xcpretty` to change the output format) or just `make test` (for environments without ruby).
 
 ## Note
 
