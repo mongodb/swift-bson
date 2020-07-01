@@ -155,8 +155,11 @@ public struct BSONDocument {
         }
         set {
             // The only time this would crash is document too big error
-            // swiftlint:disable force_try
-            try! self.set(key: key, to: newValue)
+            do {
+                return try self.set(key: key, to: newValue)
+            } catch {
+                fatalError("Failed to set \(key) to \(String(describing: newValue)): \(error)")
+            }
         }
     }
 
