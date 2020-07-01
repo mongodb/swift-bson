@@ -4,7 +4,7 @@ import NIO
 /// This shared allocator instance should be used for all underlying `ByteBuffer` creation.
 internal let BSON_ALLOCATOR = ByteBufferAllocator()
 /// Maximum BSON document size in bytes
-internal let BSON_MAX_SIZE = 0x1000000
+internal let BSON_MAX_SIZE = Int32.max
 /// Minimum BSON document size in bytes
 internal let BSON_MIN_SIZE = 5
 
