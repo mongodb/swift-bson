@@ -109,7 +109,6 @@ final class BSONCorpusTests: BSONTestCase {
                         XCTFail("Unable to interpret canonical_bson as Data")
                         return
                     }
-
                     // guard let cEJData = test.canonicalExtJSON.data(using: .utf8) else {
                     //     XCTFail("Unable to interpret canonical_extjson as Data")
                     //     return
@@ -132,7 +131,7 @@ final class BSONCorpusTests: BSONTestCase {
                     // TODO(SWIFT-867): Enable these lines when you can do subscript assignment
                     let nativeFromDoc = docFromCB.toArray()
                     let docFromNative = BSONDocument(fromArray: nativeFromDoc)
-                    expect(docFromNative.byteString).to(equal(cBData.byteString))
+                    expect(docFromNative.toByteString()).to(equal(cBData.toByteString()))
 
                     // native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ
                     // expect(docFromCB.canonicalExtendedJSON).to(cleanEqual(test.canonicalExtJSON))
