@@ -106,7 +106,7 @@ public struct BSONDocumentIterator: IteratorProtocol {
         startIndex: Int = 0,
         endIndex: Int = Int.max
     ) -> BSONDocument {
-        // TODO(SWIFT-911): Improve performance
+        // TODO: SWIFT-911 Improve performance
         guard endIndex >= startIndex else {
             fatalError("endIndex must be >= startIndex")
         }
@@ -126,7 +126,7 @@ public struct BSONDocumentIterator: IteratorProtocol {
         // skip the values between startIndex and endIndex. this has better performance than calling next, because
         // it doesn't pull the unneeded key/values out of the iterator
         for _ in startIndex..<endIndex {
-            if (try? iter.nextThrowing()) == nil {
+            guard (try? iter.nextThrowing()) != nil else {
                 // we ran out of values
                 break
             }
