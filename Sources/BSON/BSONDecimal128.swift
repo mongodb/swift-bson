@@ -96,8 +96,8 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     private static let decimalRegex = "\(digitsRegex)\\.\(digitsRegex)?|\\.?\(digitsRegex)"
     private static let nanRegex = #"NaN"#
     private static let exponentRegex = "\(indicatorRegex)(\(signRegex))(\(digitsRegex))"
-    private static let numbericValueRegex = "(\(signRegex))?(?:(\(decimalRegex))(?:\(exponentRegex))?|(\(infinityRegex)))"
-    public static let decimal128Regex = "\(numbericValueRegex)|(\(nanRegex))"
+    private static let numericValueRegex = "(\(signRegex))?(?:(\(decimalRegex))(?:\(exponentRegex))?|(\(infinityRegex)))"
+    public static let decimal128Regex = "\(numericValueRegex)|(\(nanRegex))"
     // swiftlint:enable line_length
 
     // The precision of the Decimal128 format
@@ -110,6 +110,9 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     private static let exponentMin = -6176
     // The sum of the exponent and a constant (bias) chosen to make the biased exponent’s range non-negative.
     private static let exponentBias = 6176
+
+    private static let decimalShift17Zeroes: UInt64 = 100_000_000_000_000_000
+    private static let exponentMask = 0x3FFF
 
     private static let negativeInfinity = UInt128(hi: 0xF800_0000_0000_0000, lo: 0)
     private static let infinity = UInt128(hi: 0x7800_0000_0000_0000, lo: 0)
@@ -195,6 +198,8 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             exponent = exponentSign * (Int(data[range]) ?? 0)
         }
         if let pointIndex = decimalPart.firstIndex(of: ".") {
+            // move the exponent by the number of digits after the decimal point
+            // so we are looking at an "integer" significand, easier to reason about
             exponent -= decimalPart.distance(from: pointIndex, to: decimalPart.endIndex) - 1
             if exponent < Self.exponentMin {
                 exponent = Self.exponentMin
@@ -236,36 +241,35 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             )
         }
 
-        var significand = UInt128()
+        var significandHiDigits = UInt64()
+        var significandLoDigits = UInt64()
 
-        if digits.isEmpty {
-            significand.hi = 0
-            significand.lo = 0
-        }
-
-        let loDigits = Array(digits.suffix(17))
-        let hiDigits = Array(digits.dropLast(17))
+        let loDigits = Array(digits.suffix(Self.significandDigits / 2))
+        let hiDigits = Array(digits.dropLast(Self.significandDigits / 2))
 
         if !loDigits.isEmpty {
-            significand.lo = UInt64(loDigits[0])
+            significandLoDigits = UInt64(loDigits[0])
             for digit in loDigits[1...] {
-                significand.lo *= 10
-                significand.lo += UInt64(digit)
+                significandLoDigits *= 10
+                significandLoDigits += UInt64(digit)
             }
         }
 
         if !hiDigits.isEmpty {
-            significand.hi = UInt64(hiDigits[0])
+            significandHiDigits = UInt64(hiDigits[0])
             for digit in hiDigits[1...] {
-                significand.hi *= 10
-                significand.hi += UInt64(digit)
+                significandHiDigits *= 10
+                significandHiDigits += UInt64(digit)
             }
         }
 
-        var product = UInt128.multiply(significand.hi, by: 100_000_000_000_000_000)
-        product.lo += significand.lo
+        // Multiply by one hundred quadrillion (note the seventeen zeroes)
+        // the product is the significandHiDigits "shifted" up by 17 decimal places
+        // we can then add the significandLoDigits to the product to ensure that we have a correctly formed significand
+        var product = UInt128.multiply(significandHiDigits, by: Self.decimalShift17Zeroes)
+        product.lo += significandLoDigits
 
-        if product.lo < significand.lo {
+        if product.lo < significandLoDigits {
             product.hi += 1
         }
 
@@ -273,19 +277,21 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 
         self.value = UInt128()
 
+        // The most significant bit of the significand determines the format
+        let significandMSB = (product.hi >> 49) & 1
         // Encode combination, exponent, and significand.
-        if (product.hi >> 49) & 1 == 1 {
+        if significandMSB == 1 {
             // The significand has the implicit (0b100) at the
-            // begining of the trailing significand field
+            // beginning of the trailing significand field
 
             // Ensure we encode '0b11' into bits 1 to 3
             self.value.hi |= (0b11 << 61)
-            self.value.hi |= UInt64(biasedExponent & 0x3FFF) << 47
-            self.value.hi |= product.hi & 0x7FFF_FFFF_FFFF
+            self.value.hi |= UInt64(biasedExponent & Self.exponentMask) << 47
+            self.value.hi |= product.hi & 0x0_7FFF_FFFF_FFFF
         } else {
             // The significand has the implicit (0b0) at the
-            // begining of the trailing significand field
-            self.value.hi |= UInt64(biasedExponent & 0x3FFF) << 49
+            // beginning of the trailing significand field
+            self.value.hi |= UInt64(biasedExponent & Self.exponentMask) << 49
             self.value.hi |= product.hi & 0x1_FFFF_FFFF_FFFF
         }
 
@@ -337,7 +343,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     private func toString() -> String {
         // swiftlint:disable:previous cyclomatic_complexity
         var exponent: Int
-        var sig_prefix: Int
+        var significandPrefix: Int
 
         let combination = (self.value.hi >> 58) & 0x1F
         if (combination >> 3) == 0b11 {
@@ -348,19 +354,20 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
                 return "NaN"
             }
             // Decimal interchange floating-point formats c,2,ii
-            exponent = Int((self.value.hi >> 47) & 0x3FFF)
-            sig_prefix = Int(((self.value.hi >> 46) & 0b1) + 0b1000)
+            exponent = Int((self.value.hi >> 47) & UInt64(Self.exponentMask))
+            significandPrefix = Int(((self.value.hi >> 46) & 0b1) + 0b1000)
         } else {
             // Decimal interchange floating-point formats c,2,i
-            exponent = Int((self.value.hi >> 49) & 0x3FFF)
-            sig_prefix = Int((self.value.hi >> 46) & 0x7)
+            exponent = Int((self.value.hi >> 49) & UInt64(Self.exponentMask))
+            significandPrefix = Int((self.value.hi >> 46) & 0b111)
         }
 
         exponent -= Self.exponentBias
 
         var significand128 = UInt128()
 
-        significand128.hi = UInt64((sig_prefix & 0xF) << 46) | self.value.hi & 0x0000_3FFF_FFFF_FFFF
+        // significand prefix (implied bits) combined with removing the combination and sign fields
+        significand128.hi = UInt64((significandPrefix & 0xF) << 46) | self.value.hi & 0x0000_3FFF_FFFF_FFFF
         significand128.lo = self.value.lo
 
         /// make a base 10 digits array from significand
