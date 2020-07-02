@@ -39,7 +39,7 @@ final class DocumentTests: BSONTestCase {
         doc["b"] = nil // delete
         doc["d"] = 3 // append
         let res: BSONDocument = ["a": .int32(45), "c": .int32(90), "d": 3]
-        expect(doc.buffer.byteString).to(equal(res.buffer.byteString))
+        expect(doc.buffer.toByteString()).to(equal(res.buffer.toByteString()))
     }
 
     func testDelete() {

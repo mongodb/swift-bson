@@ -53,14 +53,16 @@ public func retrieveSpecTestFiles<T: Decodable>(
         }
 }
 
-func toByteString(_ bytes: [UInt8]?) -> String {
+/// Create a readable string from bytes
+/// if ascii is true the function will print the ascii representation of the byte if one exists
+func toByteString(_ bytes: [UInt8]?, ascii: Bool = false) -> String {
     guard let bytes = bytes else {
         return "none"
     }
     var string = ""
     for byte in bytes {
         var byteStr = ""
-        if (33 < byte) && (byte < 126) {
+        if ascii && (33 < byte) && (byte < 126) {
             byteStr = " " + String(UnicodeScalar(byte))
         } else {
             byteStr = String(format: "%02X", byte)
@@ -71,26 +73,26 @@ func toByteString(_ bytes: [UInt8]?) -> String {
 }
 
 public extension Data {
-    var byteString: String {
-        BSONTests.toByteString([UInt8](self))
+    func toByteString(ascii: Bool = true) -> String {
+        BSONTests.toByteString([UInt8](self), ascii: ascii)
     }
 }
 
 public extension Array where Element == UInt8 {
-    var byteString: String {
-        BSONTests.toByteString(self)
+    func toByteString(ascii: Bool = true) -> String {
+        BSONTests.toByteString(self, ascii: ascii)
     }
 }
 
 public extension ByteBuffer {
-    var byteString: String {
-        BSONTests.toByteString(self.getBytes(at: 0, length: self.readableBytes))
+    func toByteString(ascii: Bool = true) -> String {
+        BSONTests.toByteString(self.getBytes(at: 0, length: self.readableBytes), ascii: ascii)
     }
 }
 
 public extension BSONDocument {
-    var byteString: String {
-        BSONTests.toByteString(self.buffer.getBytes(at: 0, length: self.buffer.readableBytes))
+    func toByteString(ascii: Bool = true) -> String {
+        BSONTests.toByteString(self.buffer.getBytes(at: 0, length: self.buffer.readableBytes), ascii: ascii)
     }
 }
 
