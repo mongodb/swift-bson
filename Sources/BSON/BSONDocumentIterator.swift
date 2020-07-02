@@ -31,8 +31,11 @@ public struct BSONDocumentIterator: IteratorProtocol {
     /// Advances to the next element and returns it, or nil if no next element exists.
     public mutating func next() -> BSONDocument.KeyValuePair? {
         // The only time this would crash is when the document is incorrectly formatted
-        // swiftlint:disable force_try
-        try! self.nextThrowing()
+        do {
+            return try self.nextThrowing()
+        } catch {
+            fatalError("Failed to iterate to next: \(error)")
+        }
     }
 
     /**
