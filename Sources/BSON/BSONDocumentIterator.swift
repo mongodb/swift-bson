@@ -1,21 +1,6 @@
 import Foundation
 import NIO
 
-extension BSONDocument: Sequence {
-    // Since a `Document` is a recursive structure, we want to enforce the use of it as a subsequence of itself,
-    // instead of something like `Slice<Document>`.
-    /// The type that is returned from methods such as `dropFirst()` and `split()`.
-    public typealias SubSequence = BSONDocument
-
-    /// Returns a `Bool` indicating whether the document is empty.
-    public var isEmpty: Bool { self.keySet.isEmpty }
-
-    /// Returns a `DocumentIterator` over the values in this `Document`.
-    public func makeIterator() -> BSONDocumentIterator {
-        BSONDocumentIterator(over: self.buffer)
-    }
-}
-
 public struct BSONDocumentIterator: IteratorProtocol {
     /// The buffer we are iterating over.
     private var buffer: ByteBuffer
@@ -26,6 +11,10 @@ public struct BSONDocumentIterator: IteratorProtocol {
         self.exhausted = false
         // moves readerIndex to first key's type indicator
         self.buffer.moveReaderIndex(to: 4)
+    }
+
+    internal init(over doc: BSONDocument) {
+        self = BSONDocumentIterator(over: doc.buffer)
     }
 
     /// Advances to the next element and returns it, or nil if no next element exists.
@@ -110,6 +99,52 @@ public struct BSONDocumentIterator: IteratorProtocol {
                 return startIndex..<endIndex
             }
         }
+    }
+
+    // uses an iterator to copy (key, value) pairs of the provided document from range [startIndex, endIndex) into a new
+    // document. starts at the startIndex-th pair and ends at the end of the document or the (endIndex-1)th index,
+    // whichever comes first.
+    internal static func subsequence(
+        of doc: BSONDocument,
+        startIndex: Int = 0,
+        endIndex: Int = Int.max
+    ) -> BSONDocument {
+        // TODO: SWIFT-911 Improve performance
+        guard endIndex >= startIndex else {
+            fatalError("endIndex must be >= startIndex")
+        }
+
+        var iter = BSONDocumentIterator(over: doc)
+
+        var excludedKeys: [String] = []
+
+        for _ in 0..<startIndex {
+            guard let next = iter.next() else {
+                // we ran out of values
+                break
+            }
+            excludedKeys.append(next.key)
+        }
+
+        // skip the values between startIndex and endIndex. this has better performance than calling next, because
+        // it doesn't pull the unneeded key/values out of the iterator
+        for _ in startIndex..<endIndex {
+            guard (try? iter.nextThrowing()) != nil else {
+                // we ran out of values
+                break
+            }
+        }
+
+        while let next = iter.next() {
+            excludedKeys.append(next.key)
+        }
+
+        guard !excludedKeys.isEmpty else {
+            return doc
+        }
+
+        let newDoc = doc.filter { key, _ in !excludedKeys.contains(key) }
+        return newDoc
     }
 }
 

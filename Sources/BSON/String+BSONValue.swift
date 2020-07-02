@@ -13,7 +13,7 @@ extension String: BSONValue {
             throw BSONError.InternalError(message: "String length is always >= 1 for null terminator")
         }
         guard let bytes = buffer.readBytes(length: Int(length)) else {
-            throw BSONError.InternalError(message: "Cannot read string")
+            throw BSONError.InternalError(message: "Cannot read \(length) bytes for string")
         }
         guard let nullTerm = bytes.last, nullTerm == 0 else {
             throw BSONError.InternalError(message: "String is not null terminated")

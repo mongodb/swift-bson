@@ -211,6 +211,54 @@ extension BSON {
     }
 }
 
+/// toInt* helper functions
+extension BSON {
+    /// Return this BSON as an `Int` if possible.
+    /// This will coerce non-integer numeric cases (e.g. `.double`) into an `Int` if such coercion would be lossless.
+    public func toInt() -> Int? {
+        switch self {
+        case let .int32(value):
+            return Int(value)
+        case let .int64(value):
+            return Int(exactly: value)
+        case let .double(value):
+            return Int(exactly: value)
+        default:
+            return nil
+        }
+    }
+
+    /// Return this BSON as an `Int32` if possible.
+    /// This will coerce numeric cases (e.g. `.double`) into an `Int32` if such coercion would be lossless.
+    public func toInt32() -> Int32? {
+        switch self {
+        case let .int32(value):
+            return value
+        case let .int64(value):
+            return Int32(exactly: value)
+        case let .double(value):
+            return Int32(exactly: value)
+        default:
+            return nil
+        }
+    }
+
+    /// Return this BSON as an `Int64` if possible.
+    /// This will coerce numeric cases (e.g. `.double`) into an `Int64` if such coercion would be lossless.
+    public func toInt64() -> Int64? {
+        switch self {
+        case let .int32(value):
+            return Int64(value)
+        case let .int64(value):
+            return value
+        case let .double(value):
+            return Int64(exactly: value)
+        default:
+            return nil
+        }
+    }
+}
+
 /// Extension providing the internal API of `BSON`
 extension BSON {
     /// List of all BSONValue types. Can be used to exhaustively check each one at runtime.
