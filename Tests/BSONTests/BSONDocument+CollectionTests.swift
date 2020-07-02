@@ -66,10 +66,6 @@ final class Document_CollectionTests: BSONTestCase {
         expect(lastElem?.key).to(equal("d"))
         expect(lastElem?.value).to(equal(4))
         expect(doc).to(equal([:]))
-
-        // doc.merge
-        let newDoc: BSONDocument = ["e": 4, "f": 2]
-        try doc.merge(newDoc)
     }
 
     func testPrefixSuffix() {

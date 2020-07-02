@@ -254,13 +254,6 @@ public struct BSONDocument {
         }
     }
 
-    /// Appends the key/value pairs from the provided `doc` to this `BSONDocument`.
-    internal mutating func merge(_ doc: BSONDocument) throws {
-        for (key, value) in doc {
-            self[key] = value
-        }
-    }
-
     /// Storage management for BSONDocuments.
     /// A wrapper around a ByteBuffer providing various BSONDocument-specific utilities.
     private struct BSONDocumentStorage {
