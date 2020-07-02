@@ -53,7 +53,7 @@ public struct BSONRegularExpression: Equatable, Hashable {
         self.pattern = regex.pattern
         self.options = regex.stringOptions
     }
-    
+
     /// Converts this `BSONRegularExpression` to an `NSRegularExpression`.
     /// Note: `NSRegularExpression` does not support the `l` locale dependence option, so it will be omitted if it was
     /// set on this instance.

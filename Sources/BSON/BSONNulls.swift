@@ -16,7 +16,7 @@ internal struct BSONNull: BSONValue, Equatable {
     internal func write(to: inout ByteBuffer) {
         // no-op
     }
-    
+
     internal init(from decoder: Decoder) throws {
         throw getDecodingError(type: Self.self, decoder: decoder)
     }
