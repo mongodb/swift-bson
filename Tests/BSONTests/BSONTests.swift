@@ -19,6 +19,9 @@ open class BSONTestCase: XCTestCase {
         }
         return path
     }
+
+    // indicates whether we are running on a 32-bit platform
+    public static let is32Bit = MemoryLayout<Int>.size == 4
 }
 
 public struct TestError: LocalizedError {
