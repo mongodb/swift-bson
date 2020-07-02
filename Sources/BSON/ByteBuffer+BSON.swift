@@ -18,7 +18,7 @@ extension ByteBuffer {
     /// Attempts to read null terminated UTF-8 string from ByteBuffer starting at the readerIndex
     internal func getCString(at offset: Int) throws -> String {
         var string: [UInt8] = []
-        for i in 0..<BSON_MAX_SIZE {
+        for i in 0..<Int(BSON_MAX_SIZE) {
             if let b = self.getBytes(at: offset + i, length: 1) {
                 if b[0] == 0 {
                     guard let s = String(bytes: string, encoding: .utf8) else {
