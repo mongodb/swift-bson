@@ -16,6 +16,14 @@ internal struct BSONNull: BSONValue, Equatable {
     internal func write(to: inout ByteBuffer) {
         // no-op
     }
+    
+    internal init(from decoder: Decoder) throws {
+        throw getDecodingError(type: Self.self, decoder: decoder)
+    }
+
+    internal func encode(to: Encoder) throws {
+        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
+    }
 }
 
 /// A struct to represent the BSON undefined type.
@@ -34,6 +42,14 @@ internal struct BSONUndefined: BSONValue, Equatable {
     internal func write(to: inout ByteBuffer) {
         // no-op
     }
+
+    internal init(from decoder: Decoder) throws {
+        throw getDecodingError(type: Self.self, decoder: decoder)
+    }
+
+    internal func encode(to: Encoder) throws {
+        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
+    }
 }
 
 /// A struct to represent the BSON MinKey type.
@@ -42,7 +58,7 @@ internal struct BSONMinKey: BSONValue, Equatable {
 
     internal var bson: BSON { .minKey }
 
-    /// Initializes a new `BSONNull` instance.
+    /// Initializes a new `MinKey` instance.
     internal init() {}
 
     internal static func read(from: inout ByteBuffer) throws -> BSON {
@@ -52,6 +68,14 @@ internal struct BSONMinKey: BSONValue, Equatable {
     internal func write(to: inout ByteBuffer) {
         // no-op
     }
+
+    internal init(from decoder: Decoder) throws {
+        throw getDecodingError(type: Self.self, decoder: decoder)
+    }
+
+    internal func encode(to: Encoder) throws {
+        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
+    }
 }
 
 /// A struct to represent the BSON MinKey type.
@@ -60,7 +84,7 @@ internal struct BSONMaxKey: BSONValue, Equatable {
 
     internal var bson: BSON { .maxKey }
 
-    /// Initializes a new `BSONNull` instance.
+    /// Initializes a new `MaxKey` instance.
     internal init() {}
 
     internal static func read(from: inout ByteBuffer) throws -> BSON {
@@ -69,5 +93,13 @@ internal struct BSONMaxKey: BSONValue, Equatable {
 
     internal func write(to: inout ByteBuffer) {
         // no-op
+    }
+
+    internal init(from decoder: Decoder) throws {
+        throw getDecodingError(type: Self.self, decoder: decoder)
+    }
+
+    internal func encode(to: Encoder) throws {
+        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
     }
 }

@@ -35,7 +35,7 @@ extension NSRegularExpression {
 }
 
 /// A struct to represent a BSON regular expression.
-public struct BSONRegularExpression: Equatable, Codable, Hashable {
+public struct BSONRegularExpression: Equatable, Hashable {
     /// The pattern for this regular expression.
     public let pattern: String
     /// A string containing options for this regular expression.
@@ -53,7 +53,7 @@ public struct BSONRegularExpression: Equatable, Codable, Hashable {
         self.pattern = regex.pattern
         self.options = regex.stringOptions
     }
-
+    
     /// Converts this `BSONRegularExpression` to an `NSRegularExpression`.
     /// Note: `NSRegularExpression` does not support the `l` locale dependence option, so it will be omitted if it was
     /// set on this instance.
@@ -77,5 +77,13 @@ extension BSONRegularExpression: BSONValue {
     internal func write(to buffer: inout ByteBuffer) {
         buffer.writeCString(self.pattern)
         buffer.writeCString(self.options)
+    }
+
+    public init(from decoder: Decoder) throws {
+        throw getDecodingError(type: Self.self, decoder: decoder)
+    }
+
+    public func encode(to: Encoder) throws {
+        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
     }
 }

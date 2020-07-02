@@ -167,37 +167,38 @@ public class BSONDecoder {
         try self.decode(type, from: BSONDocument(fromBSON: data))
     }
 
-    /**
-     * Decodes a top-level value of the given type from the given JSON/extended JSON string.
-     *
-     * - Parameter type: The type of the value to decode.
-     * - Parameter json: The JSON string to decode from.
-     * - Returns: A value of the requested type.
-     * - Throws: `DecodingError` if the JSON data is corrupt or if any value throws an error during decoding.
-     */
-    public func decode<T: Decodable>(_: T.Type, from json: String) throws -> T {
-        // we nest the input JSON in another object, and then decode to a `DecodableWrapper`
-        // wrapping an object of the requested type. since our decoder only supports decoding
-        // objects, this allows us to additionally handle decoding to primitive types like a
-        // `String` or an `Int`.
-        // while this is not needed to decode JSON representing objects, it is difficult to
-        // determine when JSON represents an object vs. a primitive value -- for example,
-        // {"$numberInt": "42"} is a JSON object and looks like an object type but is actually
-        // a primitive type, Int32. so for simplicity, we just always assume wrapping is needed,
-        // and pay a small performance penalty of decoding a few extra bytes.
-        let wrapped = "{\"value\": \(json)}"
+    // TODO: SWIFT-930 Implement this
+    // /**
+    //  * Decodes a top-level value of the given type from the given JSON/extended JSON string.
+    //  *
+    //  * - Parameter type: The type of the value to decode.
+    //  * - Parameter json: The JSON string to decode from.
+    //  * - Returns: A value of the requested type.
+    //  * - Throws: `DecodingError` if the JSON data is corrupt or if any value throws an error during decoding.
+    //  */
+    // public func decode<T: Decodable>(_: T.Type, from json: String) throws -> T {
+    //     // we nest the input JSON in another object, and then decode to a `DecodableWrapper`
+    //     // wrapping an object of the requested type. since our decoder only supports decoding
+    //     // objects, this allows us to additionally handle decoding to primitive types like a
+    //     // `String` or an `Int`.
+    //     // while this is not needed to decode JSON representing objects, it is difficult to
+    //     // determine when JSON represents an object vs. a primitive value -- for example,
+    //     // {"$numberInt": "42"} is a JSON object and looks like an object type but is actually
+    //     // a primitive type, Int32. so for simplicity, we just always assume wrapping is needed,
+    //     // and pay a small performance penalty of decoding a few extra bytes.
+    //     let wrapped = "{\"value\": \(json)}"
 
-        if let doc = try? BSONDocument(fromJSON: wrapped) {
-            let s = try self.decode(DecodableWrapper<T>.self, from: doc)
-            return s.value
-        }
+    //     if let doc = try? BSONDocument(fromJSON: wrapped) {
+    //         let s = try self.decode(DecodableWrapper<T>.self, from: doc)
+    //         return s.value
+    //     }
 
-        throw DecodingError.dataCorrupted(
-            DecodingError.Context(
-                codingPath: [],
-                debugDescription: "Unable to parse JSON string \(json)"
-            ))
-    }
+    //     throw DecodingError.dataCorrupted(
+    //         DecodingError.Context(
+    //             codingPath: [],
+    //             debugDescription: "Unable to parse JSON string \(json)"
+    //         ))
+    // }
 
     /// A struct to wrap a `Decodable` type, allowing us to support decoding to types that
     /// are not inside a wrapping object (for ex., Int or String).
@@ -542,7 +543,7 @@ private struct _BSONKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainer
     /// Private helper function to check for a value in self.container. Returns the value stored
     /// under `key`, or throws an error if the value is not found.
     private func getValue(forKey key: Key) throws -> BSON {
-        guard let entry = try self.container.getValue(for: key.stringValue) else {
+        guard let entry = self.container[key.stringValue] else {
             throw DecodingError.keyNotFound(
                 key,
                 DecodingError.Context(
@@ -556,7 +557,7 @@ private struct _BSONKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainer
 
     /// Decode a BSONValue type from this container for the given key.
     private func decodeBSONType<T: BSONValue>(_ type: T.Type, forKey key: Key) throws -> T {
-        let entry = try getValue(forKey: key)
+        let entry = try self.getValue(forKey: key)
         return try self.decoder.with(pushedKey: key) {
             try decoder.unboxBSONValue(entry, as: type)
         }
@@ -564,7 +565,7 @@ private struct _BSONKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainer
 
     /// Decodes a CodableNumber type from this container for the given key.
     private func decodeNumber<T: CodableNumber>(_ type: T.Type, forKey key: Key) throws -> T {
-        let entry = try getValue(forKey: key)
+        let entry = try self.getValue(forKey: key)
         return try self.decoder.with(pushedKey: key) {
             try decoder.unboxNumber(entry, as: type)
         }
@@ -572,7 +573,7 @@ private struct _BSONKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainer
 
     /// Decodes a Decodable type from this container for the given key.
     public func decode<T: Decodable>(_ type: T.Type, forKey key: Key) throws -> T {
-        let entry = try getValue(forKey: key)
+        let entry = try self.getValue(forKey: key)
         return try self.decoder.with(pushedKey: key) {
             let value = try decoder.unbox(entry, as: type)
             guard !(value is BSONNull) || type == BSONNull.self else {
@@ -601,7 +602,7 @@ private struct _BSONKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainer
                 )
             )
         }
-        return try self.container.getValue(for: key.stringValue) == .null
+        return self.container[key.stringValue] == .null
     }
 
     // swiftlint:disable line_length
@@ -627,7 +628,7 @@ private struct _BSONKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainer
         forKey key: Key
     ) throws -> KeyedDecodingContainer<NestedKey> {
         try self.decoder.with(pushedKey: key) {
-            let value = try getValue(forKey: key)
+            let value = try self.getValue(forKey: key)
 
             guard let doc = value.documentValue else {
                 throw DecodingError._typeMismatch(
@@ -645,7 +646,7 @@ private struct _BSONKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainer
     /// Returns the data stored for the given key as represented in an unkeyed container.
     public func nestedUnkeyedContainer(forKey key: Key) throws -> UnkeyedDecodingContainer {
         try self.decoder.with(pushedKey: key) {
-            let value = try getValue(forKey: key)
+            let value = try self.getValue(forKey: key)
 
             guard let array = value.arrayValue else {
                 throw DecodingError._typeMismatch(
@@ -662,7 +663,7 @@ private struct _BSONKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainer
     /// Private method to create a superDecoder for the provided key.
     private func _superDecoder(forKey key: CodingKey) throws -> Decoder {
         try self.decoder.with(pushedKey: key) {
-            guard let value = try self.container.getValue(for: key.stringValue) else {
+            guard let value = self.container[key.stringValue] else {
                 throw DecodingError.keyNotFound(
                     key,
                     DecodingError.Context(

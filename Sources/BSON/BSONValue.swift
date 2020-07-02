@@ -1,6 +1,6 @@
 import NIO
 
-internal protocol BSONValue {
+internal protocol BSONValue: Codable {
     /// The `BSONType` associated with this value.
     static var bsonType: BSONType { get }
 

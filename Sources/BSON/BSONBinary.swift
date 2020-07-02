@@ -188,4 +188,12 @@ extension BSONBinary: BSONValue {
         }
         buffer.writeBytes(self.data.readableBytesView)
     }
+
+    public init(from decoder: Decoder) throws {
+        throw getDecodingError(type: Self.self, decoder: decoder)
+    }
+
+    public func encode(to: Encoder) throws {
+        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
+    }
 }

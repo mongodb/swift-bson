@@ -42,6 +42,14 @@ extension BSONCode: BSONValue {
     internal func write(to buffer: inout ByteBuffer) {
         self.code.write(to: &buffer)
     }
+
+    public init(from decoder: Decoder) throws {
+        throw getDecodingError(type: Self.self, decoder: decoder)
+    }
+
+    public func encode(to: Encoder) throws {
+        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
+    }
 }
 
 extension BSONCodeWithScope: BSONValue {
@@ -85,5 +93,13 @@ extension BSONCodeWithScope: BSONValue {
         self.code.write(to: &buffer)
         self.scope.write(to: &buffer)
         buffer.setInteger(Int32(buffer.writerIndex - writer), at: writer, endianness: .little, as: Int32.self)
+    }
+
+    public init(from decoder: Decoder) throws {
+        throw getDecodingError(type: Self.self, decoder: decoder)
+    }
+
+    public func encode(to: Encoder) throws {
+        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
     }
 }

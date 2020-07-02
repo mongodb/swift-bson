@@ -1,5 +1,5 @@
-import CLibMongoC
 import Foundation
+import NIO
 
 /// `BSONEncoder` facilitates the encoding of `Encodable` values into BSON.
 public class BSONEncoder {
@@ -761,20 +761,20 @@ private class MutableArray: BSONValue {
 
     /// methods required by the BSONValue protocol that we don't actually need/use. MutableArray
     /// is just a BSONValue to simplify usage alongside true BSONValues within the encoder.
-    fileprivate func encode(to _: inout BSONDocument, forKey _: String) throws {
-        fatalError("`MutableArray` is not meant to be encoded to a `BSONDocument`")
+    static func read(from buffer: inout ByteBuffer) throws -> BSON {
+        fatalError("MutableArray is not meant to be read from a ByteBuffer")
     }
 
-    internal static func from(iterator _: BSONDocumentIterator) -> BSON {
-        fatalError("`MutableArray` is not meant to be initialized from a `DocumentIterator`")
+    func write(to buffer: inout ByteBuffer) {
+        fatalError("MutableArray is not meant to be written to a ByteBuffer")
     }
 
     fileprivate func encode(to _: Encoder) throws {
-        fatalError("`MutableArray` is not meant to be encoded with an `Encoder`")
+        fatalError("MutableArray is not meant to be encoded with an Encoder")
     }
-
+    
     required convenience init(from _: Decoder) throws {
-        fatalError("`MutableArray` is not meant to be initialized from a `Decoder`")
+        fatalError("MutableArray is not meant to be initialized from a Decoder")
     }
 
     internal func toBSONArray() throws -> [BSON] {
@@ -830,35 +830,35 @@ private class MutableDictionary: BSONValue {
             let value = self.values[i]
             switch value {
             case let val as MutableDictionary:
-                try doc.setValue(for: self.keys[i], to: val.toDocument().bson)
+                try doc.set(key: self.keys[i], to: val.toDocument().bson)
             case let val as MutableArray:
                 let array = try val.toBSONArray()
-                try doc.setValue(for: self.keys[i], to: array.bson)
+                try doc.set(key: self.keys[i], to: array.bson)
             default:
-                try doc.setValue(for: self.keys[i], to: value.bson)
+                try doc.set(key: self.keys[i], to: value.bson)
             }
         }
         return doc
     }
 
     fileprivate init() {}
-
+    
     /// methods required by the BSONValue protocol that we don't actually need/use. MutableDictionary
     /// is just a BSONValue to simplify usage alongside true BSONValues within the encoder.
-    fileprivate func encode(to _: inout BSONDocument, forKey _: String) throws {
-        fatalError("`MutableDictionary` is not meant to be encoded to a `BSONDocument`")
+    static func read(from buffer: inout ByteBuffer) throws -> BSON {
+        fatalError("MutableDictionary is not meant to be read from a ByteBuffer")
     }
 
-    internal static func from(iterator _: BSONDocumentIterator) -> BSON {
-        fatalError("`MutableDictionary` is not meant to be initialized from a `DocumentIterator`")
+    func write(to buffer: inout ByteBuffer) {
+        fatalError("MutableDictionary is not meant to be encoded to a ByteBuffer")
     }
-
+    
     fileprivate func encode(to _: Encoder) throws {
-        fatalError("`MutableDictionary` is not meant to be encoded with an `Encoder`")
+        fatalError("MutableDictionary is not meant to be encoded with an `Encoder`")
     }
 
     fileprivate required convenience init(from _: Decoder) throws {
-        fatalError("`MutableDictionary` is not meant to be initialized from a `Decoder`")
+        fatalError("MutableDictionary is not meant to be initialized from a `Decoder`")
     }
 }
 
