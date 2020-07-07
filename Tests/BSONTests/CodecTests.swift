@@ -399,7 +399,8 @@ final class CodecTests: BSONTestCase {
     //     expect(try decoder.decode(Int32.self, from: "{\"$numberInt\": \"42\"}")).to(equal(Int32(42)))
 
     //     let oid = try BSONObjectID("507f1f77bcf86cd799439011")
-    //     expect(try decoder.decode(BSONObjectID.self, from: "{\"$oid\": \"507f1f77bcf86cd799439011\"}")).to(equal(oid))
+    //     expect(try decoder.decode(BSONObjectID.self, from: "{\"$oid\": \"507f1f77bcf86cd799439011\"}"))
+    // .to(equal(oid))
 
     //     expect(try decoder.decode(String.self, from: "\"somestring\"")).to(equal("somestring"))
 
@@ -641,7 +642,8 @@ final class CodecTests: BSONTestCase {
         let date = BSON.datetime(Date(timeIntervalSince1970: 5000))
 
         // TODO: SWIFT-915 unskip
-        // expect(try decoder.decode(BSON.self, from: "{ \"$date\" : { \"$numberLong\" : \"5000000\" } }")).to(equal(date))
+        // expect(try decoder.decode(BSON.self, from: "{ \"$date\" : { \"$numberLong\" : \"5000000\" } }"))
+        // .to(equal(date))
 
         let wrappedDate: BSONDocument = ["x": date]
         expect(try encoder.encode(AnyBSONStruct(date))).to(equal(wrappedDate))
