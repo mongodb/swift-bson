@@ -343,7 +343,7 @@ final class CodecTests: BSONTestCase {
         }
     }
 
-    // TODO: SWIFT-915 unskip
+    // TODO: SWIFT-930 unskip
     // /// Test decoding/encoding to all possible BSON types
     // func testBSONValues() throws {
     //     let expected = try AllBSONTypes.factory()
@@ -534,14 +534,14 @@ final class CodecTests: BSONTestCase {
         let bsonDoc = BSON.document(doc)
         expect(try encoder.encode(bsonDoc)).to(equal(doc))
         expect(try decoder.decode(BSON.self, from: doc)).to(equal(bsonDoc))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(BSON.self, from: doc.toCanonicalExtendedJSONString())).to(equal(bsonDoc))
         // doc wrapped in a struct
 
         let wrappedDoc: BSONDocument = ["x": bsonDoc]
         expect(try encoder.encode(AnyBSONStruct(bsonDoc))).to(equal(wrappedDoc))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDoc).x).to(equal(bsonDoc))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(
         //     AnyBSONStruct.self,
         //     from: wrappedDoc.toCanonicalExtendedJSONString()
@@ -549,32 +549,32 @@ final class CodecTests: BSONTestCase {
 
         // values wrapped in an `AnyBSONStruct`
         let double: BSON = 42.0
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(BSON.self, from: "{\"$numberDouble\": \"42\"}")).to(equal(double))
 
         let wrappedDouble: BSONDocument = ["x": double]
         expect(try encoder.encode(AnyBSONStruct(double))).to(equal(wrappedDouble))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDouble).x).to(equal(double))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDouble.toCanonicalExtendedJSONString()).x)
         //     .to(equal(double))
 
         // string
         let string: BSON = "hi"
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(BSON.self, from: "\"hi\"")).to(equal(string))
 
         let wrappedString: BSONDocument = ["x": string]
         expect(try encoder.encode(AnyBSONStruct(string))).to(equal(wrappedString))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedString).x).to(equal(string))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedString.toCanonicalExtendedJSONString()).x)
         //     .to(equal(string))
 
         // array
         let array: BSON = [1, 2, "hello"]
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // let decodedArray = try decoder.decode(
         //     BSON.self,
         //     from: "[{\"$numberLong\": \"1\"}, {\"$numberLong\": \"2\"}, \"hello\"]"
@@ -594,7 +594,7 @@ final class CodecTests: BSONTestCase {
         // binary
         let binary = BSON.binary(try BSONBinary(base64: "//8=", subtype: .generic))
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(
         //     try decoder.decode(
         //         BSON.self,
@@ -605,7 +605,7 @@ final class CodecTests: BSONTestCase {
         let wrappedBinary: BSONDocument = ["x": binary]
         expect(try encoder.encode(AnyBSONStruct(binary))).to(equal(wrappedBinary))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedBinary).x).to(equal(binary))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(
         //     AnyBSONStruct.self,
         //     from: wrappedBinary.toCanonicalExtendedJSONString()
@@ -615,40 +615,40 @@ final class CodecTests: BSONTestCase {
         let oid = BSONObjectID()
         let bsonOid = BSON.objectID(oid)
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(BSON.self, from: "{\"$oid\": \"\(oid.hex)\"}")).to(equal(bsonOid))
 
         let wrappedOid: BSONDocument = ["x": bsonOid]
         expect(try encoder.encode(AnyBSONStruct(bsonOid))).to(equal(wrappedOid))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedOid).x).to(equal(bsonOid))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedOid.toCanonicalExtendedJSONString()).x)
         //     .to(equal(bsonOid))
 
         // bool
         let bool: BSON = true
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(BSON.self, from: "true")).to(equal(bool))
 
         let wrappedBool: BSONDocument = ["x": bool]
         expect(try encoder.encode(AnyBSONStruct(bool))).to(equal(wrappedBool))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedBool).x).to(equal(bool))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedBool.toCanonicalExtendedJSONString()).x)
         //     .to(equal(bool))
 
         // date
         let date = BSON.datetime(Date(timeIntervalSince1970: 5000))
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(BSON.self, from: "{ \"$date\" : { \"$numberLong\" : \"5000000\" } }"))
         // .to(equal(date))
 
         let wrappedDate: BSONDocument = ["x": date]
         expect(try encoder.encode(AnyBSONStruct(date))).to(equal(wrappedDate))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDate).x).to(equal(date))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDate.toCanonicalExtendedJSONString()).x)
         //     .to(equal(date))
 
@@ -663,7 +663,7 @@ final class CodecTests: BSONTestCase {
         // regex
         let regex = BSON.regex(BSONRegularExpression(pattern: "abc", options: "imx"))
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(
         //     BSON.self,
         //     from: "{ \"$regularExpression\" : { \"pattern\" : \"abc\", \"options\" : \"imx\" } }"
@@ -673,14 +673,14 @@ final class CodecTests: BSONTestCase {
         let wrappedRegex: BSONDocument = ["x": regex]
         expect(try encoder.encode(AnyBSONStruct(regex))).to(equal(wrappedRegex))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedRegex).x).to(equal(regex))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedRegex.toCanonicalExtendedJSONString()).x)
         //     .to(equal(regex))
 
         // codewithscope
         let code = BSON.codeWithScope(BSONCodeWithScope(code: "console.log(x);", scope: ["x": 1]))
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(
         //     try decoder.decode(
         //         BSON.self,
@@ -692,46 +692,46 @@ final class CodecTests: BSONTestCase {
         let wrappedCode: BSONDocument = ["x": code]
         expect(try encoder.encode(AnyBSONStruct(code))).to(equal(wrappedCode))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedCode).x).to(equal(code))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedCode.toCanonicalExtendedJSONString()).x)
         //     .to(equal(code))
 
         // int32
         let int32 = BSON.int32(5)
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(BSON.self, from: "{ \"$numberInt\" : \"5\" }")).to(equal(int32))
 
         let wrappedInt32: BSONDocument = ["x": int32]
         expect(try encoder.encode(AnyBSONStruct(int32))).to(equal(wrappedInt32))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt32).x).to(equal(int32))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt32.toCanonicalExtendedJSONString()).x)
         //     .to(equal(int32))
 
         // int
         let int: BSON = 5
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(BSON.self, from: "{ \"$numberLong\" : \"5\" }")).to(equal(int))
 
         let wrappedInt: BSONDocument = ["x": int]
         expect(try encoder.encode(AnyBSONStruct(int))).to(equal(wrappedInt))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt).x).to(equal(int))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt.toCanonicalExtendedJSONString()).x)
         //     .to(equal(int))
 
         // int64
         let int64 = BSON.int64(5)
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(BSON.self, from: "{\"$numberLong\":\"5\"}")).to(equal(int64))
 
         let wrappedInt64: BSONDocument = ["x": int64]
         expect(try encoder.encode(AnyBSONStruct(int64))).to(equal(wrappedInt64))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt64).x).to(equal(int64))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt64.toCanonicalExtendedJSONString()).x)
         //     .to(equal(int64))
 
@@ -749,26 +749,26 @@ final class CodecTests: BSONTestCase {
         // maxkey
         let maxKey = BSON.maxKey
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(BSON.self, from: "{ \"$maxKey\" : 1 }")).to(equal(maxKey))
 
         let wrappedMaxKey: BSONDocument = ["x": maxKey]
         expect(try encoder.encode(AnyBSONStruct(maxKey))).to(equal(wrappedMaxKey))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedMaxKey).x).to(equal(maxKey))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedMaxKey.toCanonicalExtendedJSONString()).x)
         //     .to(equal(maxKey))
 
         // minkey
         let minKey = BSON.minKey
 
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(BSON.self, from: "{ \"$minKey\" : 1 }")).to(equal(minKey))
 
         let wrappedMinKey: BSONDocument = ["x": minKey]
         expect(try encoder.encode(AnyBSONStruct(minKey))).to(equal(wrappedMinKey))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedMinKey).x).to(equal(minKey))
-        // TODO: SWIFT-915 unskip
+        // TODO: SWIFT-930 unskip
         // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedMinKey.toCanonicalExtendedJSONString()).x)
         //     .to(equal(minKey))
 
