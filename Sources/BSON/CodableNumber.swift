@@ -135,57 +135,9 @@ extension UInt: CodableNumber {
     }
 }
 
-/// Override the default initializer due to a runtime assertion that fails
-/// when initializing a Double from an Int (possible Swift bug?)
-extension Double: CodableNumber {
-    internal init?(from value: BSONValue) {
-        switch value {
-        case let v as Int32:
-            if let exact = Double(exactly: v) {
-                self = exact
-                return
-            }
-        case let v as Int64:
-            if let exact = Double(exactly: v) {
-                self = exact
-                return
-            }
-        case let v as Double:
-            self = v
-            return
-        default:
-            break
-        }
-        return nil
-    }
-}
+extension Double: CodableNumber {}
 
-/// Override the default initializer due to a runtime assertion that fails
-/// when initializing a Float from an Int (possible Swift bug?)
 extension Float: CodableNumber {
-    internal init?(from value: BSONValue) {
-        switch value {
-        case let v as Int32:
-            if let exact = Float(exactly: v) {
-                self = exact
-                return
-            }
-        case let v as Int64:
-            if let exact = Float(exactly: v) {
-                self = exact
-                return
-            }
-        case let v as Double:
-            if let exact = Float(exactly: v) {
-                self = exact
-                return
-            }
-        default:
-            break
-        }
-        return nil
-    }
-
     internal var bsonValue: BSONValue? {
         // a Float can always be represented as a Double
         Double(exactly: self)
