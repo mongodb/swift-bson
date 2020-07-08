@@ -74,15 +74,16 @@ extension BSONObjectID: BSONValue {
         // assumes that the BSONObjectID is stored as a valid hex string.
         let container = try decoder.singleValueContainer()
         let hex = try container.decode(String.self)
-        guard let oid = try? BSONObjectID(hex) else {
+        do {
+            self = try BSONObjectID(hex)
+        } catch {
             throw DecodingError.dataCorrupted(
                 DecodingError.Context(
                     codingPath: decoder.codingPath,
-                    debugDescription: "Invalid ObjectID hex string. Got: \(hex)"
+                    debugDescription: error.localizedDescription
                 )
             )
         }
-        self = oid
     }
 
     public func encode(to encoder: Encoder) throws {
