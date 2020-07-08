@@ -3,6 +3,9 @@ import PackageDescription
 
 let package = Package(
     name: "swift-bson",
+    platforms: [
+        .macOS(.v10_14)
+    ],
     products: [
         .library(name: "BSON", targets: ["BSON"])
     ],
