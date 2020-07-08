@@ -70,7 +70,7 @@ internal func BSONIterationError(
 
 /// Error thrown when a BSONValue type introduced by the driver (e.g. BSONObjectID) is encoded not using BSONEncoder
 internal func bsonEncodingUnsupportedError<T: BSONValue>(value: T, at codingPath: [CodingKey]) -> EncodingError {
-    let description = "Encoding \(T.self) BSONValue type with a non-BSONEncoder is currently unsupported"
+    let description = "Encoding \(T.self) BSON type with a non-BSONEncoder is currently unsupported"
 
     return EncodingError.invalidValue(
         value,
@@ -80,7 +80,7 @@ internal func bsonEncodingUnsupportedError<T: BSONValue>(value: T, at codingPath
 
 /// Error thrown when a BSONValue type introduced by the driver (e.g. BSONObjectID) is decoded not using BSONDecoder
 internal func bsonDecodingUnsupportedError<T: BSONValue>(type _: T.Type, at codingPath: [CodingKey]) -> DecodingError {
-    let description = "Initializing a \(T.self) BSONValue type with a non-BSONDecoder is currently unsupported"
+    let description = "Initializing a \(T.self) BSON type with a non-BSONDecoder is currently unsupported"
 
     return DecodingError.typeMismatch(
         T.self,
@@ -93,7 +93,7 @@ internal func bsonDecodingUnsupportedError<T: BSONValue>(type _: T.Type, at codi
  * top-level `BSONDecoder`.
  */
 internal func bsonDecodingDirectlyError<T: BSONValue>(type _: T.Type, at codingPath: [CodingKey]) -> DecodingError {
-    let description = "Cannot initialize BSONValue type \(T.self) directly from BSONDecoder. It must be decoded as " +
+    let description = "Cannot initialize BSON type \(T.self) directly from BSONDecoder. It must be decoded as " +
         "a member of a struct or a class."
 
     return DecodingError.typeMismatch(
