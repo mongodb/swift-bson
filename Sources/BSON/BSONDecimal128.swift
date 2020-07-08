@@ -1,6 +1,26 @@
 import Foundation
 import NIO
 
+private extension UInt64 {
+    var upper32bits: Self { self >> 32 }
+    var lower32bits: Self { self & 0xFFFF_FFFF }
+}
+
+private extension Array where Element == UInt8 {
+    func decimalDigitsToUInt64() -> UInt64 {
+        var value = UInt64()
+        guard !self.isEmpty else {
+            return value
+        }
+        value = UInt64(self[0])
+        for digit in self[1...] {
+            value *= 10
+            value += UInt64(digit)
+        }
+        return value
+    }
+}
+
 internal struct UInt128: Equatable, Hashable {
     /// The high order 64 bits
     internal var hi: UInt64
@@ -12,11 +32,6 @@ internal struct UInt128: Equatable, Hashable {
         self.lo = lo
     }
 
-    internal init(_ value: UInt128) {
-        self.hi = value.hi
-        self.lo = value.lo
-    }
-
     internal init() {
         self.hi = 0
         self.lo = 0
@@ -24,26 +39,26 @@ internal struct UInt128: Equatable, Hashable {
 
     internal static func multiply(_ left: UInt64, by right: UInt64) -> UInt128 {
         let (product, didOverflow) = left.multipliedReportingOverflow(by: right)
-        if !didOverflow {
+        guard didOverflow else {
             return UInt128(hi: 0, lo: product)
         }
 
-        let leftHi = left >> 32
-        let leftLo = left & 0xFFFF_FFFF
+        let leftHi = left.upper32bits
+        let leftLo = left.lower32bits
 
-        let rightHi = right >> 32
-        let rightLo = right & 0xFFFF_FFFF
+        let rightHi = right.upper32bits
+        let rightLo = right.lower32bits
 
         var productHi = leftHi * rightHi
         let productMid0 = leftHi * rightLo
         let productMid1 = leftLo * rightHi
         var productLo = leftLo * rightLo
 
-        productHi += productMid0 >> 32
-        let productPartial = (productMid0 & 0xFFFF_FFFF) + productMid1 + (productLo >> 32)
+        productHi += productMid0.upper32bits
+        let productPartial = productMid0.lower32bits + productMid1 + productLo.upper32bits
 
-        productHi += (productPartial >> 32)
-        productLo = (productPartial << 32) + (productLo & 0xFFFF_FFFF)
+        productHi += productPartial.upper32bits
+        productLo = (productPartial << 32) + productLo.lower32bits
 
         return UInt128(hi: productHi, lo: productLo)
     }
@@ -64,19 +79,19 @@ internal struct UInt128: Equatable, Hashable {
             /* Add the divided to remainder */
             var quotient_i: UInt64
             switch i {
-            case 0: quotient_i = (quotient.hi & 0xFFFF_FFFF_0000_0000) >> 32
-            case 1: quotient_i = (quotient.hi & 0x0000_0000_FFFF_FFFF)
-            case 2: quotient_i = (quotient.lo & 0xFFFF_FFFF_0000_0000) >> 32
-            case 3: quotient_i = (quotient.lo & 0x0000_0000_FFFF_FFFF)
+            case 0: quotient_i = quotient.hi.upper32bits
+            case 1: quotient_i = quotient.hi.lower32bits
+            case 2: quotient_i = quotient.lo.upper32bits
+            case 3: quotient_i = quotient.lo.lower32bits
             default: quotient_i = 0
             }
             remainder += quotient_i
             // quotient[i] = Int(remainder / DIVISOR)
             switch i {
-            case 0: quotient.hi = (((remainder / denominator) << 32) | quotient.hi & 0x0000_0000_FFFF_FFFF)
-            case 1: quotient.hi = (((remainder / denominator) & 0xFFFF_FFFF) | quotient.hi & 0xFFFF_FFFF_0000_0000)
-            case 2: quotient.lo = (((remainder / denominator) << 32) | quotient.lo & 0x0000_0000_FFFF_FFFF)
-            case 3: quotient.lo = (((remainder / denominator) & 0xFFFF_FFFF) | quotient.lo & 0xFFFF_FFFF_0000_0000)
+            case 0: quotient.hi = (((remainder / denominator) << 32) | quotient.hi.lower32bits)
+            case 1: quotient.hi = ((remainder / denominator).lower32bits | quotient.hi & 0xFFFF_FFFF_0000_0000)
+            case 2: quotient.lo = (((remainder / denominator) << 32) | quotient.lo.lower32bits)
+            case 3: quotient.lo = ((remainder / denominator).lower32bits | quotient.lo & 0xFFFF_FFFF_0000_0000)
             default: _ = ()
             }
             /* Store the remainder */
@@ -101,7 +116,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     // swiftlint:enable line_length
 
     // The precision of the Decimal128 format
-    private static let significandDigits = 34
+    private static let maxSignificandDigits = 34
     // NOTE: the min and max values are adjusted for when the decimal point is rounded out
     // e.g, 1.000...*10^-6143 == 1000...*10^-6176
     // In the spec exp_max is 6144 so we use 6111
@@ -132,16 +147,16 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     /// Holder for raw decimal128 value
     private var value: UInt128
 
-    /// Determines if the value is 0
+    /// Determines if the value is negative, most significant bit is 1
     private var isNegative: Bool { (self.value.hi >> 63) == 1 }
 
     /// Indicators in the combination field that determine number type
     private static let combinationNaN = 0b11111
     private static let combinationInfinity = 0b11110
 
-    /// Determines if the value is Not a Number
+    /// Determines if the value is Not a Number by checking if bits 1-6 are equal to 1 ignoring sign bit
     private var isNaN: Bool { ((self.value.hi >> 58) & 0x1F) == Self.combinationNaN }
-    /// Determines if the value is Infinity
+    /// Determines if the value is Infinity  by checking if bits 1-5 are equal to 1 and bit 6 is 0 ignoring sign bit
     private var isInfinity: Bool { ((self.value.hi >> 58) & 0x1F) == Self.combinationInfinity }
 
     internal init(fromUInt128 value: UInt128) {
@@ -150,7 +165,10 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 
     public init(_ data: String) throws {
         // swiftlint:disable:previous cyclomatic_complexity
-        let regex = try NSRegularExpression(pattern: Self.decimal128Regex)
+        let regex = try NSRegularExpression(
+            pattern: Self.decimal128Regex,
+            options: NSRegularExpression.Options.caseInsensitive
+        )
         let wholeRepr = NSRange(data.startIndex..<data.endIndex, in: data)
         guard let match: NSTextCheckingResult = regex.firstMatch(in: data, range: wholeRepr) else {
             throw BSONError.InvalidArgumentError(message: "Syntax Error: \(data) does not match \(regex)")
@@ -206,7 +224,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             }
         }
 
-        while exponent > Self.exponentMax && digits.count <= Self.significandDigits {
+        while exponent > Self.exponentMax && digits.count <= Self.maxSignificandDigits {
             // Exponent is too large, try shifting zeros into the coefficient
             digits.append(0)
             exponent -= 1
@@ -235,33 +253,14 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             throw BSONError.InvalidArgumentError(message: "Rounding Error: Cannot round exponent \(exponent) further")
         }
 
-        guard digits.count <= Self.significandDigits else {
+        guard digits.count <= Self.maxSignificandDigits else {
             throw BSONError.InvalidArgumentError(
-                message: "Overflow Error: Value cannot exceed \(Self.significandDigits) digits"
+                message: "Overflow Error: Value cannot exceed \(Self.maxSignificandDigits) digits"
             )
         }
 
-        var significandHiDigits = UInt64()
-        var significandLoDigits = UInt64()
-
-        let loDigits = Array(digits.suffix(Self.significandDigits / 2))
-        let hiDigits = Array(digits.dropLast(Self.significandDigits / 2))
-
-        if !loDigits.isEmpty {
-            significandLoDigits = UInt64(loDigits[0])
-            for digit in loDigits[1...] {
-                significandLoDigits *= 10
-                significandLoDigits += UInt64(digit)
-            }
-        }
-
-        if !hiDigits.isEmpty {
-            significandHiDigits = UInt64(hiDigits[0])
-            for digit in hiDigits[1...] {
-                significandHiDigits *= 10
-                significandHiDigits += UInt64(digit)
-            }
-        }
+        let significandLoDigits = [UInt8](digits.suffix(Self.maxSignificandDigits / 2)).decimalDigitsToUInt64()
+        let significandHiDigits = [UInt8](digits.dropLast(Self.maxSignificandDigits / 2)).decimalDigitsToUInt64()
 
         // Multiply by one hundred quadrillion (note the seventeen zeroes)
         // the product is the significandHiDigits "shifted" up by 17 decimal places
