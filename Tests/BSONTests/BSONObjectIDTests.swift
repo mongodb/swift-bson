@@ -3,13 +3,6 @@ import Foundation
 import Nimble
 
 extension BSONObjectID {
-    // timestamp
-    internal var timestamp: Int {
-        var value = Int()
-        _ = withUnsafeMutableBytes(of: &value) { self.oid[0..<4].reversed().copyBytes(to: $0) }
-        return value
-    }
-
     // random value
     internal var randomValue: Int {
         var value = Int()
@@ -48,7 +41,7 @@ final class BSONObjectIDTests: BSONTestCase {
 
     func testFieldAccessors() throws {
         let oid = try BSONObjectID("FEEEEEEEFBBBBBBBBBFAAAAA")
-        expect(oid.timestamp).to(equal(0xFEEE_EEEE))
+        expect(oid.timestamp).to(equal(Date(timeIntervalSince1970: 0xFEEE_EEEE)))
         expect(oid.randomValue).to(equal(0xFB_BBBB_BBBB))
         expect(oid.counter).to(equal(0xFAAAAA))
     }
@@ -62,8 +55,8 @@ final class BSONObjectIDTests: BSONTestCase {
     }
 
     func testTimestampCreation() throws {
-        let id = BSONObjectID()
-        let dateFromID = Date(timeIntervalSince1970: TimeInterval(id.timestamp))
+        let oid = BSONObjectID()
+        let dateFromID = oid.timestamp
         let date = Date()
 
         let format = DateFormatter()

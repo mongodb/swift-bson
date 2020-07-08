@@ -11,6 +11,16 @@ public struct BSONObjectID: Equatable, Hashable, CustomStringConvertible {
 
     public var description: String { self.hex }
 
+    /// The timestamp portion of this `BSONObjectID` represented as a `Date`.
+    public var timestamp: Date {
+        var value = Int()
+        _ = withUnsafeMutableBytes(of: &value) {
+            self.oid[0..<4].reversed().copyBytes(to: $0)
+        }
+        return Date(timeIntervalSince1970: TimeInterval(value))
+        print(self.timestamp)
+    }
+
     /// ObjectID Bytes
     internal let oid: [UInt8]
 
