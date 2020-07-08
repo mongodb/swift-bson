@@ -34,12 +34,4 @@ extension BSONDBPointer: BSONValue {
         self.ref.write(to: &buffer)
         self.id.write(to: &buffer)
     }
-
-    public init(from decoder: Decoder) throws {
-        throw getDecodingError(type: Self.self, decoder: decoder)
-    }
-
-    public func encode(to: Encoder) throws {
-        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
-    }
 }

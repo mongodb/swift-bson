@@ -21,6 +21,14 @@ extension BSONValue {
     internal var bsonType: BSONType {
         Self.bsonType
     }
+
+    public init(from decoder: Decoder) throws {
+        throw getDecodingError(type: Self.self, decoder: decoder)
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        throw bsonEncodingUnsupportedError(value: self, at: encoder.codingPath)
+    }
 }
 
 /// The possible types of BSON values and their corresponding integer values.

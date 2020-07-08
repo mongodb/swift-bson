@@ -29,12 +29,4 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
         buffer.writeInteger(self.increment, endianness: .little, as: UInt32.self)
         buffer.writeInteger(self.timestamp, endianness: .little, as: UInt32.self)
     }
-
-    public init(from decoder: Decoder) throws {
-        throw getDecodingError(type: Self.self, decoder: decoder)
-    }
-
-    public func encode(to: Encoder) throws {
-        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
-    }
 }

@@ -78,12 +78,4 @@ extension BSONRegularExpression: BSONValue {
         buffer.writeCString(self.pattern)
         buffer.writeCString(self.options)
     }
-
-    public init(from decoder: Decoder) throws {
-        throw getDecodingError(type: Self.self, decoder: decoder)
-    }
-
-    public func encode(to: Encoder) throws {
-        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
-    }
 }

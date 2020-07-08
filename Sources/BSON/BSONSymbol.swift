@@ -27,12 +27,4 @@ public struct BSONSymbol: BSONValue, CustomStringConvertible, Equatable, Hashabl
     internal func write(to buffer: inout ByteBuffer) {
         self.stringValue.write(to: &buffer)
     }
-
-    public init(from decoder: Decoder) throws {
-        throw getDecodingError(type: Self.self, decoder: decoder)
-    }
-
-    public func encode(to: Encoder) throws {
-        throw bsonEncodingUnsupportedError(value: self, at: to.codingPath)
-    }
 }
