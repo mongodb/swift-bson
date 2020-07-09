@@ -1,0 +1,138 @@
+import Foundation
+
+/// Enum representing a JSON value
+internal enum JSON: Codable {
+    case number(Double)
+    case string(String)
+    case bool(Bool)
+    indirect case array([JSON])
+    indirect case object([String: JSON])
+    case null
+
+    /// Initialize a `JSON` from a decoder
+    /// Try to decode into each of the JSON types one by one until one succeeds or
+    /// if throw an error indicating that the input is not a valid `JSON` type
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let d = try? container.decode(Double.self) {
+            self = .number(d)
+        } else if let s = try? container.decode(String.self) {
+            self = .string(s)
+        } else if let b = try? container.decode(Bool.self) {
+            self = .bool(b)
+        } else if let a = try? container.decode([JSON].self) {
+            self = .array(a)
+        } else if let d = try? container.decode([String: JSON].self) {
+            self = .object(d)
+        } else if container.decodeNil() {
+            self = .null
+        } else {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription: "Not a valid JSON type"
+                ))
+        }
+    }
+
+    /// Encode a `JSON` to a container by encoding whichever type this instance of `JSON` is
+    public func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        switch self {
+        case let .number(n):
+            try container.encode(n)
+        case let .string(s):
+            try container.encode(s)
+        case let .bool(b):
+            try container.encode(b)
+        case let .array(a):
+            try container.encode(a)
+        case let .object(o):
+            try container.encode(o)
+        case .null:
+            try container.encodeNil()
+        }
+    }
+}
+
+extension JSON: ExpressibleByFloatLiteral {
+    public init(floatLiteral value: Double) {
+        self = .number(value)
+    }
+}
+
+extension JSON: ExpressibleByIntegerLiteral {
+    public init(integerLiteral value: Int) {
+        // the number `JSON` type is a Double, so we cast any integers to doubles
+        self = .number(Double(value))
+    }
+}
+
+extension JSON: ExpressibleByStringLiteral {
+    public init(stringLiteral value: String) {
+        self = .string(value)
+    }
+}
+
+extension JSON: ExpressibleByBooleanLiteral {
+    public init(booleanLiteral value: Bool) {
+        self = .bool(value)
+    }
+}
+
+extension JSON: ExpressibleByArrayLiteral {
+    public init(arrayLiteral elements: JSON...) {
+        self = .array(elements)
+    }
+}
+
+extension JSON: ExpressibleByDictionaryLiteral {
+    public init(dictionaryLiteral elements: (String, JSON)...) {
+        self = .object([String: JSON](uniqueKeysWithValues: elements))
+    }
+}
+
+/// Value Getters
+extension JSON {
+    /// If this `JSON` is a `.double`, return it as a `Double`. Otherwise, return nil.
+    public var doubleValue: Double? {
+        guard case let .number(n) = self else {
+            return nil
+        }
+        return n
+    }
+
+    /// If this `JSON` is a `.string`, return it as a `String`. Otherwise, return nil.
+    public var stringValue: String? {
+        guard case let .string(s) = self else {
+            return nil
+        }
+        return s
+    }
+
+    /// If this `JSON` is a `.bool`, return it as a `Bool`. Otherwise, return nil.
+    public var boolValue: Bool? {
+        guard case let .bool(b) = self else {
+            return nil
+        }
+        return b
+    }
+
+    /// If this `JSON` is a `.array`, return it as a `[JSON]`. Otherwise, return nil.
+    public var arrayValue: [JSON]? {
+        guard case let .array(a) = self else {
+            return nil
+        }
+        return a
+    }
+
+    /// If this `JSON` is a `.object`, return it as a `[String: JSON]`. Otherwise, return nil.
+    public var objectValue: [String: JSON]? {
+        guard case let .object(o) = self else {
+            return nil
+        }
+        return o
+    }
+}
+
+extension JSON: Equatable {}
