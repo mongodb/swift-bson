@@ -18,7 +18,6 @@ public struct BSONObjectID: Equatable, Hashable, CustomStringConvertible {
             self.oid[0..<4].reversed().copyBytes(to: $0)
         }
         return Date(timeIntervalSince1970: TimeInterval(value))
-        print(self.timestamp)
     }
 
     /// ObjectID Bytes
