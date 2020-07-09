@@ -40,8 +40,11 @@ final class BSONObjectIDTests: BSONTestCase {
     }
 
     func testFieldAccessors() throws {
-        let oid = try BSONObjectID("FEEEEEEEFBBBBBBBBBFAAAAA")
-        expect(oid.timestamp).to(equal(Date(timeIntervalSince1970: 0xFEEE_EEEE)))
+        let format = DateFormatter()
+        format.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        let timestamp = format.date(from: "2020-07-09 12:22:52")
+        let oid = try BSONObjectID("5F07445CFBBBBBBBBBFAAAAA")
+        expect(oid.timestamp).to(equal(timestamp))
         expect(oid.randomValue).to(equal(0xFB_BBBB_BBBB))
         expect(oid.counter).to(equal(0xFAAAAA))
     }
@@ -58,10 +61,8 @@ final class BSONObjectIDTests: BSONTestCase {
         let oid = BSONObjectID()
         let dateFromID = oid.timestamp
         let date = Date()
-
         let format = DateFormatter()
-        // should be ok to say the timestamps are within the same second but just to be safe, omit seconds
-        format.dateFormat = "yyyy-MM-dd HH:mm"
+        format.dateFormat = "yyyy-MM-dd HH:mm:ss"
 
         expect(format.string(from: dateFromID)).to(equal(format.string(from: date)))
     }
