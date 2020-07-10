@@ -42,7 +42,8 @@ final class BSONObjectIDTests: BSONTestCase {
     func testFieldAccessors() throws {
         let format = DateFormatter()
         format.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        let timestamp = format.date(from: "2020-07-09 12:22:52")
+        format.timeZone = TimeZone(secondsFromGMT: 0)
+        let timestamp = format.date(from: "2020-07-09 16:22:52")
         // 5F07445 is the hex string for the above date
         let oid = try BSONObjectID("5F07445CFBBBBBBBBBFAAAAA")
 
