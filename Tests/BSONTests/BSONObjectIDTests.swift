@@ -43,7 +43,9 @@ final class BSONObjectIDTests: BSONTestCase {
         let format = DateFormatter()
         format.dateFormat = "yyyy-MM-dd HH:mm:ss"
         let timestamp = format.date(from: "2020-07-09 12:22:52")
+        // 5F07445 is the hex string for the above date
         let oid = try BSONObjectID("5F07445CFBBBBBBBBBFAAAAA")
+
         expect(oid.timestamp).to(equal(timestamp))
         expect(oid.randomValue).to(equal(0xFB_BBBB_BBBB))
         expect(oid.counter).to(equal(0xFAAAAA))
