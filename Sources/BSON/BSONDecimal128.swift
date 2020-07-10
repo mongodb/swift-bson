@@ -2,8 +2,41 @@ import Foundation
 import NIO
 
 private extension UInt64 {
-    var upper32bits: Self { self >> 32 }
-    var lower32bits: Self { self & 0xFFFF_FFFF }
+    var upper32bits: Self { self.getBits(0...31) }
+    var lower32bits: Self { self.getBits(32...63) }
+
+    /// Gets this number's bits without shifting the value down to the LSB
+    /// the bits are indexed from MSB at 0 to LSB at 63
+    /// example: (0b11010).getBitsUnshifted(0..<4) == 0b110_00
+    /// (note: the bits before the _ are the one's gotten)
+    func getBitsUnshifted(_ range: ClosedRange<Int>) -> Self {
+        guard range.lowerBound >= 0 else {
+            return 0
+        }
+        guard range.upperBound <= 63 else {
+            return 0
+        }
+        var value = UInt64()
+        for i in range {
+            value |= (self & (0b1 << (63 - i)))
+        }
+        return value
+    }
+
+    /// Gets this number's bits shifting the value down to the LSB
+    /// the bits are indexed from MSB at 0 to LSB at 63
+    /// example: (0b11010).getBitsUnshifted(0..<4) == 0b110
+    func getBits(_ range: ClosedRange<Int>) -> Self {
+        var value = self.getBitsUnshifted(range)
+        value >>= (63 - range.upperBound)
+        return value
+    }
+
+    func getBit(_ index: Int) -> Self {
+        let shiftAmount = 63 - index
+        let value = (self >> shiftAmount) & 0b1
+        return value
+    }
 }
 
 private extension Array where Element == UInt8 {
@@ -74,9 +107,9 @@ internal struct UInt128: Equatable, Hashable {
         }
 
         for i in 0...3 {
-            /* Adjust remainder to match value of next dividend */
+            // Adjust remainder to match value of next dividend
             remainder <<= 32
-            /* Add the divided to remainder */
+            // Add the divided to remainder
             var quotient_i: UInt64
             switch i {
             case 0: quotient_i = quotient.hi.upper32bits
@@ -89,16 +122,16 @@ internal struct UInt128: Equatable, Hashable {
             // quotient[i] = Int(remainder / DIVISOR)
             switch i {
             case 0: quotient.hi = (((remainder / denominator) << 32) | quotient.hi.lower32bits)
-            case 1: quotient.hi = ((remainder / denominator).lower32bits | quotient.hi & 0xFFFF_FFFF_0000_0000)
+            case 1: quotient.hi = ((remainder / denominator).lower32bits | quotient.hi.getBitsUnshifted(0...31))
             case 2: quotient.lo = (((remainder / denominator) << 32) | quotient.lo.lower32bits)
-            case 3: quotient.lo = ((remainder / denominator).lower32bits | quotient.lo & 0xFFFF_FFFF_0000_0000)
+            case 3: quotient.lo = ((remainder / denominator).lower32bits | quotient.lo.getBitsUnshifted(0...31))
             default: _ = ()
             }
-            /* Store the remainder */
+            // Store the remainder
             remainder %= denominator
         }
 
-        return (quotient: quotient, remainder: Int(remainder & 0xFFFF_FFFF))
+        return (quotient: quotient, remainder: Int(remainder.lower32bits))
     }
 }
 
@@ -147,17 +180,16 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     /// Holder for raw decimal128 value
     private var value: UInt128
 
-    /// Determines if the value is negative, most significant bit is 1
-    private var isNegative: Bool { (self.value.hi >> 63) == 1 }
-
     /// Indicators in the combination field that determine number type
     private static let combinationNaN = 0b11111
     private static let combinationInfinity = 0b11110
 
     /// Determines if the value is Not a Number by checking if bits 1-6 are equal to 1 ignoring sign bit
-    private var isNaN: Bool { ((self.value.hi >> 58) & 0x1F) == Self.combinationNaN }
+    private var isNaN: Bool { self.value.hi.getBits(1...5) == Self.combinationNaN }
     /// Determines if the value is Infinity  by checking if bits 1-5 are equal to 1 and bit 6 is 0 ignoring sign bit
-    private var isInfinity: Bool { ((self.value.hi >> 58) & 0x1F) == Self.combinationInfinity }
+    private var isInfinity: Bool { self.value.hi.getBits(1...5) == Self.combinationInfinity }
+    /// Determines if the value is Negative
+    private var isNegative: Bool { self.value.hi.getBit(0) == 1 }
 
     internal init(fromUInt128 value: UInt128) {
         self.value = value
@@ -219,9 +251,6 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             // move the exponent by the number of digits after the decimal point
             // so we are looking at an "integer" significand, easier to reason about
             exponent -= decimalPart.distance(from: pointIndex, to: decimalPart.endIndex) - 1
-            if exponent < Self.exponentMin {
-                exponent = Self.exponentMin
-            }
         }
 
         while exponent > Self.exponentMax && digits.count <= Self.maxSignificandDigits {
@@ -269,6 +298,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         product.lo += significandLoDigits
 
         if product.lo < significandLoDigits {
+            // carry over addition to hi side
             product.hi += 1
         }
 
@@ -277,21 +307,20 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         self.value = UInt128()
 
         // The most significant bit of the significand determines the format
-        let significandMSB = (product.hi >> 49) & 1
         // Encode combination, exponent, and significand.
-        if significandMSB == 1 {
+        if product.hi.getBit(14) == 1 {
             // The significand has the implicit (0b100) at the
             // beginning of the trailing significand field
 
             // Ensure we encode '0b11' into bits 1 to 3
             self.value.hi |= (0b11 << 61)
             self.value.hi |= UInt64(biasedExponent & Self.exponentMask) << 47
-            self.value.hi |= product.hi & 0x0_7FFF_FFFF_FFFF
+            self.value.hi |= product.hi.getBits(5...63)
         } else {
             // The significand has the implicit (0b0) at the
             // beginning of the trailing significand field
             self.value.hi |= UInt64(biasedExponent & Self.exponentMask) << 49
-            self.value.hi |= product.hi & 0x1_FFFF_FFFF_FFFF
+            self.value.hi |= product.hi.getBits(3...63)
         }
 
         self.value.lo = product.lo
@@ -344,21 +373,22 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         var exponent: Int
         var significandPrefix: Int
 
-        let combination = (self.value.hi >> 58) & 0x1F
-        if (combination >> 3) == 0b11 {
+        // If the combination field starts with 0b11 it could be special (NaN/Inf)
+        if self.value.hi.getBits(1...2) == 0b11 {
             if self.isInfinity {
                 return (self.isNegative ? "-" : "") + "Infinity"
             }
             if self.isNaN {
                 return "NaN"
             }
+            // The number is neither NaN nor Inf
             // Decimal interchange floating-point formats c,2,ii
-            exponent = Int((self.value.hi >> 47) & UInt64(Self.exponentMask))
-            significandPrefix = Int(((self.value.hi >> 46) & 0b1) + 0b1000)
+            exponent = Int(self.value.hi.getBits(3...16))
+            significandPrefix = Int(self.value.hi.getBit(20) + 0b1000)
         } else {
             // Decimal interchange floating-point formats c,2,i
-            exponent = Int((self.value.hi >> 49) & UInt64(Self.exponentMask))
-            significandPrefix = Int((self.value.hi >> 46) & 0b111)
+            exponent = Int(self.value.hi.getBits(1...14))
+            significandPrefix = Int(self.value.hi.getBits(15...17))
         }
 
         exponent -= Self.exponentBias
@@ -366,17 +396,17 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         var significand128 = UInt128()
 
         // significand prefix (implied bits) combined with removing the combination and sign fields
-        significand128.hi = UInt64((significandPrefix & 0xF) << 46) | self.value.hi & 0x0000_3FFF_FFFF_FFFF
+        significand128.hi = UInt64((significandPrefix & 0xF) << 46) | self.value.hi.getBits(18...63)
         significand128.lo = self.value.lo
 
-        /// make a base 10 digits array from significand
+        // make a base 10 digits array from significand
         var significand = [Int]()
 
         var isZero = false
 
         if significand128.hi == 0 && significand128.lo == 0 {
             isZero = true
-        } else if (significand128.hi >> 32) >= (1 << 17) {
+        } else if significand128.hi.getBits(0...31) >= 0x20000 {
             /*
              * The significand is non-canonical or zero.
              * In order to preserve compatibility with the densely packed decimal
@@ -393,7 +423,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             for _ in 0...3 {
                 var (quotient, remainder) = UInt128.divideBy1Billion(significand128)
                 significand128 = quotient
-                /* We now have the 9 least significant digits. */
+                // We now have the 9 least significant digits.
                 for _ in 0...8 {
                     significand.insert(remainder % 10, at: 0)
                     remainder /= 10
@@ -405,8 +435,8 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             significand = [Int](significand.suffix(from: firstNonZero))
         }
 
-        /* Scientific - [-]d.ddde(+/-)dd or [-]de(+/-)dd */
-        /* Regular    - ddd.ddd */
+        // Scientific - [-]d.ddde(+/-)dd or [-]de(+/-)dd
+        // Regular    - ddd.ddd
 
         /*
          * The adjusted_exponent checks are dictated by the string conversion
@@ -437,7 +467,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             var pointPosition = significand.count + exponent
 
             if pointPosition > 0 {
-                /// number isn't a fraction
+                // number isn't a fraction
                 for _ in 0..<pointPosition {
                     representation += String(significand[0], radix: 10)
                     significand = Array(significand.dropFirst())
