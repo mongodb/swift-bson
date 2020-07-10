@@ -3,13 +3,6 @@ import Foundation
 import Nimble
 
 extension BSONObjectID {
-    // timestamp
-    internal var timestamp: Int {
-        var value = Int()
-        _ = withUnsafeMutableBytes(of: &value) { self.oid[0..<4].reversed().copyBytes(to: $0) }
-        return value
-    }
-
     // random value
     internal var randomValue: Int {
         var value = Int()
@@ -47,8 +40,14 @@ final class BSONObjectIDTests: BSONTestCase {
     }
 
     func testFieldAccessors() throws {
-        let oid = try BSONObjectID("FEEEEEEEFBBBBBBBBBFAAAAA")
-        expect(oid.timestamp).to(equal(0xFEEE_EEEE))
+        let format = DateFormatter()
+        format.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        format.timeZone = TimeZone(secondsFromGMT: 0)
+        let timestamp = format.date(from: "2020-07-09 16:22:52")
+        // 5F07445 is the hex string for the above date
+        let oid = try BSONObjectID("5F07445CFBBBBBBBBBFAAAAA")
+
+        expect(oid.timestamp).to(equal(timestamp))
         expect(oid.randomValue).to(equal(0xFB_BBBB_BBBB))
         expect(oid.counter).to(equal(0xFAAAAA))
     }
@@ -62,13 +61,11 @@ final class BSONObjectIDTests: BSONTestCase {
     }
 
     func testTimestampCreation() throws {
-        let id = BSONObjectID()
-        let dateFromID = Date(timeIntervalSince1970: TimeInterval(id.timestamp))
+        let oid = BSONObjectID()
+        let dateFromID = oid.timestamp
         let date = Date()
-
         let format = DateFormatter()
-        // should be ok to say the timestamps are within the same second but just to be safe, omit seconds
-        format.dateFormat = "yyyy-MM-dd HH:mm"
+        format.dateFormat = "yyyy-MM-dd HH:mm:ss"
 
         expect(format.string(from: dateFromID)).to(equal(format.string(from: date)))
     }
