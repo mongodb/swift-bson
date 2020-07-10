@@ -37,6 +37,11 @@ private extension UInt64 {
         let value = (self >> shiftAmount) & 0b1
         return value
     }
+
+    mutating func setBit(_ index: Int) {
+        let shiftAmount = 63 - index
+        self |= 1 << shiftAmount
+    }
 }
 
 private extension Array where Element == UInt8 {
@@ -96,11 +101,11 @@ internal struct UInt128: Equatable, Hashable {
         return UInt128(hi: productHi, lo: productLo)
     }
 
-    internal static func divideBy1Billion(_ numerator: UInt128) -> (quotient: UInt128, remainder: Int) {
+    internal func divideBy1Billion() -> (quotient: UInt128, remainder: Int) {
         // swiftlint:disable:previous cyclomatic_complexity
         let denominator: UInt64 = 1000 * 1000 * 1000
         var remainder: UInt64 = 0
-        var quotient = numerator
+        var quotient = self
 
         guard !(quotient.hi == 0 && quotient.lo == 0) else {
             return (quotient: quotient, remainder: 0)
@@ -110,15 +115,15 @@ internal struct UInt128: Equatable, Hashable {
             // Adjust remainder to match value of next dividend
             remainder <<= 32
             // Add the divided to remainder
-            var quotient_i: UInt64
+            var quotientI: UInt64
             switch i {
-            case 0: quotient_i = quotient.hi.upper32bits
-            case 1: quotient_i = quotient.hi.lower32bits
-            case 2: quotient_i = quotient.lo.upper32bits
-            case 3: quotient_i = quotient.lo.lower32bits
-            default: quotient_i = 0
+            case 0: quotientI = quotient.hi.upper32bits
+            case 1: quotientI = quotient.hi.lower32bits
+            case 2: quotientI = quotient.lo.upper32bits
+            case 3: quotientI = quotient.lo.lower32bits
+            default: quotientI = 0
             }
-            remainder += quotient_i
+            remainder += quotientI
             // quotient[i] = Int(remainder / DIVISOR)
             switch i {
             case 0: quotient.hi = (((remainder / denominator) << 32) | quotient.hi.lower32bits)
@@ -160,7 +165,6 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     private static let exponentBias = 6176
 
     private static let decimalShift17Zeroes: UInt64 = 100_000_000_000_000_000
-    private static let exponentMask = 0x3FFF
 
     private static let negativeInfinity = UInt128(hi: 0xF800_0000_0000_0000, lo: 0)
     private static let infinity = UInt128(hi: 0x7800_0000_0000_0000, lo: 0)
@@ -294,39 +298,40 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         // Multiply by one hundred quadrillion (note the seventeen zeroes)
         // the product is the significandHiDigits "shifted" up by 17 decimal places
         // we can then add the significandLoDigits to the product to ensure that we have a correctly formed significand
-        var product = UInt128.multiply(significandHiDigits, by: Self.decimalShift17Zeroes)
-        product.lo += significandLoDigits
+        var significand = UInt128.multiply(significandHiDigits, by: Self.decimalShift17Zeroes)
+        significand.lo += significandLoDigits
 
-        if product.lo < significandLoDigits {
+        if significand.lo < significandLoDigits {
             // carry over addition to hi side
-            product.hi += 1
+            significand.hi += 1
         }
 
-        let biasedExponent = exponent + Self.exponentBias
+        let biasedExponent = UInt64(exponent + Self.exponentBias).getBits(49...63)
 
         self.value = UInt128()
 
         // The most significant bit of the significand determines the format
         // Encode combination, exponent, and significand.
-        if product.hi.getBit(14) == 1 {
+        if significand.hi.getBit(14) == 1 {
             // The significand has the implicit (0b100) at the
             // beginning of the trailing significand field
 
-            // Ensure we encode '0b11' into bits 1 to 3
-            self.value.hi |= (0b11 << 61)
-            self.value.hi |= UInt64(biasedExponent & Self.exponentMask) << 47
-            self.value.hi |= product.hi.getBits(5...63)
+            // Ensure we encode '0b11' into bits 1 and 2
+            self.value.hi.setBit(1)
+            self.value.hi.setBit(2)
+            self.value.hi |= biasedExponent << 47
+            self.value.hi |= significand.hi.getBits(5...63)
         } else {
             // The significand has the implicit (0b0) at the
             // beginning of the trailing significand field
-            self.value.hi |= UInt64(biasedExponent & Self.exponentMask) << 49
-            self.value.hi |= product.hi.getBits(3...63)
+            self.value.hi |= biasedExponent << 49
+            self.value.hi |= significand.hi.getBits(3...63)
         }
 
-        self.value.lo = product.lo
+        self.value.lo = significand.lo
 
         if sign < 0 {
-            self.value.hi |= 0x8000_0000_0000_0000
+            self.value.hi.setBit(0)
         }
     }
 
@@ -421,7 +426,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             significand = [0]
         } else {
             for _ in 0...3 {
-                var (quotient, remainder) = UInt128.divideBy1Billion(significand128)
+                var (quotient, remainder) = significand128.divideBy1Billion()
                 significand128 = quotient
                 // We now have the 9 least significant digits.
                 for _ in 0...8 {
