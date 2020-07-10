@@ -1,6 +1,6 @@
 import NIO
 
-internal protocol BSONValue {
+internal protocol BSONValue: Codable {
     /// The `BSONType` associated with this value.
     static var bsonType: BSONType { get }
 
@@ -20,6 +20,22 @@ internal protocol BSONValue {
 extension BSONValue {
     internal var bsonType: BSONType {
         Self.bsonType
+    }
+
+    /// Default `Decodable` implementation that throws an error if executed with non-`BSONDecoder`.
+    ///
+    /// BSON types' `Deodable` conformance currently only works with `BSONDecoder`, but in the future will be able
+    /// to work with any decoder (e.g. `JSONDecoder`).
+    public init(from decoder: Decoder) throws {
+        throw getDecodingError(type: Self.self, decoder: decoder)
+    }
+
+    /// Default `Encodable` implementation that throws an error if executed with non-`BSONEncoder`.
+    ///
+    /// BSON types' `Encodable` conformance currently only works with `BSONEncoder`, but in the future will be able
+    /// to work with any encoder (e.g. `JSONEncoder`).
+    public func encode(to encoder: Encoder) throws {
+        throw bsonEncodingUnsupportedError(value: self, at: encoder.codingPath)
     }
 }
 

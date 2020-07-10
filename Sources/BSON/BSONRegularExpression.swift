@@ -35,7 +35,7 @@ extension NSRegularExpression {
 }
 
 /// A struct to represent a BSON regular expression.
-public struct BSONRegularExpression: Equatable, Codable, Hashable {
+public struct BSONRegularExpression: Equatable, Hashable {
     /// The pattern for this regular expression.
     public let pattern: String
     /// A string containing options for this regular expression.

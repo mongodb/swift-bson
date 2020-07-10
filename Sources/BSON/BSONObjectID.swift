@@ -69,6 +69,29 @@ extension BSONObjectID: BSONValue {
     internal func write(to buffer: inout ByteBuffer) {
         buffer.writeBytes(self.oid)
     }
+
+    public init(from decoder: Decoder) throws {
+        // assumes that the BSONObjectID is stored as a valid hex string.
+        let container = try decoder.singleValueContainer()
+        let hex = try container.decode(String.self)
+        do {
+            self = try BSONObjectID(hex)
+        } catch {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: decoder.codingPath,
+                    debugDescription: error.localizedDescription
+                )
+            )
+        }
+    }
+
+    public func encode(to encoder: Encoder) throws {
+        // encodes the hex string for the `BSONObjectID`. this method is only ever reached by non-BSON encoders.
+        // BSONEncoder bypasses the method and inserts the BSONObjectID into a document, which converts it to BSON.
+        var container = encoder.singleValueContainer()
+        try container.encode(self.hex)
+    }
 }
 
 /// A class responsible for generating ObjectIDs for a given instance of this library

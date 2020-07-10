@@ -42,7 +42,7 @@ internal struct BSONMinKey: BSONValue, Equatable {
 
     internal var bson: BSON { .minKey }
 
-    /// Initializes a new `BSONNull` instance.
+    /// Initializes a new `MinKey` instance.
     internal init() {}
 
     internal static func read(from: inout ByteBuffer) throws -> BSON {
@@ -60,7 +60,7 @@ internal struct BSONMaxKey: BSONValue, Equatable {
 
     internal var bson: BSON { .maxKey }
 
-    /// Initializes a new `BSONNull` instance.
+    /// Initializes a new `MaxKey` instance.
     internal init() {}
 
     internal static func read(from: inout ByteBuffer) throws -> BSON {
