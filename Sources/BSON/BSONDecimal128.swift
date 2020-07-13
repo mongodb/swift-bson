@@ -308,7 +308,13 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         // the product is the significandHiDigits "shifted" up by 17 decimal places
         // we can then add the significandLoDigits to the product to ensure that we have a correctly formed significand
         var significand = UInt128.multiply(significandHiDigits, by: Self.decimalShift17Zeroes)
-        significand.lo += significandLoDigits
+
+        let (result, didOverflow) = significand.lo.addingReportingOverflow(significandLoDigits)
+        significand.lo = result
+
+        if didOverflow {
+            significand.hi += 1
+        }
 
         let biasedExponent = UInt64(exponent + Self.exponentBias).getLeastSignificantBits(Self.exponentLength)
 
