@@ -320,8 +320,13 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 
         var value = UInt128()
 
+        // Normally Decimal(K) encodings would conditionally modify the combination field here
+        // based on the most significant bits of the significand.
+        // Decimal128 doesn't actually need the extra implicit bits.
+        // The entirety of decimal128's range can fit by just encoding the exponent and significand as-is.
+
         value.hi |= biasedExponent << (63 - Self.exponentLength)
-        value.hi |= significand.hi.getLeastSignificantBits(60)
+        value.hi |= significand.hi
 
         value.lo = significand.lo
 
