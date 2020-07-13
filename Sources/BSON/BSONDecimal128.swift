@@ -11,16 +11,20 @@ private extension UInt64 {
     /// (note: the bits before the _ are the one's gotten)
     func getBitsUnshifted(_ range: ClosedRange<Int>) -> Self {
         guard range.lowerBound >= 0 else {
-            return 0
+            fatalError("BSONDecimal128: Your range should be bound between [0, 63] was \(range)")
         }
         guard range.upperBound <= 63 else {
-            return 0
+            fatalError("BSONDecimal128: Your range should be bound between [0, 63] was \(range)")
         }
         var value = UInt64()
         for i in range {
             value |= (self & (0b1 << (63 - i)))
         }
         return value
+    }
+
+    func getLeastSignificantBits<T: FixedWidthInteger>(_ length: T) -> Self {
+        self.getBits((63 - Int(length))...63)
     }
 
     /// Gets this number's bits shifting the value down to the LSB
@@ -78,6 +82,7 @@ internal struct UInt128: Equatable, Hashable {
     internal static func multiply(_ left: UInt64, by right: UInt64) -> UInt128 {
         let (product, didOverflow) = left.multipliedReportingOverflow(by: right)
         guard didOverflow else {
+            // no overflow means we can just use our regular multiplication result
             return UInt128(hi: 0, lo: product)
         }
 
@@ -164,6 +169,8 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     // The sum of the exponent and a constant (bias) chosen to make the biased exponent’s range non-negative.
     private static let exponentBias = 6176
 
+    private static let exponentLength: UInt64 = 14
+
     private static let decimalShift17Zeroes: UInt64 = 100_000_000_000_000_000
 
     private static let negativeInfinity = UInt128(hi: 0xF800_0000_0000_0000, lo: 0)
@@ -182,7 +189,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     public var description: String { self.toString() }
 
     /// Holder for raw decimal128 value
-    private var value: UInt128
+    private let value: UInt128
 
     /// Indicators in the combination field that determine number type
     private static let combinationNaN = 0b11111
@@ -258,13 +265,15 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         }
 
         while exponent > Self.exponentMax && digits.count <= Self.maxSignificandDigits {
-            // Exponent is too large, try shifting zeros into the coefficient
+            // Clamping upper bound: Exponent is too large, try shifting zeros into the coefficient
+
             digits.append(0)
             exponent -= 1
         }
 
         while exponent < Self.exponentMin && !digits.isEmpty {
-            // Exponent is too small, try taking zeros off the coefficient
+            // Clamping lower bound: Exponent is too small, try taking zeros off the coefficient
+
             if digits.count == 1 && digits[0] == 0 {
                 exponent = Self.exponentMin
                 break
@@ -278,18 +287,18 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 
             if digits.last != 0 {
                 // We don't end in a zero and our exponent is too small
-                throw BSONError.InvalidArgumentError(message: "Underflow Error: Value too small")
+                throw BSONError.InvalidArgumentError(message: "Underflow Error")
             }
         }
 
         guard (Self.exponentMin...Self.exponentMax).contains(exponent) else {
-            throw BSONError.InvalidArgumentError(message: "Rounding Error: Cannot round exponent \(exponent) further")
+            throw BSONError.InvalidArgumentError(
+                message: "Exponent \(exponent) is out of encodable range \(Self.exponentMin...Self.exponentMax)"
+            )
         }
 
         guard digits.count <= Self.maxSignificandDigits else {
-            throw BSONError.InvalidArgumentError(
-                message: "Overflow Error: Value cannot exceed \(Self.maxSignificandDigits) digits"
-            )
+            throw BSONError.InvalidArgumentError(message: "Overflow Error")
         }
 
         let significandLoDigits = [UInt8](digits.suffix(Self.maxSignificandDigits / 2)).decimalDigitsToUInt64()
@@ -301,38 +310,35 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         var significand = UInt128.multiply(significandHiDigits, by: Self.decimalShift17Zeroes)
         significand.lo += significandLoDigits
 
-        if significand.lo < significandLoDigits {
-            // carry over addition to hi side
-            significand.hi += 1
-        }
+        let biasedExponent = UInt64(exponent + Self.exponentBias).getLeastSignificantBits(Self.exponentLength)
 
-        let biasedExponent = UInt64(exponent + Self.exponentBias).getBits(49...63)
-
-        self.value = UInt128()
+        var value = UInt128()
 
         // The most significant bit of the significand determines the format
         // Encode combination, exponent, and significand.
-        if significand.hi.getBit(14) == 1 {
-            // The significand has the implicit (0b100) at the
+        if significand.hi.getBits(14...16) == 0b100 {
+            // The significand needs the implicit (0b100) at the
             // beginning of the trailing significand field
 
             // Ensure we encode '0b11' into bits 1 and 2
-            self.value.hi.setBit(1)
-            self.value.hi.setBit(2)
-            self.value.hi |= biasedExponent << 47
-            self.value.hi |= significand.hi.getBits(5...63)
+            value.hi.setBit(1)
+            value.hi.setBit(2)
+            value.hi |= biasedExponent << (63 - (Self.exponentLength + 2)) // + 2 for encoded 0b11
+            value.hi |= significand.hi.getLeastSignificantBits(58)
         } else {
             // The significand has the implicit (0b0) at the
             // beginning of the trailing significand field
-            self.value.hi |= biasedExponent << 49
-            self.value.hi |= significand.hi.getBits(3...63)
+            value.hi |= biasedExponent << (63 - Self.exponentLength)
+            value.hi |= significand.hi.getLeastSignificantBits(60)
         }
 
-        self.value.lo = significand.lo
+        value.lo = significand.lo
 
         if sign < 0 {
-            self.value.hi.setBit(0)
+            value.hi.setBit(0)
         }
+
+        self.value = value
     }
 
     // swiftlint:disable force_unwrapping
