@@ -320,23 +320,8 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 
         var value = UInt128()
 
-        // The most significant bit of the significand determines the format
-        // Encode combination, exponent, and significand.
-        if significand.hi.getBits(14...16) == 0b100 {
-            // The significand needs the implicit (0b100) at the
-            // beginning of the trailing significand field
-
-            // Ensure we encode '0b11' into bits 1 and 2
-            value.hi.setBit(1)
-            value.hi.setBit(2)
-            value.hi |= biasedExponent << (63 - (Self.exponentLength + 2)) // + 2 for encoded 0b11
-            value.hi |= significand.hi.getLeastSignificantBits(58)
-        } else {
-            // The significand has the implicit (0b0) at the
-            // beginning of the trailing significand field
-            value.hi |= biasedExponent << (63 - Self.exponentLength)
-            value.hi |= significand.hi.getLeastSignificantBits(60)
-        }
+        value.hi |= biasedExponent << (63 - Self.exponentLength)
+        value.hi |= significand.hi.getLeastSignificantBits(60)
 
         value.lo = significand.lo
 
