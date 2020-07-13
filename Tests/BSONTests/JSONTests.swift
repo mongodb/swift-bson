@@ -9,7 +9,7 @@ open class JSONTestCase: XCTestCase {
     let decoder = JSONDecoder()
 
     func testInteger() throws {
-        // Initializing a JSON with an int works, but it will be cast to a double
+        // Initializing a JSON with an int works, but it will be cast to a double.
         let intJSON: JSON = 12
         let encoded = try encoder.encode([intJSON])
         /* JSONEncoder currently cannot encode non-object/array top level values.
