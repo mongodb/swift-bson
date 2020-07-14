@@ -9,7 +9,7 @@ private extension UInt64 {
     /// the bits are indexed from MSB at 0 to LSB at 63
     /// example: (0b11010).getBitsUnshifted(0..<4) == 0b110_00
     /// (note: the bits before the _ are the one's gotten)
-    func getBitsUnshifted(_ range: ClosedRange<Int>) -> Self {
+    func getBitsUnshifted<T: FixedWidthInteger>(_ range: ClosedRange<T>) -> Self {
         guard range.lowerBound >= 0 else {
             fatalError("BSONDecimal128: Your range should be bound between [0, 63] was \(range)")
         }
@@ -30,7 +30,7 @@ private extension UInt64 {
     /// Gets this number's bits shifting the value down to the LSB
     /// the bits are indexed from MSB at 0 to LSB at 63
     /// example: (0b11010).getBitsUnshifted(0..<4) == 0b110
-    func getBits(_ range: ClosedRange<Int>) -> Self {
+    func getBits<T: FixedWidthInteger>(_ range: ClosedRange<T>) -> Self {
         var value = self.getBitsUnshifted(range)
         value >>= (63 - range.upperBound)
         return value
@@ -131,18 +131,21 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     public static let decimal128Regex = "\(numericValueRegex)|(\(nanRegex))"
     // swiftlint:enable line_length
 
-    // The precision of the Decimal128 format
+    /// The precision of the Decimal128 format
     private static let maxSignificandDigits = 34
-    // NOTE: the min and max values are adjusted for when the decimal point is rounded out
-    // e.g, 1.000...*10^-6143 == 1000...*10^-6176
-    // In the spec exp_max is 6144 so we use 6111
+    /// NOTE: the min and max values are adjusted for when the decimal point is rounded out
+    /// e.g, 1.000...*10^-6143 == 1000...*10^-6176
+    /// In the spec exp_max is 6144 so we use 6111
     private static let exponentMax = 6111
-    // In the spec exp_min is -6134 so we use -6176
+    /// In the spec exp_min is -6134 so we use -6176
     private static let exponentMin = -6176
-    // The sum of the exponent and a constant (bias) chosen to make the biased exponent’s range non-negative.
+    /// The sum of the exponent and a constant (bias) chosen to make the biased exponent’s range non-negative.
     private static let exponentBias = 6176
 
+    /// Length in bits of the exponent field
     private static let exponentLength: UInt64 = 14
+    /// Length in bits of the combination field
+    private static let combinationLength: UInt64 = 3
 
     private static let decimalShift17Zeroes: UInt64 = 100_000_000_000_000_000
 
@@ -371,12 +374,16 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             }
             // The number is neither NaN nor Inf
             // Decimal interchange floating-point formats c,2,ii
-            exponent = Int(self.value.hi.getBits(3...16))
+            exponent = Int(self.value.hi.getBits(3...(Self.exponentLength + 2)))
             significandPrefix = Int(self.value.hi.getBit(20) + 0b1000)
         } else {
             // Decimal interchange floating-point formats c,2,i
-            exponent = Int(self.value.hi.getBits(1...14))
-            significandPrefix = Int(self.value.hi.getBits(15...17))
+            exponent = Int(self.value.hi.getBits(1...Self.exponentLength))
+            significandPrefix = Int(
+                self.value.hi.getBits(
+                    (Self.exponentLength + 1)...(Self.exponentLength + Self.combinationLength)
+                )
+            )
         }
 
         exponent -= Self.exponentBias
@@ -388,7 +395,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         significand128.lo = self.value.lo
 
         // make a base 10 digits array from significand
-        var significand = [Int]()
+        var significandDigits = [Character]()
 
         var isZero = false
 
@@ -406,25 +413,25 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         }
 
         if isZero {
-            significand = [0]
+            significandDigits = ["0"]
         } else {
             for _ in 0...3 {
                 var (quotient, remainder) = significand128.divideBy1Billion()
                 significand128 = quotient
                 // We now have the 9 least significant digits.
                 for _ in 0...8 {
-                    significand.insert(remainder % 10, at: 0)
+                    significandDigits.insert(Character(String(remainder % 10, radix: 10)), at: 0)
                     remainder /= 10
                 }
             }
         }
 
-        if !isZero, let firstNonZero = significand.firstIndex(where: { $0 != 0 }) {
-            significand = [Int](significand.suffix(from: firstNonZero))
+        if !isZero, let firstNonZero = significandDigits.firstIndex(where: { $0 != "0" }) {
+            significandDigits = [Character](significandDigits.suffix(from: firstNonZero))
         }
 
-        // Scientific - [-]d.ddde(+/-)dd or [-]de(+/-)dd
-        // Regular    - ddd.ddd
+        // Exponential - [-]d.ddde(+/-)dd or [-]de(+/-)dd
+        // Regular     - ddd.ddd
 
         /*
          * The adjusted_exponent checks are dictated by the string conversion
@@ -437,41 +444,39 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
          */
         var representation = self.isNegative ? "-" : ""
 
-        let adjusted_exponent = exponent + (significand.count - 1)
+        let adjusted_exponent = exponent + (significandDigits.count - 1)
         if exponent > 0 || adjusted_exponent < -6 {
-            // Scientific format
-            representation += String(significand[0], radix: 10)
-            representation += significand.count > 1 ? "." : ""
-            representation += significand[1..<significand.count].map { String($0, radix: 10) }.joined(separator: "")
+            // Exponential format
+            representation += String(significandDigits[0])
+            representation += significandDigits.count > 1 ? "." : ""
+            representation += String(significandDigits[1..<significandDigits.count])
             representation += "E"
             representation += String(format: "%+d", adjusted_exponent)
         } else {
             // Regular format
             guard exponent != 0 else {
-                representation += significand.map { String($0, radix: 10) }.joined(separator: "")
+                representation += String(significandDigits)
                 return representation
             }
 
-            var pointPosition = significand.count + exponent
+            var pointPosition = significandDigits.count + exponent
 
             if pointPosition > 0 {
                 // number isn't a fraction
-                for _ in 0..<pointPosition {
-                    representation += String(significand[0], radix: 10)
-                    significand = Array(significand.dropFirst())
-                }
+                representation += String(significandDigits[0..<pointPosition])
+                significandDigits = Array(significandDigits[pointPosition...])
             } else {
                 representation += "0"
             }
 
             representation += "."
 
-            while pointPosition < 0 {
-                representation += "0"
-                pointPosition += 1
+            if pointPosition < 0 {
+                representation += String(repeating: "0", count: abs(pointPosition))
+                pointPosition += abs(pointPosition)
             }
 
-            representation += significand.map { String($0, radix: 10) }.joined(separator: "")
+            representation += String(significandDigits)
         }
         return representation
     }
