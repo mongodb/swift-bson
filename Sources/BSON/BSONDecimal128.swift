@@ -79,33 +79,6 @@ internal struct UInt128: Equatable, Hashable {
         self.lo = 0
     }
 
-    internal static func multiply(_ left: UInt64, by right: UInt64) -> UInt128 {
-        let (product, didOverflow) = left.multipliedReportingOverflow(by: right)
-        guard didOverflow else {
-            // no overflow means we can just use our regular multiplication result
-            return UInt128(hi: 0, lo: product)
-        }
-
-        let leftHi = left.upper32bits
-        let leftLo = left.lower32bits
-
-        let rightHi = right.upper32bits
-        let rightLo = right.lower32bits
-
-        var productHi = leftHi * rightHi
-        let productMid0 = leftHi * rightLo
-        let productMid1 = leftLo * rightHi
-        var productLo = leftLo * rightLo
-
-        productHi += productMid0.upper32bits
-        let productPartial = productMid0.lower32bits + productMid1 + productLo.upper32bits
-
-        productHi += productPartial.upper32bits
-        productLo = (productPartial << 32) + productLo.lower32bits
-
-        return UInt128(hi: productHi, lo: productLo)
-    }
-
     internal func divideBy1Billion() -> (quotient: UInt128, remainder: Int) {
         // swiftlint:disable:previous cyclomatic_complexity
         let denominator: UInt64 = 1000 * 1000 * 1000
@@ -135,7 +108,7 @@ internal struct UInt128: Equatable, Hashable {
             case 1: quotient.hi = ((remainder / denominator).lower32bits | quotient.hi.getBitsUnshifted(0...31))
             case 2: quotient.lo = (((remainder / denominator) << 32) | quotient.lo.lower32bits)
             case 3: quotient.lo = ((remainder / denominator).lower32bits | quotient.lo.getBitsUnshifted(0...31))
-            default: _ = ()
+            default: break
             }
             // Store the remainder
             remainder %= denominator
@@ -311,7 +284,8 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         // Multiply by one hundred quadrillion (note the seventeen zeroes)
         // the product is the significandHiDigits "shifted" up by 17 decimal places
         // we can then add the significandLoDigits to the product to ensure that we have a correctly formed significand
-        var significand = UInt128.multiply(significandHiDigits, by: Self.decimalShift17Zeroes)
+        let product = significandHiDigits.multipliedFullWidth(by: Self.decimalShift17Zeroes)
+        var significand = UInt128(hi: product.high, lo: product.low)
 
         let (result, didOverflow) = significand.lo.addingReportingOverflow(significandLoDigits)
         significand.lo = result
