@@ -13,7 +13,7 @@ internal enum JSON: Codable {
     /// Initialize a `JSON` from a decoder.
     /// Tries to decode into each of the JSON types one by one until one succeeds or
     /// throws an error indicating that the input is not a valid `JSON` type.
-    public init(from decoder: Decoder) throws {
+    internal init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if let d = try? container.decode(Double.self) {
             self = .number(d)
@@ -37,7 +37,7 @@ internal enum JSON: Codable {
     }
 
     /// Encode a `JSON` to a container by encoding the type of this `JSON` instance.
-    public func encode(to encoder: Encoder) throws {
+    internal func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         switch self {
         case let .number(n):
