@@ -7,6 +7,7 @@ public class ExtendedJSONDecoder {
     }
 
     /// Decodes an instance of the requested type `T` from the provided extended JSON data.
+    /// - SeeAlso: https://docs.mongodb.com/manual/reference/mongodb-extended-json/
     ///
     /// - Parameters:
     ///   - type: Codable type to decode the input into.
