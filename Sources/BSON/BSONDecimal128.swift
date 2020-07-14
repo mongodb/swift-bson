@@ -150,7 +150,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     private static let digitsRegex = #"(?:\d+)"#
     private static let indicatorRegex = #"(?:e|E)"#
     private static let signRegex = #"[+-]"#
-    private static let infinityRegex = #"Infinity|Inf|infinity|inf"#
+    private static let infinityRegex = #"infinity|inf"#
     private static let decimalRegex = "\(digitsRegex)\\.\(digitsRegex)?|\\.?\(digitsRegex)"
     private static let nanRegex = #"NaN"#
     private static let exponentRegex = "\(indicatorRegex)(\(signRegex))(\(digitsRegex))"
@@ -248,7 +248,9 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         let decimalPartNSRange = match.range(at: REGroups.decimalPart.rawValue)
         guard decimalPartNSRange.location != NSNotFound,
             let decimalPartRange = Range(decimalPartNSRange, in: data) else {
-            throw BSONError.InvalidArgumentError(message: "Syntax Error: Missing digits in front of the exponent")
+            throw BSONError.InvalidArgumentError(
+                message: "Syntax Error: \(data) Missing digits in front of the exponent"
+            )
         }
         let decimalPart = String(data[decimalPartRange])
         var digits = try Self.convertToDigitsArray(decimalPart)
@@ -287,18 +289,20 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 
             if digits.last != 0 {
                 // We don't end in a zero and our exponent is too small
-                throw BSONError.InvalidArgumentError(message: "Underflow Error")
+                throw BSONError.InvalidArgumentError(message: "Underflow Error: \(data)")
             }
         }
 
-        guard (Self.exponentMin...Self.exponentMax).contains(exponent) else {
-            throw BSONError.InvalidArgumentError(
-                message: "Exponent \(exponent) is out of encodable range \(Self.exponentMin...Self.exponentMax)"
-            )
+        guard exponent >= Self.exponentMin else {
+            throw BSONError.InvalidArgumentError(message: "Underflow Error: \(data)")
+        }
+
+        guard exponent <= Self.exponentMax else {
+            throw BSONError.InvalidArgumentError(message: "Overflow Error: \(data)")
         }
 
         guard digits.count <= Self.maxSignificandDigits else {
-            throw BSONError.InvalidArgumentError(message: "Overflow Error")
+            throw BSONError.InvalidArgumentError(message: "Overflow Error: \(data)")
         }
 
         let significandLoDigits = [UInt8](digits.suffix(Self.maxSignificandDigits / 2)).decimalDigitsToUInt64()
@@ -337,40 +341,43 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         self.value = value
     }
 
-    // swiftlint:disable force_unwrapping
-    private static let asciiZero = Character("0").asciiValue!
-    private static let asciiNine = Character("9").asciiValue!
-    private static let asciiPoint = Character(".").asciiValue!
-    // swiftlint:enable force_unwrapping
-
     /// Take a string of digits (with or without a point) discard leading zeroes
     /// and return the string's digits as an array of integers
     private static func convertToDigitsArray(_ decimalString: String) throws -> [UInt8] {
-        var leadingZero = true
+        var leadingZero = true // indicate when we've encountered the first nonzero digit
         var digits: [UInt8] = []
 
-        let digitsFromRepr = [UInt8](decimalString.utf8)
-        if digitsFromRepr.count > 1 {
-            for digit in digitsFromRepr {
-                if digit == Self.asciiPoint {
+        if decimalString.utf8.count > 1 {
+            for digit in decimalString {
+                if digit == Character(".") {
                     continue
                 }
-                guard (Self.asciiZero...Self.asciiNine).contains(digit) else {
+                guard (Character("0")...Character("9")).contains(digit) else {
                     throw BSONError.InvalidArgumentError(
-                        message: "Syntax Error: \(digit) is not a digit '0'-'9' (\(Self.asciiZero)-\(Self.asciiNine))"
+                        message: "Syntax Error: \(digit) is not a digit '0'-'9'"
                     )
                 }
-                if digit == Self.asciiZero && leadingZero {
+                if digit == Character("0") && leadingZero {
                     continue
                 }
-                if digit != Self.asciiZero && leadingZero {
+                if digit != Character("0") && leadingZero {
                     // seen a non zero digit
                     leadingZero = false
                 }
-                digits.append(digit - Self.asciiZero)
+                guard let digitValue = UInt8(String(digit)) else {
+                    throw BSONError.InvalidArgumentError(
+                        message: "Syntax Error: \(digit) cannot be represented in a UInt8"
+                    )
+                }
+                digits.append(digitValue)
             }
-        } else {
-            digits.append(digitsFromRepr[0] - Self.asciiZero)
+        } else if decimalString.utf8.count == 1 {
+            guard let digitValue = UInt8(String(decimalString[decimalString.startIndex])) else {
+                throw BSONError.InvalidArgumentError(
+                    message: "Syntax Error: \(decimalString[decimalString.startIndex]) cannot be represented in a UInt8"
+                )
+            }
+            digits.append(digitValue)
         }
         return digits
     }
