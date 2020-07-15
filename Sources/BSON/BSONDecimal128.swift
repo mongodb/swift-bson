@@ -144,8 +144,8 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 
     /// Length in bits of the exponent field
     private static let exponentLength: UInt64 = 14
-    /// Length in bits of the combination field
-    private static let combinationLength: UInt64 = 3
+    /// Length in bits of the trailing significand field
+    private static let trailingSignificandLength: UInt64 = 110
 
     private static let decimalShift17Zeroes: UInt64 = 100_000_000_000_000_000
 
@@ -229,7 +229,38 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             )
         }
         let decimalPart = String(data[decimalPartRange])
-        var digits = try Self.convertToDigitsArray(decimalPart)
+
+        var leadingZero = true // indicate when we've encountered the first nonzero digit
+        var digits: [UInt8] = []
+
+        // construct array of digits (as UInt8s)
+        for digit in decimalPart {
+            if digit == "." {
+                continue
+            }
+            guard ("0"..."9").contains(digit) else {
+                throw BSONError.InvalidArgumentError(
+                    message: "Syntax Error: \(digit) is not a digit '0'-'9'"
+                )
+            }
+            if digit == "0" && leadingZero {
+                if decimalPart.utf8.count == 1 {
+                    digits.append(0)
+                    break
+                }
+                continue
+            }
+            if digit != "0" && leadingZero {
+                // seen a non zero digit
+                leadingZero = false
+            }
+            guard let digitValue = digit.wholeNumberValue else {
+                throw BSONError.InvalidArgumentError(
+                    message: "Syntax Error: \(digit) cannot be represented in a UInt8"
+                )
+            }
+            digits.append(UInt8(digitValue))
+        }
 
         var exponent = 0
         let exponentPartRange = match.range(at: REGroups.exponentPart.rawValue)
@@ -318,51 +349,10 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         self.value = value
     }
 
-    /// Take a string of digits (with or without a point) discard leading zeroes
-    /// and return the string's digits as an array of integers
-    private static func convertToDigitsArray(_ decimalString: String) throws -> [UInt8] {
-        var leadingZero = true // indicate when we've encountered the first nonzero digit
-        var digits: [UInt8] = []
-
-        if decimalString.utf8.count > 1 {
-            for digit in decimalString {
-                if digit == Character(".") {
-                    continue
-                }
-                guard (Character("0")...Character("9")).contains(digit) else {
-                    throw BSONError.InvalidArgumentError(
-                        message: "Syntax Error: \(digit) is not a digit '0'-'9'"
-                    )
-                }
-                if digit == Character("0") && leadingZero {
-                    continue
-                }
-                if digit != Character("0") && leadingZero {
-                    // seen a non zero digit
-                    leadingZero = false
-                }
-                guard let digitValue = UInt8(String(digit)) else {
-                    throw BSONError.InvalidArgumentError(
-                        message: "Syntax Error: \(digit) cannot be represented in a UInt8"
-                    )
-                }
-                digits.append(digitValue)
-            }
-        } else if decimalString.utf8.count == 1 {
-            guard let digitValue = UInt8(String(decimalString[decimalString.startIndex])) else {
-                throw BSONError.InvalidArgumentError(
-                    message: "Syntax Error: \(decimalString[decimalString.startIndex]) cannot be represented in a UInt8"
-                )
-            }
-            digits.append(digitValue)
-        }
-        return digits
-    }
-
     private func toString() -> String {
         // swiftlint:disable:previous cyclomatic_complexity
         var exponent: Int
-        var significandPrefix: Int
+        var significandPrefix: UInt64 = 0
 
         // If the combination field starts with 0b11 it could be special (NaN/Inf)
         if self.value.hi.getBits(1...2) == 0b11 {
@@ -375,15 +365,14 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
             // The number is neither NaN nor Inf
             // Decimal interchange floating-point formats c,2,ii
             exponent = Int(self.value.hi.getBits(3...(Self.exponentLength + 2)))
-            significandPrefix = Int(self.value.hi.getBit(20) + 0b1000)
+            significandPrefix = (self.value.hi.getBit(20) + 0b1000)
         } else {
             // Decimal interchange floating-point formats c,2,i
             exponent = Int(self.value.hi.getBits(1...Self.exponentLength))
-            significandPrefix = Int(
+            significandPrefix =
                 self.value.hi.getBits(
-                    (Self.exponentLength + 1)...(Self.exponentLength + Self.combinationLength)
+                    (Self.exponentLength + 1)...(Self.exponentLength + 3)
                 )
-            )
         }
 
         exponent -= Self.exponentBias
@@ -391,7 +380,9 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         var significand128 = UInt128()
 
         // significand prefix (implied bits) combined with removing the combination and sign fields
-        significand128.hi = UInt64((significandPrefix & 0xF) << 46) | self.value.hi.getBits(18...63)
+        significand128.hi = UInt64(
+            significandPrefix.getLeastSignificantBits(4) << (Self.trailingSignificandLength - 64))
+            | self.value.hi.getLeastSignificantBits(45)
         significand128.lo = self.value.lo
 
         // make a base 10 digits array from significand
@@ -401,7 +392,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 
         if significand128.hi == 0 && significand128.lo == 0 {
             isZero = true
-        } else if significand128.hi.getBits(0...31) >= 0x20000 {
+        } else if significand128.hi.upper32bits >= 0x20000 {
             /*
              * The significand is non-canonical or zero.
              * In order to preserve compatibility with the densely packed decimal
@@ -415,7 +406,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         if isZero {
             significandDigits = ["0"]
         } else {
-            for _ in 0...3 {
+            for _ in 0...(Self.maxSignificandDigits / 9) {
                 var (quotient, remainder) = significand128.divideBy1Billion()
                 significand128 = quotient
                 // We now have the 9 least significant digits.
@@ -444,14 +435,14 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
          */
         var representation = self.isNegative ? "-" : ""
 
-        let adjusted_exponent = exponent + (significandDigits.count - 1)
-        if exponent > 0 || adjusted_exponent < -6 {
+        let adjustedExponent = exponent + (significandDigits.count - 1)
+        if exponent > 0 || adjustedExponent < -6 {
             // Exponential format
             representation += String(significandDigits[0])
             representation += significandDigits.count > 1 ? "." : ""
             representation += String(significandDigits[1..<significandDigits.count])
             representation += "E"
-            representation += String(format: "%+d", adjusted_exponent)
+            representation += String(format: "%+d", adjustedExponent)
         } else {
             // Regular format
             guard exponent != 0 else {
@@ -459,12 +450,12 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
                 return representation
             }
 
-            var pointPosition = significandDigits.count + exponent
+            let pointPosition = significandDigits.count + exponent
 
             if pointPosition > 0 {
                 // number isn't a fraction
                 representation += String(significandDigits[0..<pointPosition])
-                significandDigits = Array(significandDigits[pointPosition...])
+                significandDigits = Array(significandDigits.dropFirst(pointPosition))
             } else {
                 representation += "0"
             }
@@ -473,7 +464,6 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 
             if pointPosition < 0 {
                 representation += String(repeating: "0", count: abs(pointPosition))
-                pointPosition += abs(pointPosition)
             }
 
             representation += String(significandDigits)
