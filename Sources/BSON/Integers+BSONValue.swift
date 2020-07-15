@@ -1,9 +1,22 @@
 import NIO
 
 extension Int32: BSONValue {
-    internal init(fromExtJSON json: JSON) throws {
+    /// Initializes an `Int32` given well-formatted canonical or relaxed extended JSON representing an `Int32`
+    /// Returns `nil` if the provided value is not an Int32.
+    /// Throws if the JSON is a partial match or is malformed.
+    internal init?(fromExtJSON json: JSON) throws {
         switch json {
+        case let .number(n):
+            // relaxed extended JSON
+            guard let int = Int32(exactly: n) else {
+                return nil
+            }
+            self = int
         case let .object(obj):
+            // canonical extended JSON
+            guard obj.count == 1 else {
+                throw BSONError.InternalError(message: "Not a valid Int32")
+            }
             guard let str = obj["$numberInt"]?.stringValue else {
                 throw BSONError.InternalError(message: "Not a valid Int32")
             }
@@ -12,7 +25,7 @@ extension Int32: BSONValue {
             }
             self = int
         default:
-            throw BSONError.InternalError(message: "Not a valid Int32")
+            return nil
         }
     }
 
