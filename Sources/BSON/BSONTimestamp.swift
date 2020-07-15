@@ -15,6 +15,71 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
         self.increment = inc
     }
 
+    /*
+     * Initializes a `BSONTimestamp` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for `Timestamp`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Returns:
+     *   - `nil` if the provided value is not a `Timestamp`.
+     *
+     * Throws:
+     *   - `DecodingError` if `json` is a partial match or is malformed.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        switch json {
+        case let .object(obj):
+            // canonical and relaxed extended JSON
+            guard let value = obj["$timestamp"] else {
+                return nil
+            }
+            guard obj.count == 1 else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Expected only \"$timestamp\" key, found too many keys: \(obj.keys)"
+                )
+            }
+            guard let timestampObj = value.objectValue else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Expected \(value) to be an object"
+                )
+            }
+            guard timestampObj.count == 2,
+                let t = timestampObj["t"],
+                let i = timestampObj["i"] else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Expected only \"t\" and \"i\" keys, " +
+                        "found extra keys within \"$timestamp\": \(timestampObj.keys)"
+                )
+            }
+            guard let tDouble = t.doubleValue,
+                let iDouble = i.doubleValue else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse `BSONTimestamp` from \"\(timestampObj)\", " +
+                        "values for \"t\" and \"i\" must be 32-bit positive integers"
+                )
+            }
+            guard let tInt = UInt32(exactly: tDouble),
+                let iInt = UInt32(exactly: iDouble)
+            else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse `BSONTimestamp` from \"\(timestampObj)\", " +
+                        "values for \"t\" and \"i\" must be 32-bit positive integers"
+                )
+            }
+            self = BSONTimestamp(timestamp: tInt, inc: iInt)
+        default:
+            return nil
+        }
+    }
+
     internal static func read(from buffer: inout ByteBuffer) throws -> BSON {
         guard let increment = buffer.readInteger(endianness: .little, as: UInt32.self) else {
             throw BSONError.InternalError(message: "Cannot read increment from BSON timestamp")

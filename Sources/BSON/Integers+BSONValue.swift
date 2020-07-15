@@ -64,6 +64,52 @@ extension Int32: BSONValue {
 }
 
 extension Int64: BSONValue {
+    /*
+     * Initializes an `Int64` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for an `Int64`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Returns:
+     *   - `nil` if the provided value is not an `Int64`.
+     *
+     * Throws:
+     *   - `DecodingError` if `json` is a partial match or is malformed.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        switch json {
+        case let .number(n):
+            // relaxed extended JSON
+            guard let int = Int64(exactly: n) else {
+                return nil
+            }
+            self = int
+        case let .object(obj):
+            // canonical extended JSON
+            guard let value = obj["$numberLong"] else {
+                return nil
+            }
+            guard obj.count == 1 else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Expected only \"$numberLong\" key, found too many keys: \(obj.keys)"
+                )
+            }
+            guard let str = value.stringValue, let int = Int64(str) else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription:
+                    "Could not parse `Int64` from \"\(value)\", input must be a 64-bit signed integer as a string."
+                )
+            }
+            self = int
+        default:
+            return nil
+        }
+    }
+
     internal static var bsonType: BSONType { .int64 }
 
     internal var bson: BSON { .int64(self) }

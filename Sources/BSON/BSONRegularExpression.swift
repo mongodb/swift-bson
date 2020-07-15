@@ -64,6 +64,73 @@ public struct BSONRegularExpression: Equatable, Hashable {
 }
 
 extension BSONRegularExpression: BSONValue {
+    /*
+     * Initializes a `BSONRegularExpression` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for `RegularExpression`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Returns:
+     *   - `nil` if the provided value is not a `RegularExpression`.
+     *
+     * Throws:
+     *   - `DecodingError` if `json` is a partial match or is malformed.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        switch json {
+        case let .object(obj):
+            // canonical and relaxed extended JSON
+            guard let value = obj["$regularExpression"] else {
+                return nil
+            }
+            guard obj.count == 1 else {
+                throw DecodingError._extendedJSONError(
+                        keyPath: keyPath,
+                        debugDescription: "Expected only \"$regularExpression\" key, found too many keys: \(obj.keys)"
+                )
+            }
+            guard let regexArr = value.arrayValue else {
+                throw DecodingError._extendedJSONError(
+                        keyPath: keyPath,
+                        debugDescription: "Expected \(value) to be an array"
+                )
+            }
+            guard regexArr.count == 2 else {
+                throw DecodingError._extendedJSONError(
+                        keyPath: keyPath,
+                        debugDescription: "Expected only 2 elements, found \(regexArr.count) in: \(regexArr)"
+                )
+            }
+            let pattern = regexArr[0]
+            let options = regexArr[1]
+            guard let patternStr = pattern.stringValue,
+                  let optionsStr = options.stringValue else {
+                throw DecodingError._extendedJSONError(
+                        keyPath: keyPath,
+                        debugDescription: "Could not parse `BSONRegularExpression` from \"\(value)\", " +
+                                "value for \"$regularExpression\" must be an array with 2 elements: " +
+                                "the pattern and BSON regular expression options as a string or \"\""
+                )
+            }
+            func areOptionsValid(options: String) -> Bool {
+                return true
+            }
+            guard areOptionsValid(options: optionsStr) else {
+                throw DecodingError._extendedJSONError(
+                        keyPath: keyPath,
+                        debugDescription: "Could not parse `BSONRegularExpression` from \"\(value)\", " +
+                                "value for \"$regularExpression\" must be an array with 2 elements: " +
+                                "the pattern and BSON regular expression options as a string or \"\""
+                )
+            }
+            self = BSONRegularExpression(pattern: patternStr, options: optionsStr)
+        default:
+            return nil
+        }
+    }
+
     internal static var bsonType: BSONType { .regex }
 
     internal var bson: BSON { .regex(self) }
