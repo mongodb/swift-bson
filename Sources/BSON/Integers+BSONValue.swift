@@ -1,6 +1,21 @@
 import NIO
 
 extension Int32: BSONValue {
+    internal init(fromExtJSON json: JSON) throws {
+        switch json {
+        case let .object(obj):
+            guard let str = obj["$numberInt"]?.stringValue else {
+                throw BSONError.InternalError(message: "Not a valid Int32")
+            }
+            guard let int = Int32(str) else {
+                throw BSONError.InternalError(message: "Not a valid Int32")
+            }
+            self = int
+        default:
+            throw BSONError.InternalError(message: "Not a valid Int32")
+        }
+    }
+
     internal static var bsonType: BSONType { .int32 }
 
     internal var bson: BSON { .int32(self) }
