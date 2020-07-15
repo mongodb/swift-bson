@@ -758,6 +758,10 @@ private class MutableArray: BSONValue {
 
     fileprivate init() {}
 
+    internal required init(fromExtJSON json: JSON, keyPath: [String]) throws {
+        fatalError("MutableArray: BSONValue.init(fromExtJSON) should be unused")
+    }
+
     /// methods required by the BSONValue protocol that we don't actually need/use. MutableArray
     /// is just a BSONValue to simplify usage alongside true BSONValues within the encoder.
     static func read(from buffer: inout ByteBuffer) throws -> BSON {
@@ -841,6 +845,10 @@ private class MutableDictionary: BSONValue {
     }
 
     fileprivate init() {}
+
+    internal required init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        fatalError("MutableDictionary: BSONValue.init(fromExtJSON) should be unused")
+    }
 
     /// methods required by the BSONValue protocol that we don't actually need/use. MutableDictionary
     /// is just a BSONValue to simplify usage alongside true BSONValues within the encoder.
