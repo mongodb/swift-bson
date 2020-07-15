@@ -14,14 +14,24 @@ extension Int32: BSONValue {
             self = int
         case let .object(obj):
             // canonical extended JSON
+            guard let value = obj["$numberInt"]?.stringValue else {
+                return nil
+            }
             guard obj.count == 1 else {
-                throw BSONError.InternalError(message: "Not a valid Int32")
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(
+                        codingPath: [],
+                        debugDescription: "Not a valid Int32"
+                    )
+                )
             }
-            guard let str = obj["$numberInt"]?.stringValue else {
-                throw BSONError.InternalError(message: "Not a valid Int32")
-            }
-            guard let int = Int32(str) else {
-                throw BSONError.InternalError(message: "Not a valid Int32")
+            guard let int = Int32(value) else {
+                throw DecodingError.dataCorrupted(
+                    DecodingError.Context(
+                        codingPath: [],
+                        debugDescription: "Not a valid Int32"
+                    )
+                )
             }
             self = int
         default:
