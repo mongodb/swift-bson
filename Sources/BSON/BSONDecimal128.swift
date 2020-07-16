@@ -24,7 +24,7 @@ private extension UInt64 {
     }
 
     func getLeastSignificantBits<T: FixedWidthInteger>(_ length: T) -> Self {
-        self.getBits((63 - Int(length))...63)
+        self.getBits((63 - Int(length - 1))...63)
     }
 
     /// Gets this number's bits shifting the value down to the LSB
@@ -121,12 +121,12 @@ internal struct UInt128: Equatable, Hashable {
 public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     // swiftlint:disable line_length
     private static let digitsRegex = #"(?:\d+)"#
-    private static let indicatorRegex = #"(?:e|E)"#
+    private static let indicatorRegex = #"(?:e)"#
     private static let signRegex = #"[+-]"#
     private static let infinityRegex = #"infinity|inf"#
     private static let decimalRegex = "\(digitsRegex)\\.\(digitsRegex)?|\\.?\(digitsRegex)"
     private static let nanRegex = #"NaN"#
-    private static let exponentRegex = "\(indicatorRegex)(\(signRegex))(\(digitsRegex))"
+    private static let exponentRegex = "\(indicatorRegex)(\(signRegex))?(\(digitsRegex))"
     private static let numericValueRegex = "(\(signRegex))?(?:(\(decimalRegex))(?:\(exponentRegex))?|(\(infinityRegex)))"
     public static let decimal128Regex = "\(numericValueRegex)|(\(nanRegex))"
     // swiftlint:enable line_length
@@ -382,7 +382,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         // significand prefix (implied bits) combined with removing the combination and sign fields
         significand128.hi = UInt64(
             significandPrefix.getLeastSignificantBits(4) << (Self.trailingSignificandLength - 64))
-            | self.value.hi.getLeastSignificantBits(45)
+            | self.value.hi.getLeastSignificantBits(Self.trailingSignificandLength - 64)
         significand128.lo = self.value.lo
 
         // make a base 10 digits array from significand
