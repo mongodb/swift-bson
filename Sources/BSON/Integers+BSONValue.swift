@@ -15,7 +15,7 @@ extension Int32: BSONValue {
      * Throws:
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
-    internal init?(fromExtJSON json: JSON, keyPath: [String]? = nil) throws {
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         switch json {
         case let .number(n):
             // relaxed extended JSON

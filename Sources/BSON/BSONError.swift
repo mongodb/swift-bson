@@ -45,15 +45,10 @@ public enum BSONError {
 /// Standardize the errors emitted by BSONValue initializers.
 internal func BSONDecoderError(
     codingPath: [CodingKey] = [],
-    keyPath: [String]? = nil,
+    keyPath: [String],
     debugDescription: String
 ) -> DecodingError {
-    guard let debugStart = keyPath?.joined(separator: ".") else {
-        return DecodingError.dataCorrupted(DecodingError.Context(
-            codingPath: codingPath,
-            debugDescription: debugDescription
-        ))
-    }
+    let debugStart = keyPath.joined(separator: ".")
     return DecodingError.dataCorrupted(DecodingError.Context(
         codingPath: codingPath,
         debugDescription: debugStart + debugDescription
