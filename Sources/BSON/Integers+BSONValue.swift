@@ -1,10 +1,21 @@
 import NIO
 
 extension Int32: BSONValue {
-    /// Initializes an `Int32` given well-formatted canonical or relaxed extended JSON representing an `Int32`
-    /// Returns `nil` if the provided value is not an Int32.
-    /// Throws if the JSON is a partial match or is malformed.
-    internal init?(fromExtJSON json: JSON) throws {
+    /*
+    * Initializes an `Int32` from ExtendedJSON
+    *
+    * Parameters:
+    *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for an `Int32`.
+    *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+    *              This is used for error messages.
+    *
+    * Returns:
+    *   - `nil` if the provided value is not an `Int32`.
+    *
+    * Throws:
+    *   - `DecodingError` if `json` is a partial match or is malformed.
+    */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]? = nil) throws {
         switch json {
         case let .number(n):
             // relaxed extended JSON
@@ -14,22 +25,33 @@ extension Int32: BSONValue {
             self = int
         case let .object(obj):
             // canonical extended JSON
-            guard let value = obj["$numberInt"]?.stringValue else {
+            guard let value = obj["$numberInt"] else {
                 return nil
+            }
+            guard let str = value.stringValue else {
+                throw DecodingError.dataCorrupted(
+                        DecodingError.Context(
+                                codingPath: [],
+                                debugDescription: "Expected the value: \"\(value)\" to be a string"
+                        )
+                )
             }
             guard obj.count == 1 else {
                 throw DecodingError.dataCorrupted(
                     DecodingError.Context(
                         codingPath: [],
-                        debugDescription: "Not a valid Int32"
+                        debugDescription: "Expected only \"$numberInt\" key, found extra keys: \(obj.keys)"
                     )
                 )
             }
-            guard let int = Int32(value) else {
+            guard let int = Int32(str) else {
+                let debugStart = keyPath != nil
+                        ? "\(keyPath!.joined(separator:".")): "  
+                        : ""
                 throw DecodingError.dataCorrupted(
                     DecodingError.Context(
                         codingPath: [],
-                        debugDescription: "Not a valid Int32"
+                        debugDescription: "\(debugStart): could not parse `Int32` from \"\(str)\"."
                     )
                 )
             }
