@@ -20,7 +20,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(throwError(errorType: DecodingError.self))
         expect(try Int32(fromExtJSON: ["$numberInt": "5", "extra": true]))
             .to(throwError(errorType: DecodingError.self))
-        expect(try Int32(fromExtJSON: ["$numberInt": .string("\(Double(Int32.max) + 1)")], keyPath: ["key","path"]))
+        expect(try Int32(fromExtJSON: ["$numberInt": .string("\(Double(Int32.max) + 1)")], keyPath: ["key", "path"]))
             .to(throwError(errorType: DecodingError.self))
     }
 

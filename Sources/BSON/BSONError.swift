@@ -42,6 +42,24 @@ public enum BSONError {
     }
 }
 
+/// Standardize the errors emitted by BSONValue initializers.
+internal func BSONDecoderError(
+    codingPath: [CodingKey] = [],
+    keyPath: [String]? = nil,
+    debugDescription: String
+) -> DecodingError {
+    guard let debugStart = keyPath?.joined(separator: ".") else {
+        return DecodingError.dataCorrupted(DecodingError.Context(
+            codingPath: codingPath,
+            debugDescription: debugDescription
+        ))
+    }
+    return DecodingError.dataCorrupted(DecodingError.Context(
+        codingPath: codingPath,
+        debugDescription: debugStart + debugDescription
+    ))
+}
+
 /// Standardize the errors emitted from the BSON Iterator.
 /// The BSON iterator is used for validation so this should help debug the underlying incorrect binary.
 internal func BSONIterationError(
