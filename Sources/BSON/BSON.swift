@@ -12,6 +12,9 @@ public enum BSON {
     /// A BSON int64.
     case int64(Int64)
 
+    /// A BSON Decimal128
+    case decimal128(BSONDecimal128)
+
     /// A BSON Array
     indirect case array([BSON])
 
@@ -93,6 +96,14 @@ extension BSON {
     /// If this `BSON` is an `.int64`, return it as an `Int64`. Otherwise, return nil.
     public var int64Value: Int64? {
         guard case let .int64(i) = self else {
+            return nil
+        }
+        return i
+    }
+
+    /// If this `BSON` is an `.decimal128`, return it as an `BSONDecimal128`. Otherwise, return nil.
+    public var decimal128Value: BSONDecimal128? {
+        guard case let .decimal128(i) = self else {
             return nil
         }
         return i
@@ -266,6 +277,7 @@ extension BSON {
         .document: BSONDocument.self,
         .int32: Int32.self,
         .int64: Int64.self,
+        .decimal128: BSONDecimal128.self,
         .bool: Bool.self,
         .string: String.self,
         .double: Double.self,
@@ -293,6 +305,8 @@ extension BSON {
         case let .int32(v):
             return v
         case let .int64(v):
+            return v
+        case let .decimal128(v):
             return v
         case let .array(v):
             return v

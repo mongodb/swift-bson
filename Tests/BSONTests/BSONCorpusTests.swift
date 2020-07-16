@@ -98,13 +98,9 @@ final class BSONCorpusTests: BSONTestCase {
 
     // swiftlint:disable:next cyclomatic_complexity
     func testBSONCorpus() throws {
-        let shouldRun: (String, String) -> Bool = { testFileDesc, testDesc in
-            testFileDesc != "Decimal128"
-        }
-
         for (_, testFile) in try retrieveSpecTestFiles(specName: "bson-corpus", asType: BSONCorpusTestFile.self) {
             if let validityTests = testFile.valid {
-                for test in validityTests where shouldRun(testFile.description, test.description) {
+                for test in validityTests {
                     guard let cBData = Data(hexString: test.canonicalBSON) else {
                         XCTFail("Unable to interpret canonical_bson as Data")
                         return
@@ -132,6 +128,30 @@ final class BSONCorpusTests: BSONTestCase {
                     let nativeFromDoc = docFromCB.toArray()
                     let docFromNative = BSONDocument(fromArray: nativeFromDoc)
                     expect(docFromNative.toByteString()).to(equal(cBData.toByteString()))
+
+                    if testFile.description == "Decimal128" {
+                        // TODO: This should be tested by EXTJSON
+                        struct Decimal128CanonicalExtJSON: Codable {
+                            struct Value: Codable {
+                                enum CodingKeys: String, CodingKey {
+                                    case numberDecimal = "$numberDecimal"
+                                }
+
+                                var numberDecimal: String
+                            }
+
+                            var d: Value
+                        }
+                        let extjson = test.canonicalExtJSON.data(using: .ascii)!
+                        let jsonResult = try JSONDecoder().decode(Decimal128CanonicalExtJSON.self, from: extjson)
+                        let decimal128CorpusString = jsonResult.d.numberDecimal
+
+                        let decimal128FromString = try BSONDecimal128(decimal128CorpusString)
+                        let decimal128FromBinary = docFromCB.d!.decimal128Value!
+
+                        expect(decimal128FromString.description).to(equal(decimal128CorpusString))
+                        expect(decimal128FromBinary.description).to(equal(decimal128CorpusString))
+                    }
 
                     // native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ
                     // expect(docFromCB.canonicalExtendedJSON).to(cleanEqual(test.canonicalExtJSON))
@@ -190,7 +210,7 @@ final class BSONCorpusTests: BSONTestCase {
 
             if let parseErrorTests = testFile.parseErrors {
                 continue // TODO: EXT JSON support required
-                for test in parseErrorTests where shouldRun(testFile.description, test.description) {
+                for test in parseErrorTests {
                     let description = "\(testFile.description)-\(test.description)"
 
                     switch BSONType(rawValue: UInt8(testFile.bsonType.dropFirst(2), radix: 16)!)! {
@@ -210,7 +230,7 @@ final class BSONCorpusTests: BSONTestCase {
             }
 
             if let decodeErrors = testFile.decodeErrors {
-                for test in decodeErrors where shouldRun(testFile.description, test.description) {
+                for test in decodeErrors {
                     let description = "\(testFile.description)-\(test.description)"
                     guard let data = Data(hexString: test.bson) else {
                         XCTFail("\(description): Unable to interpret bson as Data")
