@@ -45,14 +45,14 @@ public enum BSONError {
 extension DecodingError {
     /// Standardize the errors emitted by BSONValue initializers.
     internal static func _extendedJSONError(
-        codingPath: [CodingKey] = [],
         keyPath: [String],
         debugDescription: String
     ) -> DecodingError {
         let debugStart = keyPath.joined(separator: ".") +
             (keyPath == [] ? "" : ": ")
+        print(debugStart + debugDescription)
         return .dataCorrupted(DecodingError.Context(
-            codingPath: codingPath,
+            codingPath: [],
             debugDescription: debugStart + debugDescription
         ))
     }

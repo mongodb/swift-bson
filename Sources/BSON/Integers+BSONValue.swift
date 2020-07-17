@@ -2,7 +2,7 @@ import NIO
 
 extension Int32: BSONValue {
     /*
-     * Initializes an `Int32` from ExtendedJSON
+     * Initializes an `Int32` from ExtendedJSON.
      *
      * Parameters:
      *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for an `Int32`.
@@ -31,14 +31,14 @@ extension Int32: BSONValue {
             guard obj.count == 1 else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
-                    debugDescription: "Expected only \"$numberInt\" key, found extra keys in object: \(obj)"
+                    debugDescription: "Expected only \"$numberInt\" key, found too many keys: \(obj.keys)"
                 )
             }
             guard let str = value.stringValue, let int = Int32(str) else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
-                    debugDescription:
-                    "could not parse `Int32` from \"\(value)\", input must be a 32-bit signed integer as a string."
+                    debugDescription: "Could not parse `Int32` from \"\(value)\", " +
+                        "input must be a 32-bit signed integer as a string."
                 )
             }
             self = int
