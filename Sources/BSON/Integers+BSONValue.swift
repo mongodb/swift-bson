@@ -29,13 +29,13 @@ extension Int32: BSONValue {
                 return nil
             }
             guard obj.count == 1 else {
-                throw BSONDecoderError(
+                throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected only \"$numberInt\" key, found extra keys in object: \(obj)"
                 )
             }
             guard let str = value.stringValue, let int = Int32(str) else {
-                throw BSONDecoderError(
+                throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription:
                     "could not parse `Int32` from \"\(value)\", input must be a 32-bit signed integer as a string."

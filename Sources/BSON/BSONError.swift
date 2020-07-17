@@ -42,17 +42,20 @@ public enum BSONError {
     }
 }
 
-/// Standardize the errors emitted by BSONValue initializers.
-internal func BSONDecoderError(
-    codingPath: [CodingKey] = [],
-    keyPath: [String],
-    debugDescription: String
-) -> DecodingError {
-    let debugStart = keyPath.joined(separator: ".")
-    return DecodingError.dataCorrupted(DecodingError.Context(
-        codingPath: codingPath,
-        debugDescription: debugStart + debugDescription
-    ))
+extension DecodingError {
+    /// Standardize the errors emitted by BSONValue initializers.
+    internal static func _extendedJSONError(
+        codingPath: [CodingKey] = [],
+        keyPath: [String],
+        debugDescription: String
+    ) -> DecodingError {
+        let debugStart = keyPath.joined(separator: ".") +
+            (keyPath == [] ? "" : ": ")
+        return .dataCorrupted(DecodingError.Context(
+            codingPath: codingPath,
+            debugDescription: debugStart + debugDescription
+        ))
+    }
 }
 
 /// Standardize the errors emitted from the BSON Iterator.
