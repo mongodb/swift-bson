@@ -50,7 +50,6 @@ extension DecodingError {
     ) -> DecodingError {
         let debugStart = keyPath.joined(separator: ".") +
             (keyPath == [] ? "" : ": ")
-        print(debugStart + debugDescription)
         return .dataCorrupted(DecodingError.Context(
             codingPath: [],
             debugDescription: debugStart + debugDescription
