@@ -50,7 +50,14 @@ extension BSONCode: BSONValue {
                 return nil
             }
             guard obj.count == 1 else {
-                return nil
+                if obj.count == 2 && obj.keys.contains("$scope") {
+                    return nil
+                } else {
+                    throw DecodingError._extendedJSONError(
+                        keyPath: keyPath,
+                        debugDescription: "Expected only \"$code\" and optionally \"$scope\" keys, got: \(obj.keys)"
+                    )
+                }
             }
             guard let str = value.stringValue else {
                 throw DecodingError._extendedJSONError(
