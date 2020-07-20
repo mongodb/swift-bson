@@ -31,10 +31,13 @@ extension Int32: BSONValue {
             guard obj.count == 1 else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
-                    debugDescription: "\"$numberInt\" key, found too many keys: \(obj.keys)"
+                    debugDescription: "Expected only \"$numberInt\" key, found too many keys: \(obj.keys)"
                 )
             }
-            guard let str = value.stringValue, let int = Int32(str) else {
+            guard
+                let str = value.stringValue,
+                let int = Int32(str)
+            else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Could not parse `Int32` from \"\(value)\", " +
@@ -97,7 +100,10 @@ extension Int64: BSONValue {
                     debugDescription: "Expected only \"$numberLong\" key, found too many keys: \(obj.keys)"
                 )
             }
-            guard let str = value.stringValue, let int = Int64(str) else {
+            guard
+                let str = value.stringValue,
+                let int = Int64(str)
+            else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription:

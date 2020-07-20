@@ -48,24 +48,29 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
                     debugDescription: "Expected \(value) to be an object"
                 )
             }
-            guard timestampObj.count == 2,
+            guard
+                timestampObj.count == 2,
                 let t = timestampObj["t"],
-                let i = timestampObj["i"] else {
+                let i = timestampObj["i"]
+            else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected only \"t\" and \"i\" keys, " +
                         "found \(timestampObj.keys.count) keys within \"$timestamp\": \(timestampObj.keys)"
                 )
             }
-            guard let tDouble = t.doubleValue,
-                let iDouble = i.doubleValue else {
+            guard
+                let tDouble = t.doubleValue,
+                let iDouble = i.doubleValue
+            else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Could not parse `BSONTimestamp` from \"\(timestampObj)\", " +
                         "values for \"t\" and \"i\" must be 32-bit positive integers"
                 )
             }
-            guard let tInt = UInt32(exactly: tDouble),
+            guard
+                let tInt = UInt32(exactly: tDouble),
                 let iInt = UInt32(exactly: iDouble)
             else {
                 throw DecodingError._extendedJSONError(

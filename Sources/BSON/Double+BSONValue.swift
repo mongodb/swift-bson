@@ -19,10 +19,7 @@ extension Double: BSONValue {
         switch json {
         case let .number(n):
             // relaxed extended JSON
-            guard let double = Double(exactly: n) else {
-                return nil
-            }
-            self = double
+            self = n
         case let .object(obj):
             // canonical extended JSON
             guard let value = obj["$numberDouble"] else {
@@ -34,14 +31,17 @@ extension Double: BSONValue {
                     debugDescription: "Expected only \"$numberDouble\" key, found too many keys: \(obj.keys)"
                 )
             }
-            guard let str = value.stringValue, let int = Double(str) else {
+            guard
+                let str = value.stringValue,
+                let double = Double(str)
+            else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Could not parse `Double` from \"\(value)\", " +
                         "input must be a 64-bit signed floating point as a decimal string"
                 )
             }
-            self = int
+            self = double
         default:
             return nil
         }

@@ -49,33 +49,29 @@ extension BSONDBPointer: BSONValue {
                     debugDescription: "Expected \(value) to be an object"
                 )
             }
-            guard dbPointerObj.count == 2,
+            guard
+                dbPointerObj.count == 2,
                 let ref = dbPointerObj["$ref"],
-                let id = dbPointerObj["$id"] else {
+                let id = dbPointerObj["$id"]
+            else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected \"$ref\" and \"$id\" keys, " +
                         "found \(dbPointerObj.keys.count) key(s) within \"$dbPointer\": \(dbPointerObj.keys)"
                 )
             }
-            guard let refStr = ref.stringValue,
-                let idStr = id.stringValue else {
+            guard
+                let refStr = ref.stringValue,
+                let oid = try BSONObjectID(fromExtJSON: id, keyPath: keyPath + ["$dbPointer"])
+            else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Could not parse `BSONDBPointer` from \"\(dbPointerObj)\", " +
-                        "the value for \"$ref\" must be a string representing a namespace" +
-                        " and the value for \"$id\" must be a string representing an `ObjectId`"
+                        "the value for \"$ref\" must be a string representing a namespace " +
+                        "and the value for \"$id\" must be an extended JSON representation of a `BSONObjectID`"
                 )
             }
-            do {
-                let oid = try BSONObjectID(idStr)
-                self = BSONDBPointer(ref: refStr, id: oid)
-            } catch {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: error.localizedDescription
-                )
-            }
+            self = BSONDBPointer(ref: refStr, id: oid)
         default:
             return nil
         }

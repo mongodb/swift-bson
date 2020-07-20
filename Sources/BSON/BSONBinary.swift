@@ -144,10 +144,12 @@ public struct BSONBinary: Equatable, Hashable {
                     debugDescription: "Expected only \"$binary\", found too many keys: \(obj.keys)"
                 )
             }
-            guard let binaryObj = binary.objectValue,
+            guard
+                let binaryObj = binary.objectValue,
                 binaryObj.count == 2,
                 let base64 = binaryObj["base64"],
-                let subTypeInput = binaryObj["subType"] else {
+                let subTypeInput = binaryObj["subType"]
+            else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected \"base64\" and \"subType\" keys in the object at \"$binary\", " +
@@ -161,9 +163,11 @@ public struct BSONBinary: Equatable, Hashable {
                         "input must be a base64-encoded (with padding as =) payload as a string"
                 )
             }
-            guard let subTypeStr = subTypeInput.stringValue,
-                let subTypeInt = UInt8(subTypeStr),
-                let subType = Subtype(rawValue: subTypeInt) else {
+            guard
+                let subTypeStr = subTypeInput.stringValue,
+                let subTypeInt = UInt8(subTypeStr, radix: 16),
+                let subType = Subtype(rawValue: subTypeInt)
+            else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Could not parse `SubType` from \"\(subTypeInput)\", " +

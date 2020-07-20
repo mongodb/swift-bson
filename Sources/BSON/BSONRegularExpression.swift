@@ -91,43 +91,26 @@ extension BSONRegularExpression: BSONValue {
                     debugDescription: "Expected only \"$regularExpression\" key, found too many keys: \(obj.keys)"
                 )
             }
-            guard let regexArr = value.arrayValue else {
+            guard
+                let regexObj = value.objectValue,
+                regexObj.count == 2,
+                let pattern = regexObj["pattern"],
+                let options = regexObj["options"]
+            else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
-                    debugDescription: "Expected \(value) to be an array"
+                    debugDescription: "Expected \"pattern\" and \"options\" keys in the object at " +
+                        "\"$regularExpression\", found keys: \(obj.keys)"
                 )
             }
-            guard regexArr.count == 2 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected 2 elements, found \(regexArr.count) element(s) in: \(regexArr)"
-                )
-            }
-            let pattern = regexArr[0]
-            let options = regexArr[1]
-            guard let patternStr = pattern.stringValue,
-                let optionsStr = options.stringValue else {
+            guard
+                let patternStr = pattern.stringValue,
+                let optionsStr = options.stringValue
+            else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Could not parse `BSONRegularExpression` from \"\(value)\", " +
-                        "value for \"$regularExpression\" must be an array with 2 elements: " +
-                        "the pattern and BSON regular expression options as a string or \"\""
-                )
-            }
-            func areOptionsValid(options: String) -> Bool {
-                for option in options {
-                    guard regexOptsMap.keys.contains(option) else {
-                        return false
-                    }
-                }
-                return true
-                // TODO: decide whether we will be validating options
-            }
-            guard areOptionsValid(options: optionsStr) else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Could not parse `BSONRegularExpression` options from \"\(optionsStr)\", " +
-                        "\"$options\" must consist of BSON regular expression options (i,m,x,l,s,u) as a string or \"\""
+                        "\"pattern\" and \"options\" must be strings"
                 )
             }
             self = BSONRegularExpression(pattern: patternStr, options: optionsStr)

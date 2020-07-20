@@ -2,46 +2,6 @@ import NIO
 
 /// A struct to represent the BSON Code type.
 public struct BSONCode: Equatable, Hashable {
-    /*
-     * Initializes a `BSONCode` from ExtendedJSON.
-     *
-     * Parameters:
-     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for `Code`.
-     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
-     *              This is used for error messages.
-     *
-     * Returns:
-     *   - `nil` if the provided value is not a `String`.
-     *
-     * Throws:
-     *   - `DecodingError` if `json` is a partial match or is malformed.
-     */
-    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
-        case let .object(obj):
-            // canonical extended JSON
-            guard let value = obj["$code"] else {
-                return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$code\" key, found too many keys: \(obj.keys)"
-                )
-            }
-            guard let str = value.stringValue else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Could not parse `BSONCode` from \"\(value)\", " +
-                        "input must be a string."
-                )
-            }
-            self = BSONCode(code: str)
-        default:
-            return nil
-        }
-    }
-
     /// A string containing Javascript code.
     public let code: String
 
@@ -68,6 +28,42 @@ public struct BSONCodeWithScope: Equatable, Hashable {
 }
 
 extension BSONCode: BSONValue {
+    /*
+     * Initializes a `BSONCode` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for `Code`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Returns:
+     *   - `nil` if the provided value is not a `String`.
+     *
+     * Throws:
+     *   - `DecodingError` if `json` is a partial match or is malformed.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        switch json {
+        case let .object(obj):
+            // canonical extended JSON
+            guard let value = obj["$code"] else {
+                return nil
+            }
+            guard obj.count == 1 else {
+                return nil
+            }
+            guard let str = value.stringValue else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse `BSONCode` from \"\(value)\", input must be a string."
+                )
+            }
+            self = BSONCode(code: str)
+        default:
+            return nil
+        }
+    }
+
     internal static var bsonType: BSONType { .code }
 
     internal var bson: BSON { .code(self) }
