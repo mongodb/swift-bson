@@ -145,19 +145,13 @@ public struct BSONBinary: Equatable, Hashable {
                 )
             }
             guard let binaryObj = binary.objectValue,
+                binaryObj.count == 2,
                 let base64 = binaryObj["base64"],
                 let subTypeInput = binaryObj["subType"] else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected \"base64\" and \"subType\" keys in the object at \"$binary\", " +
                         "found keys: \(obj.keys)"
-                )
-            }
-            guard binaryObj.count == 2 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"base64\" and \"subType\" keys, " +
-                        "found too many keys in the object at \"$binary\": \(binaryObj.keys)"
                 )
             }
             guard let base64Str = base64.stringValue else {

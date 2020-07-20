@@ -31,7 +31,7 @@ extension Int32: BSONValue {
             guard obj.count == 1 else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
-                    debugDescription: "Expected only \"$numberInt\" key, found too many keys: \(obj.keys)"
+                    debugDescription: "\"$numberInt\" key, found too many keys: \(obj.keys)"
                 )
             }
             guard let str = value.stringValue, let int = Int32(str) else {

@@ -68,12 +68,12 @@ extension BSONRegularExpression: BSONValue {
      * Initializes a `BSONRegularExpression` from ExtendedJSON.
      *
      * Parameters:
-     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for `RegularExpression`.
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for a `RegularExpression`.
      *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
      *              This is used for error messages.
      *
      * Returns:
-     *   - `nil` if the provided value is not a `RegularExpression`.
+     *   - `nil` if the provided value is not a `RegularExpression` with valid options.
      *
      * Throws:
      *   - `DecodingError` if `json` is a partial match or is malformed.
@@ -87,42 +87,47 @@ extension BSONRegularExpression: BSONValue {
             }
             guard obj.count == 1 else {
                 throw DecodingError._extendedJSONError(
-                        keyPath: keyPath,
-                        debugDescription: "Expected only \"$regularExpression\" key, found too many keys: \(obj.keys)"
+                    keyPath: keyPath,
+                    debugDescription: "Expected only \"$regularExpression\" key, found too many keys: \(obj.keys)"
                 )
             }
             guard let regexArr = value.arrayValue else {
                 throw DecodingError._extendedJSONError(
-                        keyPath: keyPath,
-                        debugDescription: "Expected \(value) to be an array"
+                    keyPath: keyPath,
+                    debugDescription: "Expected \(value) to be an array"
                 )
             }
             guard regexArr.count == 2 else {
                 throw DecodingError._extendedJSONError(
-                        keyPath: keyPath,
-                        debugDescription: "Expected only 2 elements, found \(regexArr.count) in: \(regexArr)"
+                    keyPath: keyPath,
+                    debugDescription: "Expected 2 elements, found \(regexArr.count) element(s) in: \(regexArr)"
                 )
             }
             let pattern = regexArr[0]
             let options = regexArr[1]
             guard let patternStr = pattern.stringValue,
-                  let optionsStr = options.stringValue else {
+                let optionsStr = options.stringValue else {
                 throw DecodingError._extendedJSONError(
-                        keyPath: keyPath,
-                        debugDescription: "Could not parse `BSONRegularExpression` from \"\(value)\", " +
-                                "value for \"$regularExpression\" must be an array with 2 elements: " +
-                                "the pattern and BSON regular expression options as a string or \"\""
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse `BSONRegularExpression` from \"\(value)\", " +
+                        "value for \"$regularExpression\" must be an array with 2 elements: " +
+                        "the pattern and BSON regular expression options as a string or \"\""
                 )
             }
             func areOptionsValid(options: String) -> Bool {
+                for option in options {
+                    guard regexOptsMap.keys.contains(option) else {
+                        return false
+                    }
+                }
                 return true
+                // TODO: decide whether we will be validating options
             }
             guard areOptionsValid(options: optionsStr) else {
                 throw DecodingError._extendedJSONError(
-                        keyPath: keyPath,
-                        debugDescription: "Could not parse `BSONRegularExpression` from \"\(value)\", " +
-                                "value for \"$regularExpression\" must be an array with 2 elements: " +
-                                "the pattern and BSON regular expression options as a string or \"\""
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse `BSONRegularExpression` options from \"\(optionsStr)\", " +
+                        "\"$options\" must consist of BSON regular expression options (i,m,x,l,s,u) as a string or \"\""
                 )
             }
             self = BSONRegularExpression(pattern: patternStr, options: optionsStr)

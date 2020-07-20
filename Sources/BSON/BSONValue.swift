@@ -18,7 +18,7 @@ internal protocol BSONValue: Codable {
     /// Initializes a corresponding `BSON` from the provided extendedJSON.
     /// Currently commented out to avoid "not implemented" errors while implementing the
     /// initializer one by one on each BSONValue.
-    // internal init(fromExtJSON json: JSON) throws
+//    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws
 }
 
 /// Convenience extension to get static bsonType from an instance

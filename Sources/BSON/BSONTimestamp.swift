@@ -19,7 +19,7 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
      * Initializes a `BSONTimestamp` from ExtendedJSON.
      *
      * Parameters:
-     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for `Timestamp`.
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for a `Timestamp`.
      *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
      *              This is used for error messages.
      *
@@ -54,7 +54,7 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected only \"t\" and \"i\" keys, " +
-                        "found extra keys within \"$timestamp\": \(timestampObj.keys)"
+                        "found \(timestampObj.keys.count) keys within \"$timestamp\": \(timestampObj.keys)"
                 )
             }
             guard let tDouble = t.doubleValue,

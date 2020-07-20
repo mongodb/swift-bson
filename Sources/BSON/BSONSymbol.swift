@@ -8,7 +8,7 @@ public struct BSONSymbol: BSONValue, CustomStringConvertible, Equatable, Hashabl
      *
      * Parameters:
      *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for a `Symbol`.
-     *   - `keyPath`: an array of `Symbol`s containing the enclosing JSON keys of the current json being passed in.
+     *   - `keyPath`: an array of `Strings`s containing the enclosing JSON keys of the current json being passed in.
      *              This is used for error messages.
      *
      * Throws:

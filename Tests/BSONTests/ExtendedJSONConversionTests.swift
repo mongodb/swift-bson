@@ -100,7 +100,23 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(throwError(errorType: DecodingError.self))
     }
 
-    func testDecimal128() throws {}
+    func testDecimal128() throws {
+        // Success cases
+        expect(try BSONDecimal128(fromExtJSON: ["$numberDecimal": "0.020000000000000004"], keyPath: []))
+            .to(equal(try BSONDecimal128("0.020000000000000004")))
+
+        // Nil cases
+        expect(try BSONDecimal128(fromExtJSON: JSON.bool(true), keyPath: [])).to(beNil())
+        expect(try BSONDecimal128(fromExtJSON: ["bad": "5.5"], keyPath: [])).to(beNil())
+
+        // Error cases
+        expect(try BSONDecimal128(fromExtJSON: ["$numberDecimal": 0.020000000000000004], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONDecimal128(fromExtJSON: ["$numberDecimal": "5.5", "extra": true], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONDecimal128(fromExtJSON: ["$numberDecimal": JSON.bool(true)], keyPath: ["key", "path"]))
+            .to(throwError(errorType: DecodingError.self))
+    }
 
     func testBinary() throws {
         // Success case
@@ -169,11 +185,13 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
     func testRegularExpression() throws {
         // Success case
         expect(try BSONRegularExpression(fromExtJSON: ["$regularExpression": ["pattern", "i"]], keyPath: []))
-                .to(equal(BSONRegularExpression(pattern: "pattern", options: "i")))
+            .to(equal(BSONRegularExpression(pattern: "pattern", options: "i")))
         expect(try BSONRegularExpression(fromExtJSON: ["$regularExpression": ["pattern", ""]], keyPath: []))
-                .to(equal(BSONRegularExpression(pattern: "pattern", options: "")))
+            .to(equal(BSONRegularExpression(pattern: "pattern", options: "")))
         expect(try BSONRegularExpression(fromExtJSON: ["$regularExpression": ["pattern", "xi"]], keyPath: []))
-                .to(equal(BSONRegularExpression(pattern: "pattern", options: "ix")))
+            .to(equal(BSONRegularExpression(pattern: "pattern", options: "ix")))
+        expect(try BSONRegularExpression(fromExtJSON: ["$regularExpression": ["pattern", "iux"]], keyPath: []))
+            .to(equal(BSONRegularExpression(pattern: "pattern", options: "iux")))
 
         // Nil cases
         expect(try BSONRegularExpression(fromExtJSON: 5.5, keyPath: [])).to(beNil())
@@ -181,14 +199,108 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
 
         // Error cases
         expect(try BSONRegularExpression(fromExtJSON: ["$regularExpression": 5], keyPath: []))
-                .to(throwError(errorType: DecodingError.self))
+            .to(throwError(errorType: DecodingError.self))
         expect(try BSONRegularExpression(fromExtJSON: ["$regularExpression": ["pattern"]], keyPath: []))
-                .to(throwError(errorType: DecodingError.self))
-        expect(try BSONRegularExpression(fromExtJSON: ["$regularExpression": ["pattern", "", "extra"]], keyPath: []))
-                .to(throwError(errorType: DecodingError.self))
-        expect(try BSONRegularExpression(fromExtJSON: ["$regularExpression": ["pattern", ""], "extra": "2"], keyPath: []))
-                .to(throwError(errorType: DecodingError.self))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONRegularExpression(fromExtJSON: ["$regularExpression": ["pattern", "h"]], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONRegularExpression(fromExtJSON: ["$regularExpression": ["pattern", "", "x"]], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONRegularExpression(fromExtJSON: ["$regularExpression": ["pattern", ""], "x": "2"], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
     }
 
-    // TODO: Add equivalent tests for each type that conforms to `BSONValue`
+    func testDBPointer() throws {
+        let oid = JSON.string("5F07445CFBBBBBBBBBFAAAAA")
+        let objectId: BSONObjectID = try BSONObjectID("5F07445CFBBBBBBBBBFAAAAA")
+
+        // Success case
+        expect(try BSONDBPointer(fromExtJSON: ["$dbPointer": ["$ref": "namespace", "$id": oid]], keyPath: []))
+            .to(equal(BSONDBPointer(ref: "namespace", id: objectId)))
+
+        // Nil cases
+        expect(try BSONDBPointer(fromExtJSON: 5.5, keyPath: [])).to(beNil())
+        expect(try BSONDBPointer(fromExtJSON: ["random": 5], keyPath: [])).to(beNil())
+
+        // Error cases
+        expect(try BSONDBPointer(fromExtJSON: ["$dbPointer": 5], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONDBPointer(fromExtJSON: ["$dbPointer": ["$ref": "namespace"]], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONDBPointer(fromExtJSON: ["$dbPointer": ["$ref": "namespace", "$id": 1]], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONDBPointer(fromExtJSON: ["$dbPointer": ["$ref": true, "$id": oid]], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONDBPointer(fromExtJSON: ["$dbPointer": ["$ref": "namespace", "$id": oid, "3": 3]], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONDBPointer(fromExtJSON: ["$dbPointer": ["$ref": "namespace", "$id": oid], "x": "2"], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+    }
+
+    func testMinKey() throws {
+        // Success cases
+        expect(try BSONMinKey(fromExtJSON: ["$minKey": 1], keyPath: [])).to(equal(BSONMinKey()))
+
+        // Nil cases
+        expect(try BSONMinKey(fromExtJSON: "minKey", keyPath: [])).to(beNil())
+        expect(try BSONMinKey(fromExtJSON: ["bad": "5.5"], keyPath: [])).to(beNil())
+
+        // Error cases
+        expect(try BSONMinKey(fromExtJSON: ["$minKey": 1, "extra": 1], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONMinKey(fromExtJSON: ["$minKey": "random"], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+    }
+
+    func testMaxKey() throws {
+        // Success cases
+        expect(try BSONMaxKey(fromExtJSON: ["$maxKey": 1], keyPath: [])).to(equal(BSONMaxKey()))
+
+        // Nil cases
+        expect(try BSONMaxKey(fromExtJSON: "maxKey", keyPath: [])).to(beNil())
+        expect(try BSONMaxKey(fromExtJSON: ["bad": "5.5"], keyPath: [])).to(beNil())
+
+        // Error cases
+        expect(try BSONMaxKey(fromExtJSON: ["$maxKey": 1, "extra": 1], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONMaxKey(fromExtJSON: ["$maxKey": "random"], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+    }
+
+    func testUndefined() throws {
+        // Success cases
+        expect(try BSONUndefined(fromExtJSON: ["$undefined": JSON.bool(true)], keyPath: [])).to(equal(BSONUndefined()))
+
+        // Nil cases
+        expect(try BSONUndefined(fromExtJSON: "undefined", keyPath: [])).to(beNil())
+        expect(try BSONUndefined(fromExtJSON: ["bad": "5.5"], keyPath: [])).to(beNil())
+
+        // Error cases
+        expect(try BSONUndefined(fromExtJSON: ["$undefined": JSON.bool(true), "extra": 1], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONUndefined(fromExtJSON: ["$undefined": 1], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+    }
+
+    func testArray() throws {
+        // Skipping until there is a BSON.init(fromExtJSON) because its recursive
+    }
+
+    func testBoolean() {
+        // Success cases
+        expect(Bool(fromExtJSON: JSON.bool(true), keyPath: [])).to(equal(true))
+
+        // Nil cases
+        expect(Bool(fromExtJSON: 5.5, keyPath: [])).to(beNil())
+        expect(Bool(fromExtJSON: ["bad": "5.5"], keyPath: [])).to(beNil())
+    }
+
+    func testNull() {
+        // Success cases
+        expect(BSONNull(fromExtJSON: JSON.null, keyPath: [])).to(equal(BSONNull()))
+
+        // Nil cases
+        expect(BSONNull(fromExtJSON: 5.5, keyPath: [])).to(beNil())
+        expect(BSONNull(fromExtJSON: ["bad": "5.5"], keyPath: [])).to(beNil())
+    }
 }

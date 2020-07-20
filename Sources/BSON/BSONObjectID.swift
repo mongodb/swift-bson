@@ -66,8 +66,8 @@ public struct BSONObjectID: Equatable, Hashable, CustomStringConvertible {
      * Initializes an `ObjectID` from ExtendedJSON.
      *
      * Parameters:
-     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for a `ObjectID`.
-     *   - `keyPath`: an array of `ObjectID`s containing the enclosing JSON keys of the current json being passed in.
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for an `ObjectID`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
      *              This is used for error messages.
      *
      * Throws:
