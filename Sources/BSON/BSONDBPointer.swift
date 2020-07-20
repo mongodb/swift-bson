@@ -62,7 +62,7 @@ extension BSONDBPointer: BSONValue {
             }
             guard
                 let refStr = ref.stringValue,
-                let oid = try BSONObjectID(fromExtJSON: id, keyPath: keyPath + ["$dbPointer"])
+                let oid = try BSONObjectID(fromExtJSON: id, keyPath: keyPath)
             else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
