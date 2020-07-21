@@ -30,45 +30,40 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
-        case let .object(obj):
-            // canonical and relaxed extended JSON
-            guard let value = try json.onlyHasKey(key: "$timestamp", keyPath: keyPath) else {
-                return nil
-            }
-            guard let timestampObj = value.objectValue else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected \(value) to be an object"
-                )
-            }
-            guard
-                timestampObj.count == 2,
-                let t = timestampObj["t"],
-                let i = timestampObj["i"]
-            else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"t\" and \"i\" keys, " +
-                        "found \(timestampObj.keys.count) keys within \"$timestamp\": \(timestampObj.keys)"
-                )
-            }
-            guard
-                let tDouble = t.doubleValue,
-                let tInt = UInt32(exactly: tDouble),
-                let iDouble = i.doubleValue,
-                let iInt = UInt32(exactly: iDouble)
-            else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Could not parse `BSONTimestamp` from \"\(timestampObj)\", " +
-                        "values for \"t\" and \"i\" must be 32-bit positive integers"
-                )
-            }
-            self = BSONTimestamp(timestamp: tInt, inc: iInt)
-        default:
+        // canonical and relaxed extended JSON
+        guard let (value, _) = try json.isObjectWithSingleKey(key: "$timestamp", keyPath: keyPath) else {
             return nil
         }
+        guard let timestampObj = value.objectValue else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \(value) to be an object"
+            )
+        }
+        guard
+            timestampObj.count == 2,
+            let t = timestampObj["t"],
+            let i = timestampObj["i"]
+        else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected only \"t\" and \"i\" keys, " +
+                    "found \(timestampObj.keys.count) keys within \"$timestamp\": \(timestampObj.keys)"
+            )
+        }
+        guard
+            let tDouble = t.doubleValue,
+            let tInt = UInt32(exactly: tDouble),
+            let iDouble = i.doubleValue,
+            let iInt = UInt32(exactly: iDouble)
+        else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Could not parse `BSONTimestamp` from \"\(timestampObj)\", " +
+                    "values for \"t\" and \"i\" must be 32-bit positive integers"
+            )
+        }
+        self = BSONTimestamp(timestamp: tInt, inc: iInt)
     }
 
     internal static func read(from buffer: inout ByteBuffer) throws -> BSON {

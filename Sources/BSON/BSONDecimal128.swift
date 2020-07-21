@@ -488,29 +488,24 @@ extension BSONDecimal128: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
-        case .object:
-            // canonical extended JSON
-            guard let value = try json.onlyHasKey(key: "$numberDecimal", keyPath: keyPath) else {
-                return nil
-            }
-            guard let str = value.stringValue else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Could not parse `Decimal128` from \"\(value)\", " +
-                        "input must be a decimal as a string"
-                )
-            }
-            do {
-                self = try BSONDecimal128(str)
-            } catch {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: error.localizedDescription
-                )
-            }
-        default:
+        // canonical and relaxed extended JSON
+        guard let (value, _) = try json.isObjectWithSingleKey(key: "$numberDecimal", keyPath: keyPath) else {
             return nil
+        }
+        guard let str = value.stringValue else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Could not parse `Decimal128` from \"\(value)\", " +
+                    "input must be a decimal as a string"
+            )
+        }
+        do {
+            self = try BSONDecimal128(str)
+        } catch {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: error.localizedDescription
+            )
         }
     }
 

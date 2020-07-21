@@ -57,22 +57,17 @@ internal struct BSONUndefined: BSONValue, Equatable {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
-        case let .object(obj):
-            // canonical and relaxed extended JSON
-            guard let value = try json.onlyHasKey(key: "$undefined", keyPath: keyPath) else {
-                return nil
-            }
-            guard value.boolValue == true else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected \(obj) to be \"{\"$undefined\": true}\""
-                )
-            }
-            self = BSONUndefined()
-        default:
+        // canonical and relaxed extended JSON
+        guard let (value, obj) = try json.isObjectWithSingleKey(key: "$undefined", keyPath: keyPath) else {
             return nil
         }
+        guard value.boolValue == true else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \(obj) to be \"{\"$undefined\": true}\""
+            )
+        }
+        self = BSONUndefined()
     }
 
     internal static var bsonType: BSONType { .undefined }
@@ -108,22 +103,17 @@ internal struct BSONMinKey: BSONValue, Equatable {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
-        case let .object(obj):
-            // canonical and relaxed extended JSON
-            guard let value = try json.onlyHasKey(key: "$minKey", keyPath: keyPath) else {
-                return nil
-            }
-            guard value.doubleValue == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected \(obj) to be \"{\"$minKey\": 1}\""
-                )
-            }
-            self = BSONMinKey()
-        default:
+        // canonical and relaxed extended JSON
+        guard let (value, obj) = try json.isObjectWithSingleKey(key: "$minKey", keyPath: keyPath) else {
             return nil
         }
+        guard value.doubleValue == 1 else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \(obj) to be \"{\"$minKey\": 1}\""
+            )
+        }
+        self = BSONMinKey()
     }
 
     internal static var bsonType: BSONType { .minKey }
@@ -159,22 +149,17 @@ internal struct BSONMaxKey: BSONValue, Equatable {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
-        case let .object(obj):
-            // canonical and relaxed extended JSON
-            guard let value = try json.onlyHasKey(key: "$maxKey", keyPath: keyPath) else {
-                return nil
-            }
-            guard value.doubleValue == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected \(obj) to be \"{\"$maxKey\": 1}\""
-                )
-            }
-            self = BSONMaxKey()
-        default:
+        // canonical and relaxed extended JSON
+        guard let (value, obj) = try json.isObjectWithSingleKey(key: "$maxKey", keyPath: keyPath) else {
             return nil
         }
+        guard value.doubleValue == 1 else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \(obj) to be \"{\"$maxKey\": 1}\""
+            )
+        }
+        self = BSONMaxKey()
     }
 
     internal static var bsonType: BSONType { .maxKey }

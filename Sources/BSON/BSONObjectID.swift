@@ -77,28 +77,24 @@ public struct BSONObjectID: Equatable, Hashable, CustomStringConvertible {
      *   - `nil` if the provided value is not an `ObjectID`.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
-        case .object:
-            guard let value = try json.onlyHasKey(key: "$oid", keyPath: keyPath) else {
-                return nil
-            }
-            guard let str = value.stringValue else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription:
-                    "Could not parse `ObjectID` from \"\(value)\", input must be a 24-character, big-endian hex string."
-                )
-            }
-            do {
-                self = try BSONObjectID(str)
-            } catch {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: error.localizedDescription
-                )
-            }
-        default:
+        // canonical and relaxed extended JSON
+        guard let (value, _) = try json.isObjectWithSingleKey(key: "$oid", keyPath: keyPath) else {
             return nil
+        }
+        guard let str = value.stringValue else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription:
+                "Could not parse `ObjectID` from \"\(value)\", input must be a 24-character, big-endian hex string."
+            )
+        }
+        do {
+            self = try BSONObjectID(str)
+        } catch {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: error.localizedDescription
+            )
         }
     }
 }

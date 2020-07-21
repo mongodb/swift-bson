@@ -158,52 +158,47 @@ extension BSONBinary: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
-        case let .object(obj):
-            // canonical and relaxed extended JSON
-            guard let binary = try json.onlyHasKey(key: "$binary", keyPath: keyPath) else {
-                return nil
-            }
-            guard
-                let binaryObj = binary.objectValue,
-                binaryObj.count == 2,
-                let base64 = binaryObj["base64"],
-                let subTypeInput = binaryObj["subType"]
-            else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected \"base64\" and \"subType\" keys in the object at \"$binary\", " +
-                        "found keys: \(obj.keys)"
-                )
-            }
-            guard let base64Str = base64.stringValue else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Could not parse `base64` from \"\(base64)\", " +
-                        "input must be a base64-encoded (with padding as =) payload as a string"
-                )
-            }
-            guard
-                let subTypeStr = subTypeInput.stringValue,
-                let subTypeInt = UInt8(subTypeStr, radix: 16),
-                let subType = Subtype(rawValue: subTypeInt)
-            else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Could not parse `SubType` from \"\(subTypeInput)\", " +
-                        "input must be a BSON binary type as a one- or two-character hex string"
-                )
-            }
-            do {
-                self = try BSONBinary(base64: base64Str, subtype: subType)
-            } catch {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: error.localizedDescription
-                )
-            }
-        default:
+        // canonical and relaxed extended JSON
+        guard let (binary, obj) = try json.isObjectWithSingleKey(key: "$binary", keyPath: keyPath) else {
             return nil
+        }
+        guard
+            let binaryObj = binary.objectValue,
+            binaryObj.count == 2,
+            let base64 = binaryObj["base64"],
+            let subTypeInput = binaryObj["subType"]
+        else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \"base64\" and \"subType\" keys in the object at \"$binary\", " +
+                    "found keys: \(obj.keys)"
+            )
+        }
+        guard let base64Str = base64.stringValue else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Could not parse `base64` from \"\(base64)\", " +
+                    "input must be a base64-encoded (with padding as =) payload as a string"
+            )
+        }
+        guard
+            let subTypeStr = subTypeInput.stringValue,
+            let subTypeInt = UInt8(subTypeStr, radix: 16),
+            let subType = Subtype(rawValue: subTypeInt)
+        else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Could not parse `SubType` from \"\(subTypeInput)\", " +
+                    "input must be a BSON binary type as a one- or two-character hex string"
+            )
+        }
+        do {
+            self = try BSONBinary(base64: base64Str, subtype: subType)
+        } catch {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: error.localizedDescription
+            )
         }
     }
 

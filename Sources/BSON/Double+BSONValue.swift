@@ -22,7 +22,7 @@ extension Double: BSONValue {
             self = n
         case .object:
             // canonical extended JSON
-            guard let value = try json.onlyHasKey(key: "$numberDouble", keyPath: keyPath) else {
+            guard let (value, _) = try json.isObjectWithSingleKey(key: "$numberDouble", keyPath: keyPath) else {
                 return nil
             }
             guard

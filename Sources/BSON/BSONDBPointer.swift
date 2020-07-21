@@ -31,44 +31,39 @@ extension BSONDBPointer: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
-        case .object:
-            // canonical and relaxed extended JSON
-            guard let value = try json.onlyHasKey(key: "$dbPointer", keyPath: keyPath) else {
-                return nil
-            }
-            guard let dbPointerObj = value.objectValue else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected \(value) to be an object"
-                )
-            }
-            guard
-                dbPointerObj.count == 2,
-                let ref = dbPointerObj["$ref"],
-                let id = dbPointerObj["$id"]
-            else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected \"$ref\" and \"$id\" keys, " +
-                        "found \(dbPointerObj.keys.count) key(s) within \"$dbPointer\": \(dbPointerObj.keys)"
-                )
-            }
-            guard
-                let refStr = ref.stringValue,
-                let oid = try BSONObjectID(fromExtJSON: id, keyPath: keyPath)
-            else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Could not parse `BSONDBPointer` from \"\(dbPointerObj)\", " +
-                        "the value for \"$ref\" must be a string representing a namespace " +
-                        "and the value for \"$id\" must be an extended JSON representation of a `BSONObjectID`"
-                )
-            }
-            self = BSONDBPointer(ref: refStr, id: oid)
-        default:
+        // canonical and relaxed extended JSON
+        guard let (value, _) = try json.isObjectWithSingleKey(key: "$dbPointer", keyPath: keyPath) else {
             return nil
         }
+        guard let dbPointerObj = value.objectValue else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \(value) to be an object"
+            )
+        }
+        guard
+            dbPointerObj.count == 2,
+            let ref = dbPointerObj["$ref"],
+            let id = dbPointerObj["$id"]
+        else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \"$ref\" and \"$id\" keys, " +
+                    "found \(dbPointerObj.keys.count) key(s) within \"$dbPointer\": \(dbPointerObj.keys)"
+            )
+        }
+        guard
+            let refStr = ref.stringValue,
+            let oid = try BSONObjectID(fromExtJSON: id, keyPath: keyPath)
+        else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Could not parse `BSONDBPointer` from \"\(dbPointerObj)\", " +
+                    "the value for \"$ref\" must be a string representing a namespace " +
+                    "and the value for \"$id\" must be an extended JSON representation of a `BSONObjectID`"
+            )
+        }
+        self = BSONDBPointer(ref: refStr, id: oid)
     }
 
     internal static var bsonType: BSONType { .dbPointer }

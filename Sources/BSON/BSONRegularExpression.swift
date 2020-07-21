@@ -79,38 +79,33 @@ extension BSONRegularExpression: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
-        case let .object(obj):
-            // canonical and relaxed extended JSON
-            guard let value = try json.onlyHasKey(key: "$regularExpression", keyPath: keyPath) else {
-                return nil
-            }
-            guard
-                let regexObj = value.objectValue,
-                regexObj.count == 2,
-                let pattern = regexObj["pattern"],
-                let options = regexObj["options"]
-            else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected \"pattern\" and \"options\" keys in the object at " +
-                        "\"$regularExpression\", found keys: \(obj.keys)"
-                )
-            }
-            guard
-                let patternStr = pattern.stringValue,
-                let optionsStr = options.stringValue
-            else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Could not parse `BSONRegularExpression` from \"\(value)\", " +
-                        "\"pattern\" and \"options\" must be strings"
-                )
-            }
-            self = BSONRegularExpression(pattern: patternStr, options: optionsStr)
-        default:
+        // canonical and relaxed extended JSON
+        guard let (value, obj) = try json.isObjectWithSingleKey(key: "$regularExpression", keyPath: keyPath) else {
             return nil
         }
+        guard
+            let regexObj = value.objectValue,
+            regexObj.count == 2,
+            let pattern = regexObj["pattern"],
+            let options = regexObj["options"]
+        else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \"pattern\" and \"options\" keys in the object at " +
+                    "\"$regularExpression\", found keys: \(obj.keys)"
+            )
+        }
+        guard
+            let patternStr = pattern.stringValue,
+            let optionsStr = options.stringValue
+        else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Could not parse `BSONRegularExpression` from \"\(value)\", " +
+                    "\"pattern\" and \"options\" must be strings"
+            )
+        }
+        self = BSONRegularExpression(pattern: patternStr, options: optionsStr)
     }
 
     internal static var bsonType: BSONType { .regex }

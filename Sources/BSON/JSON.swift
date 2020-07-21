@@ -148,7 +148,7 @@ extension JSON {
     /// - Returns: JSON which is the value at the given `key` in `self`
     ///            or `nil` if `self` is not an `object` or does not contain the given `key`
     /// - Throws: `DecodingError` if `self` has too many keys
-    internal func onlyHasKey(key: String, keyPath: [String]) throws -> JSON? {
+    internal func isObjectWithSingleKey(key: String, keyPath: [String]) throws -> (value: JSON, obj: [String: JSON])? {
         guard case let .object(obj) = self else {
             return nil
         }
@@ -161,7 +161,7 @@ extension JSON {
                 debugDescription: "Expected only \"\(key)\", found too many keys: \(obj.keys)"
             )
         }
-        return value
+        return (value, obj)
     }
 }
 

@@ -18,22 +18,17 @@ public struct BSONSymbol: BSONValue, CustomStringConvertible, Equatable, Hashabl
      *   - `nil` if the provided value is not an `Symbol`.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
-        case .object:
-            guard let value = try json.onlyHasKey(key: "$symbol", keyPath: keyPath) else {
-                return nil
-            }
-            guard let str = value.stringValue else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription:
-                    "Could not parse `Symbol` from \"\(value)\", input must be a string."
-                )
-            }
-            self = BSONSymbol(str)
-        default:
+        guard let (value, _) = try json.isObjectWithSingleKey(key: "$symbol", keyPath: keyPath) else {
             return nil
         }
+        guard let str = value.stringValue else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription:
+                "Could not parse `Symbol` from \"\(value)\", input must be a string."
+            )
+        }
+        self = BSONSymbol(str)
     }
 
     internal static var bsonType: BSONType { .symbol }
