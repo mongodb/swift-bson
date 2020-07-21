@@ -82,14 +82,8 @@ extension BSONRegularExpression: BSONValue {
         switch json {
         case let .object(obj):
             // canonical and relaxed extended JSON
-            guard let value = obj["$regularExpression"] else {
+            guard let value = try json.onlyHasKey(key: "$regularExpression", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$regularExpression\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard
                 let regexObj = value.objectValue,

@@ -23,16 +23,10 @@ extension Int32: BSONValue {
                 return nil
             }
             self = int
-        case let .object(obj):
+        case .object:
             // canonical extended JSON
-            guard let value = obj["$numberInt"] else {
+            guard let value = try json.onlyHasKey(key: "$numberInt", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$numberInt\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard
                 let str = value.stringValue,
@@ -89,16 +83,10 @@ extension Int64: BSONValue {
                 return nil
             }
             self = int
-        case let .object(obj):
+        case .object:
             // canonical extended JSON
-            guard let value = obj["$numberLong"] else {
+            guard let value = try json.onlyHasKey(key: "$numberLong", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$numberLong\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard
                 let str = value.stringValue,

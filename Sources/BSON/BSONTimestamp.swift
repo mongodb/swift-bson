@@ -33,14 +33,8 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
         switch json {
         case let .object(obj):
             // canonical and relaxed extended JSON
-            guard let value = obj["$timestamp"] else {
+            guard let value = try json.onlyHasKey(key: "$timestamp", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$timestamp\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard let timestampObj = value.objectValue else {
                 throw DecodingError._extendedJSONError(
@@ -61,16 +55,8 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
             }
             guard
                 let tDouble = t.doubleValue,
-                let iDouble = i.doubleValue
-            else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Could not parse `BSONTimestamp` from \"\(timestampObj)\", " +
-                        "values for \"t\" and \"i\" must be 32-bit positive integers"
-                )
-            }
-            guard
                 let tInt = UInt32(exactly: tDouble),
+                let iDouble = i.doubleValue,
                 let iInt = UInt32(exactly: iDouble)
             else {
                 throw DecodingError._extendedJSONError(

@@ -117,6 +117,32 @@ public struct BSONBinary: Equatable, Hashable {
         try self.init(data: dataObj, subtype: subtype)
     }
 
+    /// Converts this `BSONBinary` instance to a `UUID`.
+    /// - Throws:
+    ///   - `BSONError.InvalidArgumentError` if a non-UUID subtype is set on this `BSONBinary`.
+    public func toUUID() throws -> UUID {
+        guard [Subtype.uuid, Subtype.uuidDeprecated].contains(self.subtype) else {
+            throw BSONError.InvalidArgumentError(
+                message: "Expected a UUID binary subtype, got subtype \(self.subtype) instead."
+            )
+        }
+
+        guard let data = self.data.getBytes(at: 0, length: 16) else {
+            throw BSONError.InternalError(message: "Unable to read 16 bytes from Binary.data")
+        }
+
+        let uuid: uuid_t = (
+            data[0], data[1], data[2], data[3],
+            data[4], data[5], data[6], data[7],
+            data[8], data[9], data[10], data[11],
+            data[12], data[13], data[14], data[15]
+        )
+
+        return UUID(uuid: uuid)
+    }
+}
+
+extension BSONBinary: BSONValue {
     /*
      * Initializes a `Binary` from ExtendedJSON.
      *
@@ -135,14 +161,8 @@ public struct BSONBinary: Equatable, Hashable {
         switch json {
         case let .object(obj):
             // canonical and relaxed extended JSON
-            guard let binary = obj["$binary"] else {
+            guard let binary = try json.onlyHasKey(key: "$binary", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$binary\", found too many keys: \(obj.keys)"
-                )
             }
             guard
                 let binaryObj = binary.objectValue,
@@ -187,32 +207,6 @@ public struct BSONBinary: Equatable, Hashable {
         }
     }
 
-    /// Converts this `BSONBinary` instance to a `UUID`.
-    /// - Throws:
-    ///   - `BSONError.InvalidArgumentError` if a non-UUID subtype is set on this `BSONBinary`.
-    public func toUUID() throws -> UUID {
-        guard [Subtype.uuid, Subtype.uuidDeprecated].contains(self.subtype) else {
-            throw BSONError.InvalidArgumentError(
-                message: "Expected a UUID binary subtype, got subtype \(self.subtype) instead."
-            )
-        }
-
-        guard let data = self.data.getBytes(at: 0, length: 16) else {
-            throw BSONError.InternalError(message: "Unable to read 16 bytes from Binary.data")
-        }
-
-        let uuid: uuid_t = (
-            data[0], data[1], data[2], data[3],
-            data[4], data[5], data[6], data[7],
-            data[8], data[9], data[10], data[11],
-            data[12], data[13], data[14], data[15]
-        )
-
-        return UUID(uuid: uuid)
-    }
-}
-
-extension BSONBinary: BSONValue {
     internal static var bsonType: BSONType { .binary }
 
     internal var bson: BSON { .binary(self) }

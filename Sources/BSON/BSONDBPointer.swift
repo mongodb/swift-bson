@@ -32,16 +32,10 @@ extension BSONDBPointer: BSONValue {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         switch json {
-        case let .object(obj):
+        case .object:
             // canonical and relaxed extended JSON
-            guard let value = obj["$dbPointer"] else {
+            guard let value = try json.onlyHasKey(key: "$dbPointer", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$dbPointer\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard let dbPointerObj = value.objectValue else {
                 throw DecodingError._extendedJSONError(

@@ -136,4 +136,33 @@ extension JSON {
     }
 }
 
+/// Helpers
+extension JSON {
+    /// Helper function used in `BSONValue` initializers that take in extended JSON and need to
+    /// check that an object has only 1 specified key.
+    ///
+    /// - Parameters:
+    ///   - key: a String representing the one key that the initializer is looking for
+    ///   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+    ///                This is used for error messages.
+    /// - Returns: JSON which is the value at the given `key` in `self`
+    ///            or `nil` if `self` is not an `object` or does not contain the given `key`
+    /// - Throws: `DecodingError` if `self` has too many keys
+    internal func onlyHasKey(key: String, keyPath: [String]) throws -> JSON? {
+        guard case let .object(obj) = self else {
+            return nil
+        }
+        guard let value = obj[key] else {
+            return nil
+        }
+        guard obj.count == 1 else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected only \"\(key)\", found too many keys: \(obj.keys)"
+            )
+        }
+        return value
+    }
+}
+
 extension JSON: Equatable {}

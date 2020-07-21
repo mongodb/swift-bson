@@ -78,15 +78,9 @@ public struct BSONObjectID: Equatable, Hashable, CustomStringConvertible {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         switch json {
-        case let .object(obj):
-            guard let value = obj["$oid"] else {
+        case .object:
+            guard let value = try json.onlyHasKey(key: "$oid", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$oid\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard let str = value.stringValue else {
                 throw DecodingError._extendedJSONError(

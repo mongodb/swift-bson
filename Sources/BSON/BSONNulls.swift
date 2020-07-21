@@ -60,14 +60,8 @@ internal struct BSONUndefined: BSONValue, Equatable {
         switch json {
         case let .object(obj):
             // canonical and relaxed extended JSON
-            guard let value = obj["$undefined"] else {
+            guard let value = try json.onlyHasKey(key: "$undefined", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$undefined\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard value.boolValue == true else {
                 throw DecodingError._extendedJSONError(
@@ -117,14 +111,8 @@ internal struct BSONMinKey: BSONValue, Equatable {
         switch json {
         case let .object(obj):
             // canonical and relaxed extended JSON
-            guard let value = obj["$minKey"] else {
+            guard let value = try json.onlyHasKey(key: "$minKey", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$minKey\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard value.doubleValue == 1 else {
                 throw DecodingError._extendedJSONError(
@@ -174,14 +162,8 @@ internal struct BSONMaxKey: BSONValue, Equatable {
         switch json {
         case let .object(obj):
             // canonical and relaxed extended JSON
-            guard let value = obj["$maxKey"] else {
+            guard let value = try json.onlyHasKey(key: "$maxKey", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$maxKey\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard value.doubleValue == 1 else {
                 throw DecodingError._extendedJSONError(

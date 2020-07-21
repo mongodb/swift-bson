@@ -20,16 +20,10 @@ extension Double: BSONValue {
         case let .number(n):
             // relaxed extended JSON
             self = n
-        case let .object(obj):
+        case .object:
             // canonical extended JSON
-            guard let value = obj["$numberDouble"] else {
+            guard let value = try json.onlyHasKey(key: "$numberDouble", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$numberDouble\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard
                 let str = value.stringValue,

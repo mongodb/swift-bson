@@ -489,16 +489,10 @@ extension BSONDecimal128: BSONValue {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         switch json {
-        case let .object(obj):
+        case .object:
             // canonical extended JSON
-            guard let value = obj["$numberDecimal"] else {
+            guard let value = try json.onlyHasKey(key: "$numberDecimal", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$numberDecimal\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard let str = value.stringValue else {
                 throw DecodingError._extendedJSONError(

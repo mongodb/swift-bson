@@ -19,15 +19,9 @@ public struct BSONSymbol: BSONValue, CustomStringConvertible, Equatable, Hashabl
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         switch json {
-        case let .object(obj):
-            guard let value = obj["$symbol"] else {
+        case .object:
+            guard let value = try json.onlyHasKey(key: "$symbol", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 1 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$symbol\" key, found too many keys: \(obj.keys)"
-                )
             }
             guard let str = value.stringValue else {
                 throw DecodingError._extendedJSONError(
