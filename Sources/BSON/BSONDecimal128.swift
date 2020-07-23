@@ -473,6 +473,42 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 }
 
 extension BSONDecimal128: BSONValue {
+    /*
+     * Initializes a `Decimal128` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for a `Decimal128`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Returns:
+     *   - `nil` if the provided value is not a `Decimal128`.
+     *
+     * Throws:
+     *   - `DecodingError` if `json` is a partial match or is malformed.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        // canonical and relaxed extended JSON
+        guard let (value, _) = try json.isObjectWithSingleKey(key: "$numberDecimal", keyPath: keyPath) else {
+            return nil
+        }
+        guard let str = value.stringValue else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Could not parse `Decimal128` from \"\(value)\", " +
+                    "input must be a decimal as a string"
+            )
+        }
+        do {
+            self = try BSONDecimal128(str)
+        } catch {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: error.localizedDescription
+            )
+        }
+    }
+
     internal static var bsonType: BSONType { .decimal128 }
 
     internal var bson: BSON { .decimal128(self) }

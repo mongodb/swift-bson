@@ -1,6 +1,27 @@
 import NIO
 
 extension Bool: BSONValue {
+    /*
+     * Initializes a `Bool` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for a `Bool`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Returns:
+     *   - `nil` if the provided value is not a `Bool`.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) {
+        switch json {
+        case let .bool(b):
+            // canonical or relaxed extended JSON
+            self = b
+        default:
+            return nil
+        }
+    }
+
     internal static var bsonType: BSONType { .bool }
 
     internal var bson: BSON { .bool(self) }

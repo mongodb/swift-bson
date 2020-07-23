@@ -1,6 +1,26 @@
 import NIO
 
 extension String: BSONValue {
+    /*
+     * Initializes a `String` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for a `String`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Returns:
+     *   - `nil` if the provided value is not an `String`.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) {
+        switch json {
+        case let .string(s):
+            self = s
+        default:
+            return nil
+        }
+    }
+
     internal static var bsonType: BSONType { .string }
 
     internal var bson: BSON { .string(self) }

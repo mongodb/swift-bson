@@ -61,6 +61,42 @@ public struct BSONObjectID: Equatable, Hashable, CustomStringConvertible {
         }
         self = BSONObjectID(data)
     }
+
+    /*
+     * Initializes an `ObjectID` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for an `ObjectID`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Throws:
+     *   - `DecodingError` if `json` is a partial match or is malformed.
+     *
+     * Returns:
+     *   - `nil` if the provided value is not an `ObjectID`.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        // canonical and relaxed extended JSON
+        guard let (value, _) = try json.isObjectWithSingleKey(key: "$oid", keyPath: keyPath) else {
+            return nil
+        }
+        guard let str = value.stringValue else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription:
+                "Could not parse `ObjectID` from \"\(value)\", input must be a 24-character, big-endian hex string."
+            )
+        }
+        do {
+            self = try BSONObjectID(str)
+        } catch {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: error.localizedDescription
+            )
+        }
+    }
 }
 
 extension BSONObjectID: BSONValue {

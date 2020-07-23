@@ -1,6 +1,46 @@
 import NIO
 
 extension Double: BSONValue {
+    /*
+     * Initializes a `Double` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for a `Double`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Returns:
+     *   - `nil` if the provided value is not a `Double`.
+     *
+     * Throws:
+     *   - `DecodingError` if `json` is a partial match or is malformed.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        switch json {
+        case let .number(n):
+            // relaxed extended JSON
+            self = n
+        case .object:
+            // canonical extended JSON
+            guard let (value, _) = try json.isObjectWithSingleKey(key: "$numberDouble", keyPath: keyPath) else {
+                return nil
+            }
+            guard
+                let str = value.stringValue,
+                let double = Double(str)
+            else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse `Double` from \"\(value)\", " +
+                        "input must be a 64-bit signed floating point as a decimal string"
+                )
+            }
+            self = double
+        default:
+            return nil
+        }
+    }
+
     internal static var bsonType: BSONType { .double }
 
     internal var bson: BSON { .double(self) }

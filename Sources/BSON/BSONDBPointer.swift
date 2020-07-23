@@ -16,6 +16,56 @@ public struct BSONDBPointer: Equatable, Hashable {
 }
 
 extension BSONDBPointer: BSONValue {
+    /*
+     * Initializes a `BSONDBPointer` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for a `DBPointer`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Returns:
+     *   - `nil` if the provided value is not a `DBPointer`.
+     *
+     * Throws:
+     *   - `DecodingError` if `json` is a partial match or is malformed.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        // canonical and relaxed extended JSON
+        guard let (value, _) = try json.isObjectWithSingleKey(key: "$dbPointer", keyPath: keyPath) else {
+            return nil
+        }
+        guard let dbPointerObj = value.objectValue else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \(value) to be an object"
+            )
+        }
+        guard
+            dbPointerObj.count == 2,
+            let ref = dbPointerObj["$ref"],
+            let id = dbPointerObj["$id"]
+        else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \"$ref\" and \"$id\" keys, " +
+                    "found \(dbPointerObj.keys.count) key(s) within \"$dbPointer\": \(dbPointerObj.keys)"
+            )
+        }
+        guard
+            let refStr = ref.stringValue,
+            let oid = try BSONObjectID(fromExtJSON: id, keyPath: keyPath)
+        else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Could not parse `BSONDBPointer` from \"\(dbPointerObj)\", " +
+                    "the value for \"$ref\" must be a string representing a namespace " +
+                    "and the value for \"$id\" must be an extended JSON representation of a `BSONObjectID`"
+            )
+        }
+        self = BSONDBPointer(ref: refStr, id: oid)
+    }
+
     internal static var bsonType: BSONType { .dbPointer }
 
     internal var bson: BSON { .dbPointer(self) }
