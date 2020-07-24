@@ -41,6 +41,14 @@ final class CodecTests: BSONTestCase {
         let s: NestedStruct
     }
 
+    /// Test decoding non-document BSON
+    func testAnyBSON() throws {
+        let decoder = BSONDecoder()
+        expect(try decoder.decode(Int32.self, fromBSON: BSON.int32(1))).to(equal(1))
+        expect(try decoder.decode(Array.self, fromBSON: [BSON.int32(1), BSON.int32(2)]))
+            .to(equal([1, 2]))
+    }
+
     /// Test encoding/decoding a variety of structs containing simple types that have
     /// built in Codable support (strings, arrays, ints, and structs composed of them.)
     func testStructs() throws {
