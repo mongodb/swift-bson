@@ -21,10 +21,9 @@ extension Date: BSONValue {
             return nil
         }
         switch value {
-        case let .object(obj):
+        case .object:
             // canonical extended JSON
-            print(obj)
-            guard let int = try Int64(fromExtJSON: value, keyPath: keyPath + ["$date"]) else {
+            guard let int = try Int64(fromExtJSON: value, keyPath: keyPath) else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected \(value) to be canonical extended JSON representing a " +

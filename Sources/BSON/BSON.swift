@@ -84,7 +84,7 @@ public enum BSON {
     ///              This is used for error messages.
     ///
     /// Throws:
-    ///   - `InternalError`
+    ///   - `DecodingError` if `json` is malformatted extended json
     internal init(fromExtJSON json: JSON, keyPath: [String]) throws {
         // Spec requires that we try int32, try int64, then try double for decoding numbers
         if let int32 = try Int32(fromExtJSON: json, keyPath: keyPath) {
@@ -106,7 +106,6 @@ public enum BSON {
         }
         // Document accepts any JSON object so it should be tried after all the more specific BSON types are tried
         if let doc = try BSONDocument(fromExtJSON: json, keyPath: keyPath) {
-            print(doc)
             self = doc.bson
             return
         }

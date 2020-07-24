@@ -121,7 +121,8 @@ extension BSONCodeWithScope: BSONValue {
             guard let codeStr = code.stringValue else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
-                    debugDescription: "Could not parse `BSONCode` \"\(code)\", input must be a string."
+                    debugDescription: "Could not parse `BSONCodeWithScope` from \"code\": \"\(code)\"," +
+                        " input must be a string."
                 )
             }
             guard let scopeDoc = try BSONDocument(fromExtJSON: scope, keyPath: keyPath + [codeStr]) else {
