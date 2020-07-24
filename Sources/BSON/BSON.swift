@@ -96,7 +96,7 @@ public enum BSON {
             return
         }
         for bsonType in BSON.allBSONTypes.values {
-            if bsonType == Int32.self || bsonType == Int64.self || bsonType == BSONDocument.self {
+            guard bsonType != Int32.self && bsonType != Int64.self && bsonType != BSONDocument.self else {
                 continue
             }
             if let value = try bsonType.init(fromExtJSON: json, keyPath: keyPath) {

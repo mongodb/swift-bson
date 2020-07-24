@@ -489,7 +489,7 @@ extension BSONDecimal128: BSONValue {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let (value, _) = try json.isObjectWithSingleKey(key: "$numberDecimal", keyPath: keyPath) else {
+        guard let value = try json.unwrapObject(withKey: "$numberDecimal", keyPath: keyPath) else {
             return nil
         }
         guard let str = value.stringValue else {

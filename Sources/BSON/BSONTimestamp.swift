@@ -31,7 +31,7 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let (value, _) = try json.isObjectWithSingleKey(key: "$timestamp", keyPath: keyPath) else {
+        guard let value = try json.unwrapObject(withKey: "$timestamp", keyPath: keyPath) else {
             return nil
         }
         guard let timestampObj = value.objectValue else {

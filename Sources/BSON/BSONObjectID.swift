@@ -78,7 +78,7 @@ public struct BSONObjectID: Equatable, Hashable, CustomStringConvertible {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let (value, _) = try json.isObjectWithSingleKey(key: "$oid", keyPath: keyPath) else {
+        guard let value = try json.unwrapObject(withKey: "$oid", keyPath: keyPath) else {
             return nil
         }
         guard let str = value.stringValue else {

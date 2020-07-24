@@ -17,7 +17,7 @@ extension Date: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        guard let (value, _) = try json.isObjectWithSingleKey(key: "$date", keyPath: keyPath) else {
+        guard let value = try json.unwrapObject(withKey: "$date", keyPath: keyPath) else {
             return nil
         }
         switch value {

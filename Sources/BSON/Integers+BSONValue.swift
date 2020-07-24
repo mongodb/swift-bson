@@ -25,7 +25,7 @@ extension Int32: BSONValue {
             self = int
         case .object:
             // canonical extended JSON
-            guard let (value, _) = try json.isObjectWithSingleKey(key: "$numberInt", keyPath: keyPath) else {
+            guard let value = try json.unwrapObject(withKey: "$numberInt", keyPath: keyPath) else {
                 return nil
             }
             guard
@@ -85,7 +85,7 @@ extension Int64: BSONValue {
             self = int
         case .object:
             // canonical extended JSON
-            guard let (value, _) = try json.isObjectWithSingleKey(key: "$numberLong", keyPath: keyPath) else {
+            guard let value = try json.unwrapObject(withKey: "$numberLong", keyPath: keyPath) else {
                 return nil
             }
             guard

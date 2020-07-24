@@ -106,17 +106,8 @@ extension BSONCodeWithScope: BSONValue {
         switch json {
         case let .object(obj):
             // canonical and relaxed extended JSON
-            guard
-                let code = obj["$code"],
-                let scope = obj["$scope"]
-            else {
+            guard let (code, scope) = try json.unwrapObject(withKeys: "$code", "$scope", keyPath: keyPath) else {
                 return nil
-            }
-            guard obj.count == 2 else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Expected only \"$code\" and \"$scope\" keys, got: \(obj.keys)"
-                )
             }
             guard let codeStr = code.stringValue else {
                 throw DecodingError._extendedJSONError(
@@ -125,7 +116,7 @@ extension BSONCodeWithScope: BSONValue {
                         " input must be a string."
                 )
             }
-            guard let scopeDoc = try BSONDocument(fromExtJSON: scope, keyPath: keyPath + [codeStr]) else {
+            guard let scopeDoc = try BSONDocument(fromExtJSON: scope, keyPath: keyPath + ["$scope"]) else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Could not parse scope from \"\(scope)\", input must be a Document."

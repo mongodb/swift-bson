@@ -18,7 +18,7 @@ public struct BSONSymbol: BSONValue, CustomStringConvertible, Equatable, Hashabl
      *   - `nil` if the provided value is not an `Symbol`.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        guard let (value, _) = try json.isObjectWithSingleKey(key: "$symbol", keyPath: keyPath) else {
+        guard let value = try json.unwrapObject(withKey: "$symbol", keyPath: keyPath) else {
             return nil
         }
         guard let str = value.stringValue else {
