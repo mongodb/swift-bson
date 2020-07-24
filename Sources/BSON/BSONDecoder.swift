@@ -163,18 +163,14 @@ public class BSONDecoder {
      * - Throws: `DecodingError` if any value throws an error during decoding.
      */
     internal func decode<T: Decodable>(_ type: T.Type, fromBSON bson: BSON) throws -> T {
-        // if the requested type is `BSON` we're done
-        if let b = bson as? T {
-            return b
-        }
         let _decoder = _BSONDecoder(referencing: bson, options: self.options)
         do {
-            return try type.init(from: _decoder)
+            return try _decoder.unbox(bson, as: type)
         } catch let error as BSONErrorProtocol {
             let unknownErrorMessage = "Unknown Error occurred while decoding BSON"
             throw DecodingError.dataCorrupted(
                 DecodingError.Context(
-                    codingPath: [],
+                    codingPath: _decoder.codingPath,
                     debugDescription: "Unable to decode BSON: \(error.errorDescription ?? unknownErrorMessage)"
                 )
             )
