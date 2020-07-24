@@ -45,6 +45,9 @@ final class CodecTests: BSONTestCase {
     func testAnyBSON() throws {
         let decoder = BSONDecoder()
         expect(try decoder.decode(Int32.self, fromBSON: BSON.int32(1))).to(equal(1))
+        let oid = try BSONObjectID("507f1f77bcf86cd799439011")
+        expect(try decoder.decode(BSONObjectID.self, fromBSON: BSON.objectID(oid)))
+            .to(equal(oid))
         expect(try decoder.decode(Array.self, fromBSON: [BSON.int32(1), BSON.int32(2)]))
             .to(equal([1, 2]))
     }
