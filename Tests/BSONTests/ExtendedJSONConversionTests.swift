@@ -188,10 +188,10 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(try BSONDocument(fromExtJSON: 1, keyPath: [])).to(beNil())
 
         // Error case
-        expect(try BSONDocument(fromExtJSON: ["time": ["$timestamp": 5]], keyPath: []))
+        expect(try BSONDocument(fromExtJSON: ["foo": ["bar": ["$timestamp": 5]]], keyPath: []))
             .to(throwError { error in
                 expect(error).to(matchError(DecodingError.self))
-//                expect(error.context.debugDescription).to(contain("time"))
+                expect(String(describing: error)).to(contain("foo.bar"))
             })
     }
 
