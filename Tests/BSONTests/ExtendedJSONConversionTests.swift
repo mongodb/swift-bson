@@ -14,6 +14,18 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(document.documentValue!["extra"]).to(equal(.int32(1)))
     }
 
+    func testExtendedJSONDecoder() throws {
+        struct Foo: Decodable, Equatable {
+            let x: Bool
+            let y: Int
+            let z: Int
+        }
+
+        let data = "{ \"x\": true, \"y\": { \"$numberInt\": \"5\" }, \"z\": 6 }".data(using: .utf8)!
+        let decoder = ExtendedJSONDecoder()
+        expect(try decoder.decode(Foo.self, from: data)).to(equal(Foo(x: true, y: 5, z: 6)))
+    }
+
     func testObjectId() throws {
         let oid = "5F07445CFBBBBBBBBBFAAAAA"
 
