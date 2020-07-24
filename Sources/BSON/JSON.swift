@@ -138,21 +138,19 @@ extension JSON {
 
 /// Helpers
 extension JSON {
-    /// Helper function used in `BSONValue` initializers that take in extended JSON and need to
-    /// check that an object has only 1 specified key.
+    /// Helper function used in `BSONValue` initializers that take in extended JSON.
+    /// If the current JSON is an object with only the specified key, return its value.
     ///
     /// - Parameters:
     ///   - key: a String representing the one key that the initializer is looking for
     ///   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
     ///                This is used for error messages.
     /// - Returns:
-    ///    - a tuple containing:
-    ///        - a JSON which is the value at the given `key` in `self`
-    ///        - the object itself (with the expected key and its value)
+    ///    - a JSON which is the value at the given `key` in `self`
     ///    - or `nil` if `self` is not an `object` or does not contain the given `key`
     ///
     /// - Throws: `DecodingError` if `self` has too many keys
-    internal func isObjectWithSingleKey(key: String, keyPath: [String]) throws -> (value: JSON, obj: [String: JSON])? {
+    internal func unwrapObject(withKey key: String, keyPath: [String]) throws -> JSON? {
         guard case let .object(obj) = self else {
             return nil
         }
@@ -165,7 +163,41 @@ extension JSON {
                 debugDescription: "Expected only \"\(key)\", found too many keys: \(obj.keys)"
             )
         }
-        return (value, obj)
+        return value
+    }
+
+    /// Helper function used in `BSONValue` initializers that take in extended JSON.
+    /// If the current JSON is an object with only the 2 specified keys, return their values.
+    ///
+    /// - Parameters:
+    ///   - key1: a String representing the first key that the initializer is looking for
+    ///   - key2: a String representing the second key that the initializer is looking for
+    ///   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+    ///                This is used for error messages.
+    /// - Returns:
+    ///    - a tuple containing:
+    ///        - a JSON which is the value at the given `key1` in `self`
+    ///        - a JSON which is the value at the given `key2` in `self`
+    ///    - or `nil` if `self` is not an `object` or does not contain the given keys
+    ///
+    /// - Throws: `DecodingError` if `self` has too many keys
+    internal func unwrapObject(withKeys key1: String, _ key2: String, keyPath: [String]) throws -> (JSON, JSON)? {
+        guard case let .object(obj) = self else {
+            return nil
+        }
+        guard
+            let value1 = obj[key1],
+            let value2 = obj[key2]
+        else {
+            return nil
+        }
+        guard obj.count == 2 else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected only \"\(key1)\" and \"\(key2)\" found keys: \(obj.keys)"
+            )
+        }
+        return (value1, value2)
     }
 }
 

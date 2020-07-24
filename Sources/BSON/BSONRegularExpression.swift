@@ -80,22 +80,11 @@ extension BSONRegularExpression: BSONValue {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let (value, obj) = try json.isObjectWithSingleKey(key: "$regularExpression", keyPath: keyPath) else {
+        guard let value = try json.unwrapObject(withKey: "$regularExpression", keyPath: keyPath) else {
             return nil
         }
         guard
-            let regexObj = value.objectValue,
-            regexObj.count == 2,
-            let pattern = regexObj["pattern"],
-            let options = regexObj["options"]
-        else {
-            throw DecodingError._extendedJSONError(
-                keyPath: keyPath,
-                debugDescription: "Expected \"pattern\" and \"options\" keys in the object at " +
-                    "\"$regularExpression\", found keys: \(obj.keys)"
-            )
-        }
-        guard
+            let (pattern, options) = try value.unwrapObject(withKeys: "pattern", "options", keyPath: keyPath),
             let patternStr = pattern.stringValue,
             let optionsStr = options.stringValue
         else {

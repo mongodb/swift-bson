@@ -159,19 +159,15 @@ extension BSONBinary: BSONValue {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let (binary, obj) = try json.isObjectWithSingleKey(key: "$binary", keyPath: keyPath) else {
+        guard let binary = try json.unwrapObject(withKey: "$binary", keyPath: keyPath) else {
             return nil
         }
         guard
-            let binaryObj = binary.objectValue,
-            binaryObj.count == 2,
-            let base64 = binaryObj["base64"],
-            let subTypeInput = binaryObj["subType"]
+            let (base64, subTypeInput) = try binary.unwrapObject(withKeys: "base64", "subType", keyPath: keyPath)
         else {
             throw DecodingError._extendedJSONError(
                 keyPath: keyPath,
-                debugDescription: "Expected \"base64\" and \"subType\" keys in the object at \"$binary\", " +
-                    "found keys: \(obj.keys)"
+                debugDescription: "Missing \"base64\" or \"subType\" in \(binary)"
             )
         }
         guard let base64Str = base64.stringValue else {

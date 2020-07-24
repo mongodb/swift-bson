@@ -58,13 +58,13 @@ internal struct BSONUndefined: BSONValue, Equatable {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let (value, obj) = try json.isObjectWithSingleKey(key: "$undefined", keyPath: keyPath) else {
+        guard let value = try json.unwrapObject(withKey: "$undefined", keyPath: keyPath) else {
             return nil
         }
         guard value.boolValue == true else {
             throw DecodingError._extendedJSONError(
                 keyPath: keyPath,
-                debugDescription: "Expected \(obj) to be \"{\"$undefined\": true}\""
+                debugDescription: "Expected \(value) to be \"true\""
             )
         }
         self = BSONUndefined()
@@ -104,13 +104,13 @@ internal struct BSONMinKey: BSONValue, Equatable {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let (value, obj) = try json.isObjectWithSingleKey(key: "$minKey", keyPath: keyPath) else {
+        guard let value = try json.unwrapObject(withKey: "$minKey", keyPath: keyPath) else {
             return nil
         }
         guard value.doubleValue == 1 else {
             throw DecodingError._extendedJSONError(
                 keyPath: keyPath,
-                debugDescription: "Expected \(obj) to be \"{\"$minKey\": 1}\""
+                debugDescription: "Expected \(value) to be \"1\""
             )
         }
         self = BSONMinKey()
@@ -150,13 +150,13 @@ internal struct BSONMaxKey: BSONValue, Equatable {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let (value, obj) = try json.isObjectWithSingleKey(key: "$maxKey", keyPath: keyPath) else {
+        guard let value = try json.unwrapObject(withKey: "$maxKey", keyPath: keyPath) else {
             return nil
         }
         guard value.doubleValue == 1 else {
             throw DecodingError._extendedJSONError(
                 keyPath: keyPath,
-                debugDescription: "Expected \(obj) to be \"{\"$maxKey\": 1}\""
+                debugDescription: "Expected \(value) to be \"1\""
             )
         }
         self = BSONMaxKey()

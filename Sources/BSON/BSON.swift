@@ -77,6 +77,40 @@ public enum BSON {
         }
     }
 
+    /// Initialize a `BSON` from ExtendedJSON
+    /// Parameters:
+    ///   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for any `BSONValue`.
+    ///   - `keyPath`: an array of `Strings`s containing the enclosing JSON keys of the current json being passed in.
+    ///              This is used for error messages.
+    ///
+    /// Throws:
+    ///   - `DecodingError` if `json` is malformatted extended json
+    internal init(fromExtJSON json: JSON, keyPath: [String]) throws {
+        // Spec requires that we try int32, try int64, then try double for decoding numbers
+        if let int32 = try Int32(fromExtJSON: json, keyPath: keyPath) {
+            self = int32.bson
+            return
+        }
+        if let int64 = try Int64(fromExtJSON: json, keyPath: keyPath) {
+            self = int64.bson
+            return
+        }
+        for bsonType in BSON.allBSONTypes.values {
+            guard bsonType != Int32.self && bsonType != Int64.self && bsonType != BSONDocument.self else {
+                continue
+            }
+            if let value = try bsonType.init(fromExtJSON: json, keyPath: keyPath) {
+                self = value.bson
+                return
+            }
+        }
+        // Document accepts any JSON object so it should be tried after all the more specific BSON types are tried
+        guard let doc = try BSONDocument(fromExtJSON: json, keyPath: keyPath) else {
+            throw BSONError.InternalError(message: "Could not parse BSON from \(json)")
+        }
+        self = doc.bson
+    }
+
     /// Get the `BSONType` of this `BSON`.
     public var type: BSONType {
         self.bsonValue.bsonType

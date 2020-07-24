@@ -45,7 +45,7 @@ extension BSONCode: BSONValue {
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         switch json {
         case let .object(obj):
-            // canonical extended JSON
+            // canonical and relaxed extended JSON
             guard let value = obj["$code"] else {
                 return nil
             }
@@ -88,6 +88,46 @@ extension BSONCode: BSONValue {
 }
 
 extension BSONCodeWithScope: BSONValue {
+    /*
+     * Initializes a `BSONCode` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for `Code`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Returns:
+     *   - `nil` if the provided value is not a `String`.
+     *
+     * Throws:
+     *   - `DecodingError` if `json` is a partial match or is malformed.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        switch json {
+        case let .object(obj):
+            // canonical and relaxed extended JSON
+            guard let (code, scope) = try json.unwrapObject(withKeys: "$code", "$scope", keyPath: keyPath) else {
+                return nil
+            }
+            guard let codeStr = code.stringValue else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse `BSONCodeWithScope` from \"code\": \"\(code)\"," +
+                        " input must be a string."
+                )
+            }
+            guard let scopeDoc = try BSONDocument(fromExtJSON: scope, keyPath: keyPath + ["$scope"]) else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse scope from \"\(scope)\", input must be a Document."
+                )
+            }
+            self = BSONCodeWithScope(code: codeStr, scope: scopeDoc)
+        default:
+            return nil
+        }
+    }
+
     internal static var bsonType: BSONType { .codeWithScope }
 
     internal var bson: BSON { .codeWithScope(self) }

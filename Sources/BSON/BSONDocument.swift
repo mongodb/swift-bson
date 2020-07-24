@@ -348,6 +348,33 @@ extension BSONDocument: Equatable {
 }
 
 extension BSONDocument: BSONValue {
+    /*
+     * Initializes a `BSONDocument` from ExtendedJSON.
+     *
+     * Parameters:
+     *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for any `BSONDocument`.
+     *   - `keyPath`: an array of `String`s containing the enclosing JSON keys of the current json being passed in.
+     *              This is used for error messages.
+     *
+     * Returns:
+     *   - `nil` if the provided value does not conform to the `BSONDocument` syntax.
+     *
+     * Throws:
+     *   - `DecodingError` if `json` is a partial match or is malformed.
+     */
+    internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        // canonical and relaxed extended JSON
+        guard case let .object(obj) = json else {
+            return nil
+        }
+        var doc: [(String, BSON)] = []
+        for (key, val) in obj {
+            let bsonValue = try BSON(fromExtJSON: val, keyPath: keyPath + [key])
+            doc.append((key, bsonValue))
+        }
+        self = BSONDocument(keyValuePairs: doc)
+    }
+
     internal static var bsonType: BSONType { .document }
 
     internal var bson: BSON { .document(self) }

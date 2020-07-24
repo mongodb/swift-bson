@@ -5,6 +5,15 @@ import NIO
 import XCTest
 
 open class ExtendedJSONConversionTestCase: BSONTestCase {
+    func testAnyExtJSON() throws {
+        // Success cases
+        expect(try BSON(fromExtJSON: "hello", keyPath: [])).to(equal(BSON.string("hello")))
+        let document = try BSON(fromExtJSON: ["num": ["$numberInt": "5"], "extra": 1], keyPath: [])
+        expect(document.documentValue).toNot(beNil())
+        expect(document.documentValue!["num"]).to(equal(.int32(5)))
+        expect(document.documentValue!["extra"]).to(equal(.int32(1)))
+    }
+
     func testObjectId() throws {
         let oid = "5F07445CFBBBBBBBBBFAAAAA"
 
@@ -157,11 +166,33 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
     }
 
     func testCodeWScope() throws {
-        // Skipping until there is a BSON.init(fromExtJSON) because its recursive
+        // Success case
+        expect(try BSONCodeWithScope(fromExtJSON: ["$code": "javascript", "$scope": ["doc": "scope"]], keyPath: []))
+            .to(equal(BSONCodeWithScope(
+                code: "javascript",
+                scope: ["doc": "scope"]
+            )))
+
+        // Error cases
+        expect(try BSONCodeWithScope(fromExtJSON: ["$code": 5, "$scope": ["doc": "scope"]], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
+        expect(try BSONCodeWithScope(fromExtJSON: ["$code": "javascript", "$scope": 1], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
     }
 
     func testDocument() throws {
-        // Skipping until there is a BSON.init(fromExtJSON) because its recursive
+        // Success case
+        expect(try BSONDocument(fromExtJSON: ["key": ["$numberInt": "5"]], keyPath: []))
+            .to(equal(["key": .int32(5)]))
+        // Nil case
+        expect(try BSONDocument(fromExtJSON: 1, keyPath: [])).to(beNil())
+
+        // Error case
+        expect(try BSONDocument(fromExtJSON: ["foo": ["bar": ["$timestamp": 5]]], keyPath: []))
+            .to(throwError { error in
+                expect(error).to(matchError(DecodingError.self))
+                expect(String(describing: error)).to(contain("foo.bar"))
+            })
     }
 
     func testTimestamp() throws {
@@ -251,6 +282,15 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(throwError(errorType: DecodingError.self))
     }
 
+    func testDatetime() throws {
+        // Canonical Success case
+        expect(try Date(fromExtJSON: ["$date": ["$numberLong": "500004"]], keyPath: []))
+            .to(equal(Date(msSinceEpoch: 500_004)))
+        // Relaxed Success case
+        expect(try Date(fromExtJSON: ["$date": "2012-12-24T12:15:30.501Z"], keyPath: []))
+            .to(equal(Date(msSinceEpoch: 1_356_351_330_501)))
+    }
+
     func testMinKey() throws {
         // Success cases
         expect(try BSONMinKey(fromExtJSON: ["$minKey": 1], keyPath: [])).to(equal(BSONMinKey()))
@@ -297,7 +337,18 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
     }
 
     func testArray() throws {
-        // Skipping until there is a BSON.init(fromExtJSON) because its recursive
+        // Success cases
+        expect(try Array(fromExtJSON: [1, ["$numberLong": "2"], "3"], keyPath: []))
+            .to(equal([BSON.int32(1), BSON.int64(2), BSON.string("3")]))
+        expect(try Array(fromExtJSON: [["$numberInt": "1"], ["$numberInt": "2"]], keyPath: []))
+            .to(equal([BSON.int32(1), BSON.int32(2)]))
+
+        // Nil case
+        expect(try Array(fromExtJSON: ["doc": "1"], keyPath: [])).to(beNil())
+
+        // Error case
+        expect(try Array(fromExtJSON: [["$numberInt": 1]], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
     }
 
     func testBoolean() {

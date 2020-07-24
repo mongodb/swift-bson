@@ -32,7 +32,7 @@ extension BSONDBPointer: BSONValue {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let (value, _) = try json.isObjectWithSingleKey(key: "$dbPointer", keyPath: keyPath) else {
+        guard let value = try json.unwrapObject(withKey: "$dbPointer", keyPath: keyPath) else {
             return nil
         }
         guard let dbPointerObj = value.objectValue else {
