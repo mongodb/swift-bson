@@ -183,7 +183,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
     func testDocument() throws {
         // Success case
         expect(try BSONDocument(fromExtJSON: ["key": ["$numberInt": "5"]], keyPath: []))
-            .to(equal(BSONDocument(keyValuePairs: [("key", .int32(5))])))
+            .to(equal(["key": .int32(5)]))
         // Nil case
         expect(try BSONDocument(fromExtJSON: 1, keyPath: [])).to(beNil())
 

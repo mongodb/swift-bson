@@ -15,7 +15,7 @@ internal protocol BSONValue: Codable {
     /// Writes this value's BSON byte representation to the provided ByteBuffer.
     func write(to buffer: inout ByteBuffer)
 
-    /// Initializes a corresponding `BSON` from the provided extendedJSON.
+    /// Initializes a corresponding `BSONValue` from the provided extendedJSON.
     init?(fromExtJSON json: JSON, keyPath: [String]) throws
 }
 
