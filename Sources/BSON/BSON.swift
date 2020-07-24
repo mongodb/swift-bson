@@ -105,11 +105,10 @@ public enum BSON {
             }
         }
         // Document accepts any JSON object so it should be tried after all the more specific BSON types are tried
-        if let doc = try BSONDocument(fromExtJSON: json, keyPath: keyPath) {
-            self = doc.bson
-            return
+        guard let doc = try BSONDocument(fromExtJSON: json, keyPath: keyPath) else {
+            throw BSONError.InternalError(message: "Could not parse BSON from \(json)")
         }
-        throw BSONError.InternalError(message: "Could not parse BSON from \(json)")
+        self = doc.bson
     }
 
     /// Get the `BSONType` of this `BSON`.
