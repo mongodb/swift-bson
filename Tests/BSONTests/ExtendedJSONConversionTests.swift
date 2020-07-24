@@ -18,12 +18,13 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         struct Foo: Decodable, Equatable {
             let x: Bool
             let y: Int
-            let z: Int
+            let z: BSONRegularExpression
         }
-
-        let data = "{ \"x\": true, \"y\": { \"$numberInt\": \"5\" }, \"z\": 6 }".data(using: .utf8)!
+        let regexStr = "{\"$regularExpression\": {\"pattern\": \"p\", \"options\": \"i\"}}"
+        let regexObj = BSONRegularExpression(pattern: "p", options: "i")
+        let data = "{ \"x\": true, \"y\": { \"$numberInt\": \"5\" }, \"z\": \(regexStr) }".data(using: .utf8)!
         let decoder = ExtendedJSONDecoder()
-        expect(try decoder.decode(Foo.self, from: data)).to(equal(Foo(x: true, y: 5, z: 6)))
+        expect(try decoder.decode(Foo.self, from: data)).to(equal(Foo(x: true, y: 5, z: regexObj)))
     }
 
     func testObjectId() throws {
