@@ -1,13 +1,23 @@
 import Foundation
 /// Facilitates the encoding of `Encodable` values into ExtendedJSON.
 public class ExtendedJSONEncoder {
-    internal enum extendedJSONMode {
+    /// The enum representing the two possible encoding modes.
+    public enum extendedJSONMode {
+        /// Canonical Extended JSON Format.
         case canonical
+
+        /// Relaxed Extended JSON Format.
         case relaxed
     }
 
+    /// The options set on the encoder.
+    public struct Options {
+        /// Either Canonical or Relaxed Extended JSON Format to encode to.
+        public var mode: extendedJSONMode
+    }
+
     /// Initialize an `ExtendedJSONEncoder`.
-    public init() {
+    public init(options: ExtendedJSONEncoder.Options) {
         fatalError("unimplemented")
     }
 
