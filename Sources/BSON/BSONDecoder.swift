@@ -139,18 +139,7 @@ public class BSONDecoder {
         if let doc = document as? T {
             return doc
         }
-        let _decoder = _BSONDecoder(referencing: .document(document), options: self.options)
-        do {
-            return try type.init(from: _decoder)
-        } catch let error as BSONErrorProtocol {
-            let unknownErrorMessage = "Unknown Error occurred while decoding BSON"
-            throw DecodingError.dataCorrupted(
-                DecodingError.Context(
-                    codingPath: [],
-                    debugDescription: "Unable to decode BSON: \(error.errorDescription ?? unknownErrorMessage)"
-                )
-            )
-        }
+        return try self.decode(type, fromBSON: BSON.document(document))
     }
 
     /**
@@ -163,6 +152,29 @@ public class BSONDecoder {
      */
     public func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
         try self.decode(type, from: BSONDocument(fromBSON: data))
+    }
+
+    /**
+     * Decodes a top-level value of the given type from the given BSON.
+     *
+     * - Parameter type: The type of the value to decode.
+     * - Parameter document: The BSON to decode from.
+     * - Returns: A value of the requested type.
+     * - Throws: `DecodingError` if any value throws an error during decoding.
+     */
+    internal func decode<T: Decodable>(_ type: T.Type, fromBSON bson: BSON) throws -> T {
+        let _decoder = _BSONDecoder(referencing: bson, options: self.options)
+        do {
+            return try _decoder.unbox(bson, as: type)
+        } catch let error as BSONErrorProtocol {
+            let unknownErrorMessage = "Unknown Error occurred while decoding BSON"
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: _decoder.codingPath,
+                    debugDescription: "Unable to decode BSON: \(error.errorDescription ?? unknownErrorMessage)"
+                )
+            )
+        }
     }
 
     // TODO: SWIFT-930 Implement this
