@@ -207,7 +207,7 @@ public class BSONEncoder {
      * - Returns: A new `BSON` containing the encoded BSON data.
      * - Throws: `EncodingError` if any value throws an error during encoding.
      */
-    public func encode<T: Encodable>(_ value: T) throws -> BSON {
+    internal func encode<T: Encodable>(_ value: T) throws -> BSON {
         let encoder = _BSONEncoder(options: self.options)
 
         do {
