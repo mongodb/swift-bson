@@ -26,7 +26,7 @@ public class ExtendedJSONEncoder {
     }
 
     /// Encodes an instance of the Encodable Type `T` into Data representing canonical or relaxed extended JSON.
-    /// The value of `mode` will determine which format is used. If it is not set explicitly, relaxed will be used.
+    /// The value of `self.mode` will determine which format is used. If it is not set explicitly, relaxed will be used.
     ///
     /// - SeeAlso: https://docs.mongodb.com/manual/reference/mongodb-extended-json/
     ///
