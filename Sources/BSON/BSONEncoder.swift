@@ -139,43 +139,16 @@ public class BSONEncoder {
      * - Throws: `EncodingError` if any value throws an error during encoding.
      */
     public func encode<T: Encodable>(_ value: T) throws -> BSONDocument {
-        // if the value being encoded is already a `BSONDocument` we're done
-        if let doc = value as? BSONDocument {
+        let encodedBSON: BSON = try self.encode(value)
+        switch encodedBSON {
+        case let .document(doc):
             return doc
-        } else if let bson = value as? BSON, let doc = bson.documentValue {
-            return doc
-        }
-
-        let encoder = _BSONEncoder(options: self.options)
-
-        do {
-            guard let boxedValue = try encoder.box_(value) else {
-                throw EncodingError.invalidValue(
-                    value,
-                    EncodingError.Context(
-                        codingPath: [],
-                        debugDescription: "Top-level \(T.self) did not encode any values."
-                    )
-                )
-            }
-
-            guard let dict = boxedValue as? MutableDictionary else {
-                throw EncodingError.invalidValue(
-                    value,
-                    EncodingError.Context(
-                        codingPath: [],
-                        debugDescription: "Top-level \(T.self) was not encoded as a complete document."
-                    )
-                )
-            }
-
-            return try dict.toDocument()
-        } catch let error as BSONErrorProtocol {
+        default:
             throw EncodingError.invalidValue(
                 value,
                 EncodingError.Context(
                     codingPath: [],
-                    debugDescription: error.errorDescription ?? "Unknown Error occurred while encoding BSON"
+                    debugDescription: "Top-level \(T.self) was not encoded as a complete document."
                 )
             )
         }
@@ -193,7 +166,7 @@ public class BSONEncoder {
         guard let value = value else {
             return nil
         }
-        let encoded = try self.encode(value)
+        let encoded: BSONDocument = try self.encode(value)
         return encoded == [:] ? nil : encoded
     }
 
@@ -219,6 +192,41 @@ public class BSONEncoder {
      */
     public func encode<T: Encodable>(_ values: [T?]) throws -> [BSONDocument?] {
         try values.map { try self.encode($0) }
+    }
+
+    /**
+     * Encodes the given top-level value and returns its BSON representation.
+     *
+     * - Parameter value: The value to encode.
+     * - Returns: A new `BSON` containing the encoded BSON data.
+     * - Throws: `EncodingError` if any value throws an error during encoding.
+     */
+    internal func encode<T: Encodable>(_ value: T) throws -> BSON {
+        let encoder = _BSONEncoder(options: self.options)
+
+        do {
+            guard let boxedValue = try encoder.box_(value) else {
+                throw EncodingError.invalidValue(
+                    value,
+                    EncodingError.Context(
+                        codingPath: [],
+                        debugDescription: "Top-level \(T.self) did not encode any values."
+                    )
+                )
+            }
+            if let mutableDict = boxedValue as? MutableDictionary {
+                return .document(try mutableDict.toDocument())
+            }
+            return boxedValue.bson
+        } catch let error as BSONErrorProtocol {
+            throw EncodingError.invalidValue(
+                value,
+                EncodingError.Context(
+                    codingPath: [],
+                    debugDescription: error.errorDescription ?? "Unknown Error occurred while encoding BSON"
+                )
+            )
+        }
     }
 }
 
