@@ -31,6 +31,16 @@ public struct BSONSymbol: BSONValue, CustomStringConvertible, Equatable, Hashabl
         self = BSONSymbol(str)
     }
 
+    /// Converts this `Symbol` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `Symbol` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        ["$symbol": .string(self.stringValue)]
+    }
+
     internal static var bsonType: BSONType { .symbol }
 
     internal var bson: BSON { .symbol(self) }

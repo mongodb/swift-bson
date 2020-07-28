@@ -46,6 +46,20 @@ extension Date: BSONValue {
         }
     }
 
+    /// Converts this `BSONDate` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        if self.msSinceEpoch >= 0 && self.msSinceEpoch <= 253_402_318_800 {
+            return ["$date": self.msSinceEpoch.toRelaxedExtendedJSON()]
+        } else {
+            return self.toCanonicalExtendedJSON()
+        }
+    }
+
+    /// Converts this `BSONDate` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        ["$date": self.msSinceEpoch.toCanonicalExtendedJSON()]
+    }
+
     internal static var bsonType: BSONType { .datetime }
 
     internal var bson: BSON { .datetime(self) }

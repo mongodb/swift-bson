@@ -111,6 +111,16 @@ public enum BSON {
         self = doc.bson
     }
 
+    /// Converts this `BSON` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.bsonValue.toRelaxedExtendedJSON()
+    }
+
+    /// Converts this `BSON` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        self.bsonValue.toCanonicalExtendedJSON()
+    }
+
     /// Get the `BSONType` of this `BSON`.
     public var type: BSONType {
         self.bsonValue.bsonType

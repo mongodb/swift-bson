@@ -198,6 +198,21 @@ extension BSONBinary: BSONValue {
         }
     }
 
+    /// Converts this `BSONBinary` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `BSONBinary` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        [
+            "$binary": [
+                "base64": .string(Data(self.data.readableBytesView).base64EncodedString()),
+                "subType": .string(self.subtype.rawValue.description)
+            ]
+        ]
+    }
+
     internal static var bsonType: BSONType { .binary }
 
     internal var bson: BSON { .binary(self) }

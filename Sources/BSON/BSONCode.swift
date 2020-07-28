@@ -71,6 +71,16 @@ extension BSONCode: BSONValue {
         }
     }
 
+    /// Converts this `BSONCode` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `BSONCode` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        ["$code": .string(self.code)]
+    }
+
     internal static var bsonType: BSONType { .code }
 
     internal var bson: BSON { .code(self) }
@@ -126,6 +136,16 @@ extension BSONCodeWithScope: BSONValue {
         default:
             return nil
         }
+    }
+
+    /// Converts this `BSONCodeWithScope` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        ["$code": .string(self.code), "$scope": self.scope.toRelaxedExtendedJSON()]
+    }
+
+    /// Converts this `BSONCodeWithScope` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        ["$code": .string(self.code), "$scope": self.scope.toCanonicalExtendedJSON()]
     }
 
     internal static var bsonType: BSONType { .codeWithScope }

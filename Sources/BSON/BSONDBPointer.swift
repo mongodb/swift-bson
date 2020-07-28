@@ -66,6 +66,21 @@ extension BSONDBPointer: BSONValue {
         self = BSONDBPointer(ref: refStr, id: oid)
     }
 
+    /// Converts this `BSONDBPointer` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `BSONDBPointer` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        [
+            "$dbPointer": [
+                "$ref": .string(self.ref),
+                "$id": self.id.toCanonicalExtendedJSON()
+            ]
+        ]
+    }
+
     internal static var bsonType: BSONType { .dbPointer }
 
     internal var bson: BSON { .dbPointer(self) }

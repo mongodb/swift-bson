@@ -509,6 +509,16 @@ extension BSONDecimal128: BSONValue {
         }
     }
 
+    /// Converts this `Decimal128` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `Decimal128` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        ["$numberDecimal": .string(self.toString())]
+    }
+
     internal static var bsonType: BSONType { .decimal128 }
 
     internal var bson: BSON { .decimal128(self) }
