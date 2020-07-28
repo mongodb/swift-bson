@@ -139,12 +139,6 @@ public class BSONEncoder {
      * - Throws: `EncodingError` if any value throws an error during encoding.
      */
     public func encode<T: Encodable>(_ value: T) throws -> BSONDocument {
-        // if the value being encoded is already a `BSONDocument` we're done
-        if let doc = value as? BSONDocument {
-            return doc
-        } else if let bson = value as? BSON, let doc = bson.documentValue {
-            return doc
-        }
         let encodedBSON: BSON = try self.encode(value)
         switch encodedBSON {
         case let .document(doc):
