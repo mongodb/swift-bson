@@ -14,18 +14,20 @@ public class ExtendedJSONEncoder {
         case relaxed
     }
 
-    /// The options set on the encoder.
-    public struct Options {
-        /// Either Canonical or Relaxed Extended JSON Format to encode to.
-        public var mode: Mode = .relaxed
-    }
+    /// Determines whether to encode to canonical or relaxed extended JSON. Default is relaxed.
+    public var mode: Mode = .relaxed
+
+    /// Contextual user-provided information for use during encoding.
+    public var userInfo: [CodingUserInfoKey: Any] = [:]
 
     /// Initialize an `ExtendedJSONEncoder`.
-    public init(options: ExtendedJSONEncoder.Options) {
+    public init() {
         fatalError("unimplemented")
     }
 
-    /// Encodes an instance of the Encodable Type `T` into Data representing ExtendedJSON.
+    /// Encodes an instance of the Encodable Type `T` into Data representing canonical or relaxed extended JSON.
+    /// The value of `mode` will determine which format is used. If it is not set explicitly, relaxed will be used.
+    ///
     /// - SeeAlso: https://docs.mongodb.com/manual/reference/mongodb-extended-json/
     ///
     /// - Parameters:
@@ -33,11 +35,11 @@ public class ExtendedJSONEncoder {
     /// - Returns: Encoded representation of the `T` input as an instance of `Data` representing ExtendedJSON.
     /// - Throws: `EncodingError` if the value is corrupt or cannot be converted to valid ExtendedJSON.
     public func encode<T: Encodable>(_ value: T) throws -> Data {
+        // T --> BSON --> JSON --> Data
         // Takes in any encodable type `T`, converts it to an instance of the `BSON` enum via the `BSONDecoder`.
         // The `BSON` is converted to an instance of the `JSON` enum via the `toRelaxedExtendedJSON`
         // or `toCanonicalExtendedJSON` methods on `BSONValue`s (depending on the `mode`).
         // The `JSON` is then passed through a `JSONEncoder` and outputted as `Data`.
-        // T --> BSON --> JSON --> Data
         fatalError("unimplemented")
     }
 }
