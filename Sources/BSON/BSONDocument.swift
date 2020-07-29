@@ -381,7 +381,7 @@ extension BSONDocument: BSONValue {
         for (key, value) in self {
             obj[key] = value.toRelaxedExtendedJSON()
         }
-        return JSON.object(obj)
+        return .object(obj)
     }
 
     /// Converts this `BSONDocument` to a corresponding `JSON` in canonical extendedJSON format.
@@ -390,7 +390,7 @@ extension BSONDocument: BSONValue {
         for (key, value) in self {
             obj[key] = value.toCanonicalExtendedJSON()
         }
-        return JSON.object(obj)
+        return .object(obj)
     }
 
     internal static var bsonType: BSONType { .document }

@@ -315,11 +315,15 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
 
     func testDatetime() throws {
         // Canonical Success case
+        let date = Date(msSinceEpoch: 500_004)
         expect(try Date(fromExtJSON: ["$date": ["$numberLong": "500004"]], keyPath: []))
-            .to(equal(Date(msSinceEpoch: 500_004)))
+            .to(equal(date))
+        expect(date.toCanonicalExtendedJSON()).to(equal(["$date": ["$numberLong": "500004"]]))
         // Relaxed Success case
+        let date2 = Date(msSinceEpoch: 1_356_351_330_501)
         expect(try Date(fromExtJSON: ["$date": "2012-12-24T12:15:30.501Z"], keyPath: []))
-            .to(equal(Date(msSinceEpoch: 1_356_351_330_501)))
+            .to(equal(date2))
+        expect(date2.toRelaxedExtendedJSON()).to(equal(["$date": "2012-12-24T12:15:30.501Z"]))
     }
 
     func testMinKey() throws {
