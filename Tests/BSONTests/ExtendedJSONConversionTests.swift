@@ -9,46 +9,25 @@ extension CodingUserInfoKey {
 }
 
 open class ExtendedJSONConversionTestCase: BSONTestCase {
-    struct Test: Codable, Equatable {
-        let x: Bool
-        let y: Int32
-        let z: BSONRegularExpression
-    }
-
-    struct Foo: Codable, Equatable {
-        let foo: Bool
-
-        enum CodingKeys: String, CodingKey {
-            case foo
-        }
-
-        func encode(to encoder: Encoder) throws {
-            let barInfo = encoder.userInfo[.barInfo] as! Bool
-            var container = encoder.container(keyedBy: CodingKeys.self)
-            if barInfo == true {
-                try container.encode(true, forKey: .foo)
-            } else {
-                try container.encode(self.foo, forKey: .foo)
-            }
-        }
-    }
-
     func testExtendedJSONDecoderAndEncoder() throws {
-        let decoder = ExtendedJSONDecoder()
-        let encoder = ExtendedJSONEncoder()
-        encoder.mode = .canonical
+        // Setup
+        struct Test: Codable, Equatable {
+            let x: Bool
+            let y: Int32
+            let z: BSONRegularExpression
+        }
 
         let regexStr = "{\"$regularExpression\":{\"pattern\":\"p\",\"options\":\"i\"}}"
         let extJSON = "{\"x\":true,\"y\":{\"$numberInt\":\"5\"},\"z\":\(regexStr)}"
         let data = extJSON.data(using: .utf8)!
-
         let regexObj = BSONRegularExpression(pattern: "p", options: "i")
         let test = Test(x: true, y: 5, z: regexObj)
 
-        let decoded = try decoder.decode(Test.self, from: data)
+        // Test canonical encoder
+        let encoder = ExtendedJSONEncoder()
+        encoder.mode = .canonical
         let encoded: Data = try encoder.encode(test)
 
-        expect(decoded).to(equal(test))
         let encodedStr = String(data: encoded, encoding: .utf8)
         expect(encodedStr).to(contain("\"x\":true"))
         expect(encodedStr).to(contain("\"y\":{\"$numberInt\":\"5\"}"))
@@ -56,20 +35,36 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(encodedStr).to(contain("\"pattern\":\"p\""))
         expect(encodedStr).to(contain("\"options\":\"i\""))
 
+        // Test relaxed encoder
         encoder.mode = .relaxed
         let relaxedEncoded: Data = try encoder.encode(test)
         let relaxedEncodedStr = String(data: relaxedEncoded, encoding: .utf8)
         expect(relaxedEncodedStr).to(contain("\"x\":true"))
         expect(relaxedEncodedStr).to(contain("\"y\":5"))
+
+        // Test decoder
+        let decoder = ExtendedJSONDecoder()
+        let decoded = try decoder.decode(Test.self, from: data)
+        expect(decoded).to(equal(test))
     }
 
     func testExtendedJSONEncodingWithUserInfo() throws {
+        struct Foo: Codable, Equatable {
+            func encode(to encoder: Encoder) throws {
+                let barInfo = encoder.userInfo[.barInfo] as? Bool
+                var container = encoder.singleValueContainer()
+                try container.encode(barInfo)
+            }
+        }
+
         let encoder = ExtendedJSONEncoder()
+
         encoder.userInfo[.barInfo] = true
-        let fooBarEncoded = try encoder.encode(Foo(foo: false))
+        let fooBarEncoded = try encoder.encode(Foo())
         expect(String(data: fooBarEncoded, encoding: .utf8)).to(contain("true"))
+
         encoder.userInfo[.barInfo] = false
-        let fooEncoded = try encoder.encode(Foo(foo: false))
+        let fooEncoded = try encoder.encode(Foo())
         expect(String(data: fooEncoded, encoding: .utf8)).to(contain("false"))
     }
 
