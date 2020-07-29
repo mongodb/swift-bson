@@ -26,6 +26,16 @@ extension Array: BSONValue where Element == BSON {
         }
     }
 
+    /// Converts this `BSONArray` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        .array(self.map { $0.toRelaxedExtendedJSON() })
+    }
+
+    /// Converts this `BSONArray` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        .array(self.map { $0.toCanonicalExtendedJSON() })
+    }
+
     internal static var bsonType: BSONType { .array }
 
     internal var bson: BSON { .array(self) }

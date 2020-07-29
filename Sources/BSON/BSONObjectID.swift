@@ -61,7 +61,9 @@ public struct BSONObjectID: Equatable, Hashable, CustomStringConvertible {
         }
         self = BSONObjectID(data)
     }
+}
 
+extension BSONObjectID: BSONValue {
     /*
      * Initializes an `ObjectID` from ExtendedJSON.
      *
@@ -97,9 +99,17 @@ public struct BSONObjectID: Equatable, Hashable, CustomStringConvertible {
             )
         }
     }
-}
 
-extension BSONObjectID: BSONValue {
+    /// Converts this `BSONObjectID` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `BSONObjectID` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        ["$oid": .string(self.hex)]
+    }
+
     internal static var bsonType: BSONType { .objectID }
 
     internal var bson: BSON { .objectID(self) }

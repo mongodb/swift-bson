@@ -21,6 +21,16 @@ extension String: BSONValue {
         }
     }
 
+    /// Converts this `String` to a corresponding `JSON` in relaxed extendedJSON format.
+    func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `String` to a corresponding `JSON` in canonical extendedJSON format.
+    func toCanonicalExtendedJSON() -> JSON {
+        .string(self)
+    }
+
     internal static var bsonType: BSONType { .string }
 
     internal var bson: BSON { .string(self) }

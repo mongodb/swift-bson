@@ -41,6 +41,16 @@ extension Double: BSONValue {
         }
     }
 
+    /// Converts this `Double` to a corresponding `JSON` in relaxed extendedJSON format.
+    func toRelaxedExtendedJSON() -> JSON {
+        .number(self)
+    }
+
+    /// Converts this `Double` to a corresponding `JSON` in canonical extendedJSON format.
+    func toCanonicalExtendedJSON() -> JSON {
+        ["$numberDouble": .string(String(describing: self))]
+    }
+
     internal static var bsonType: BSONType { .double }
 
     internal var bson: BSON { .double(self) }

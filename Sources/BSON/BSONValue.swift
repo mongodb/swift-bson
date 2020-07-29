@@ -17,6 +17,12 @@ internal protocol BSONValue: Codable {
 
     /// Initializes a corresponding `BSONValue` from the provided extendedJSON.
     init?(fromExtJSON json: JSON, keyPath: [String]) throws
+
+    /// Converts this `BSONValue` to a corresponding `JSON` in relaxed extendedJSON format.
+    func toRelaxedExtendedJSON() -> JSON
+
+    /// Converts this `BSONValue` to a corresponding `JSON` in canonical extendedJSON format.
+    func toCanonicalExtendedJSON() -> JSON
 }
 
 /// Convenience extension to get static bsonType from an instance

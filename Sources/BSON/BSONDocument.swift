@@ -375,6 +375,24 @@ extension BSONDocument: BSONValue {
         self = BSONDocument(keyValuePairs: doc)
     }
 
+    /// Converts this `BSONDocument` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        var obj: [String: JSON] = [:]
+        for (key, value) in self {
+            obj[key] = value.toRelaxedExtendedJSON()
+        }
+        return .object(obj)
+    }
+
+    /// Converts this `BSONDocument` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        var obj: [String: JSON] = [:]
+        for (key, value) in self {
+            obj[key] = value.toCanonicalExtendedJSON()
+        }
+        return .object(obj)
+    }
+
     internal static var bsonType: BSONType { .document }
 
     internal var bson: BSON { .document(self) }

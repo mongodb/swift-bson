@@ -31,7 +31,10 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         let oid = "5F07445CFBBBBBBBBBFAAAAA"
 
         // Success case
-        expect(try BSONObjectID(fromExtJSON: ["$oid": JSON.string(oid)], keyPath: [])).to(equal(try BSONObjectID(oid)))
+        let bson = try BSONObjectID(fromExtJSON: ["$oid": JSON.string(oid)], keyPath: [])
+        expect(bson).to(equal(try BSONObjectID(oid)))
+        expect(bson?.toRelaxedExtendedJSON()).to(equal(["$oid": JSON.string(oid.lowercased())]))
+        expect(bson?.toCanonicalExtendedJSON()).to(equal(["$oid": JSON.string(oid.lowercased())]))
 
         // Nil cases
         expect(try BSONObjectID(fromExtJSON: ["random": "hello"], keyPath: [])).to(beNil())
@@ -49,6 +52,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
     func testSymbol() throws {
         // Success case
         expect(try BSONSymbol(fromExtJSON: ["$symbol": "hello"], keyPath: [])).to(equal(BSONSymbol("hello")))
+        expect(BSONSymbol("hello").toCanonicalExtendedJSON()).to(equal(["$symbol": "hello"]))
 
         // Nil case
         expect(try BSONSymbol(fromExtJSON: "hello", keyPath: [])).to(beNil())
@@ -57,6 +61,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
     func testString() {
         // Success case
         expect(String(fromExtJSON: "hello", keyPath: [])).to(equal("hello"))
+        expect("hello".toCanonicalExtendedJSON()).to(equal("hello"))
 
         // Nil case
         expect(String(fromExtJSON: ["random": "hello"], keyPath: [])).to(beNil())
@@ -64,7 +69,10 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
 
     func testInt32() throws {
         // Success cases
-        expect(try Int32(fromExtJSON: 5, keyPath: [])).to(equal(5))
+        let bson = try Int32(fromExtJSON: 5, keyPath: [])
+        expect(bson).to(equal(5))
+        expect(bson?.toRelaxedExtendedJSON()).to(equal(.number(5)))
+        expect(bson?.toCanonicalExtendedJSON()).to(equal(["$numberInt": .string("5")]))
         expect(try Int32(fromExtJSON: ["$numberInt": "5"], keyPath: [])).to(equal(5))
 
         // Nil cases
@@ -83,7 +91,10 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
 
     func testInt64() throws {
         // Success cases
-        expect(try Int64(fromExtJSON: 5, keyPath: [])).to(equal(5))
+        let bson = try Int64(fromExtJSON: 5, keyPath: [])
+        expect(bson).to(equal(5))
+        expect(bson?.toRelaxedExtendedJSON()).to(equal(.number(5)))
+        expect(bson?.toCanonicalExtendedJSON()).to(equal(["$numberLong": .string("5")]))
         expect(try Int64(fromExtJSON: ["$numberLong": "5"], keyPath: [])).to(equal(5))
 
         // Nil cases
@@ -108,6 +119,9 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(try Double(fromExtJSON: ["$numberDouble": "Infinity"], keyPath: [])).to(equal(Double.infinity))
         expect(try Double(fromExtJSON: ["$numberDouble": "-Infinity"], keyPath: [])).to(equal(-Double.infinity))
         expect(try Double(fromExtJSON: ["$numberDouble": "NaN"], keyPath: [])?.isNaN).to(beTrue())
+        expect(Double("NaN")?.toCanonicalExtendedJSON()).to(equal(["$numberDouble": .string("nan")]))
+        expect(Double(5.5).toCanonicalExtendedJSON()).to(equal(["$numberDouble": .string("5.5")]))
+        expect(Double(5.5).toRelaxedExtendedJSON()).to(equal(.number(5.5)))
 
         // Nil cases
         expect(try Double(fromExtJSON: .bool(true), keyPath: [])).to(beNil())
@@ -126,6 +140,8 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         // Success cases
         expect(try BSONDecimal128(fromExtJSON: ["$numberDecimal": "0.020000000000000004"], keyPath: []))
             .to(equal(try BSONDecimal128("0.020000000000000004")))
+        expect(try BSONDecimal128("0.020000000000000004").toCanonicalExtendedJSON())
+            .to(equal(["$numberDecimal": "0.020000000000000004"]))
 
         // Nil cases
         expect(try BSONDecimal128(fromExtJSON: .bool(true), keyPath: [])).to(beNil())
@@ -146,6 +162,8 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(equal(BSONBinary(base64: "//8=", subtype: .generic)))
         try expect(try BSONBinary(fromExtJSON: ["$binary": ["base64": "//8=", "subType": "81"]], keyPath: []))
             .to(equal(BSONBinary(base64: "//8=", subtype: .userDefined(129))))
+        expect(try BSONBinary(base64: "//8=", subtype: .generic).toCanonicalExtendedJSON())
+            .to(equal(["$binary": ["base64": "//8=", "subType": "0"]]))
 
         // Nil cases
         expect(try BSONBinary(fromExtJSON: 5.5, keyPath: [])).to(beNil())
@@ -297,11 +315,15 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
 
     func testDatetime() throws {
         // Canonical Success case
+        let date = Date(msSinceEpoch: 500_004)
         expect(try Date(fromExtJSON: ["$date": ["$numberLong": "500004"]], keyPath: []))
-            .to(equal(Date(msSinceEpoch: 500_004)))
+            .to(equal(date))
+        expect(date.toCanonicalExtendedJSON()).to(equal(["$date": ["$numberLong": "500004"]]))
         // Relaxed Success case
+        let date2 = Date(msSinceEpoch: 1_356_351_330_501)
         expect(try Date(fromExtJSON: ["$date": "2012-12-24T12:15:30.501Z"], keyPath: []))
-            .to(equal(Date(msSinceEpoch: 1_356_351_330_501)))
+            .to(equal(date2))
+        expect(date2.toRelaxedExtendedJSON()).to(equal(["$date": "2012-12-24T12:15:30.501Z"]))
     }
 
     func testMinKey() throws {
@@ -355,6 +377,9 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(equal([BSON.int32(1), BSON.int64(2), BSON.string("3")]))
         expect(try Array(fromExtJSON: [["$numberInt": "1"], ["$numberInt": "2"]], keyPath: []))
             .to(equal([BSON.int32(1), BSON.int32(2)]))
+        expect([BSON.int32(1), BSON.int32(2)].toRelaxedExtendedJSON()).to(equal([1, 2]))
+        expect([BSON.int32(1), BSON.int32(2)].toCanonicalExtendedJSON())
+            .to(equal([["$numberInt": "1"], ["$numberInt": "2"]]))
 
         // Nil case
         expect(try Array(fromExtJSON: ["doc": "1"], keyPath: [])).to(beNil())

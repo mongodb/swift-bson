@@ -22,6 +22,16 @@ extension Bool: BSONValue {
         }
     }
 
+    /// Converts this `Bool` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `Bool` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        .bool(self)
+    }
+
     internal static var bsonType: BSONType { .bool }
 
     internal var bson: BSON { .bool(self) }

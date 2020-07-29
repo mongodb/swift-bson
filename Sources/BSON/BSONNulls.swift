@@ -24,6 +24,16 @@ internal struct BSONNull: BSONValue, Equatable {
         }
     }
 
+    /// Converts this `BSONNull` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `BSONNull` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        .null
+    }
+
     internal static var bsonType: BSONType { .null }
 
     internal var bson: BSON { .null }
@@ -68,6 +78,16 @@ internal struct BSONUndefined: BSONValue, Equatable {
             )
         }
         self = BSONUndefined()
+    }
+
+    /// Converts this `BSONUndefined` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `BSONUndefined` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        ["$undefined": true]
     }
 
     internal static var bsonType: BSONType { .undefined }
@@ -116,6 +136,16 @@ internal struct BSONMinKey: BSONValue, Equatable {
         self = BSONMinKey()
     }
 
+    /// Converts this `BSONMinKey` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `BSONMinKey` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        ["$minKey": 1]
+    }
+
     internal static var bsonType: BSONType { .minKey }
 
     internal var bson: BSON { .minKey }
@@ -160,6 +190,16 @@ internal struct BSONMaxKey: BSONValue, Equatable {
             )
         }
         self = BSONMaxKey()
+    }
+
+    /// Converts this `BSONMaxKey` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `BSONMaxKey` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        ["$maxKey": 1]
     }
 
     internal static var bsonType: BSONType { .maxKey }

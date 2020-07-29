@@ -66,6 +66,21 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
         self = BSONTimestamp(timestamp: tInt, inc: iInt)
     }
 
+    /// Converts this `BSONTimestamp` to a corresponding `JSON` in relaxed extendedJSON format.
+    internal func toRelaxedExtendedJSON() -> JSON {
+        self.toCanonicalExtendedJSON()
+    }
+
+    /// Converts this `BSONTimestamp` to a corresponding `JSON` in canonical extendedJSON format.
+    internal func toCanonicalExtendedJSON() -> JSON {
+        [
+            "$timestamp": [
+                "t": .number(Double(self.timestamp)),
+                "i": .number(Double(self.increment))
+            ]
+        ]
+    }
+
     internal static func read(from buffer: inout ByteBuffer) throws -> BSON {
         guard let increment = buffer.readInteger(endianness: .little, as: UInt32.self) else {
             throw BSONError.InternalError(message: "Cannot read increment from BSON timestamp")
