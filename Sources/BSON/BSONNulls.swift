@@ -87,7 +87,7 @@ internal struct BSONUndefined: BSONValue, Equatable {
 
     /// Converts this `BSONUndefined` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        ["$undefined": .bool(true)]
+        ["$undefined": true]
     }
 
     internal static var bsonType: BSONType { .undefined }
@@ -143,7 +143,7 @@ internal struct BSONMinKey: BSONValue, Equatable {
 
     /// Converts this `BSONMinKey` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        ["$minKey": .number(1)]
+        ["$minKey": 1]
     }
 
     internal static var bsonType: BSONType { .minKey }
@@ -199,7 +199,7 @@ internal struct BSONMaxKey: BSONValue, Equatable {
 
     /// Converts this `BSONMaxKey` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        ["$maxKey": .number(1)]
+        ["$maxKey": 1]
     }
 
     internal static var bsonType: BSONType { .maxKey }

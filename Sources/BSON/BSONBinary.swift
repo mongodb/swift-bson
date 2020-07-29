@@ -208,7 +208,7 @@ extension BSONBinary: BSONValue {
         [
             "$binary": [
                 "base64": .string(Data(self.data.readableBytesView).base64EncodedString()),
-                "subType": .string(self.subtype.rawValue.description)
+                "subType": .string(String(self.subtype.rawValue, radix: 16))
             ]
         ]
     }

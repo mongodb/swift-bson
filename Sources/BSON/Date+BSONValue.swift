@@ -48,6 +48,9 @@ extension Date: BSONValue {
 
     /// Converts this `BSONDate` to a corresponding `JSON` in relaxed extendedJSON format.
     internal func toRelaxedExtendedJSON() -> JSON {
+        // ExtendedJSON specifies 2 different ways to represent dates in
+        // relaxed extended json depending on if the date is between 1970 and 9999
+        // 1970 is 0 milliseconds since epoch, and 10,000 is 253,402,318,800.
         if self.msSinceEpoch >= 0 && self.msSinceEpoch <= 253_402_318_800 {
             return ["$date": self.msSinceEpoch.toRelaxedExtendedJSON()]
         } else {
