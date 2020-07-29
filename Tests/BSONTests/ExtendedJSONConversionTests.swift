@@ -53,7 +53,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             func encode(to encoder: Encoder) throws {
                 let barInfo = encoder.userInfo[.barInfo] as? Bool
                 var container = encoder.singleValueContainer()
-                try container.encode(barInfo)
+                try container.encode([barInfo])
             }
         }
 
