@@ -21,9 +21,7 @@ public class ExtendedJSONEncoder {
     public var userInfo: [CodingUserInfoKey: Any] = [:]
 
     /// Initialize an `ExtendedJSONEncoder`.
-    public init() {
-        fatalError("unimplemented")
-    }
+    public init() {}
 
     /// Encodes an instance of the Encodable Type `T` into Data representing canonical or relaxed extended JSON.
     /// The value of `self.mode` will determine which format is used. If it is not set explicitly, relaxed will be used.
@@ -40,6 +38,18 @@ public class ExtendedJSONEncoder {
         // The `BSON` is converted to an instance of the `JSON` enum via the `toRelaxedExtendedJSON`
         // or `toCanonicalExtendedJSON` methods on `BSONValue`s (depending on the `mode`).
         // The `JSON` is then passed through a `JSONEncoder` and outputted as `Data`.
-        fatalError("unimplemented")
+        let encoder = BSONEncoder()
+        encoder.userInfo = self.userInfo
+        let bson: BSON = try encoder.encode(value)
+
+        let json: JSON
+        switch self.mode {
+        case .canonical:
+            json = bson.bsonValue.toCanonicalExtendedJSON()
+        case .relaxed:
+            json = bson.bsonValue.toRelaxedExtendedJSON()
+        }
+
+        return try JSONEncoder().encode(json)
     }
 }
