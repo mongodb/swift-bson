@@ -33,7 +33,10 @@ extension Date: BSONValue {
             self = Date(msSinceEpoch: int)
         case let .string(s):
             // relaxed extended JSON
-            guard let date = ExtendedJSONDecoder.extJSONDateFormatter.date(from: s) else {
+            let formatter = s.count == 20
+                ? ExtendedJSONDecoder.extJSONDateFormatterSeconds
+                : ExtendedJSONDecoder.extJSONDateFormatterMilliseconds
+            guard let date = formatter.date(from: s) else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected \(s) to be an ISO-8601 Internet Date/Time Format" +
@@ -52,7 +55,12 @@ extension Date: BSONValue {
         // relaxed extended json depending on if the date is between 1970 and 9999
         // 1970 is 0 milliseconds since epoch, and 10,000 is 253,402,300,800,000.
         if self.msSinceEpoch >= 0 && self.msSinceEpoch < 253_402_300_800_000 {
-            let date = ExtendedJSONDecoder.extJSONDateFormatter.string(from: self)
+            // The ExtendedJSON spec says: Fractional seconds SHOULD have exactly 3 decimal places
+            // if the fractional part is non-zero. Otherwise, fractional seconds SHOULD be omitted if zero.
+            let formatter = self.timeIntervalSince1970.truncatingRemainder(dividingBy: 1) == 0
+                ? ExtendedJSONDecoder.extJSONDateFormatterSeconds
+                : ExtendedJSONDecoder.extJSONDateFormatterMilliseconds
+            let date = formatter.string(from: self)
             return ["$date": .string(date)]
         } else {
             return self.toCanonicalExtendedJSON()

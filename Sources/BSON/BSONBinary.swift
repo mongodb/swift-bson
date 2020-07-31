@@ -205,10 +205,14 @@ extension BSONBinary: BSONValue {
 
     /// Converts this `BSONBinary` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        [
+        var paddedSubTypeStr = String(self.subtype.rawValue, radix: 16)
+        if paddedSubTypeStr.count == 1{
+            paddedSubTypeStr = "0" + paddedSubTypeStr
+        }
+        return [
             "$binary": [
                 "base64": .string(Data(self.data.readableBytesView).base64EncodedString()),
-                "subType": .string(String(self.subtype.rawValue, radix: 16))
+                "subType": .string(paddedSubTypeStr)
             ]
         ]
     }

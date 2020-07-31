@@ -41,14 +41,31 @@ extension Double: BSONValue {
         }
     }
 
+    /// Helper function to make sure ExtendedJSON formatting matches Corpus Tests
+    internal func formatForExtendedJSON() -> String {
+        if self.isNaN {
+            return "NaN"
+        } else if self == Double.infinity {
+            return "Infinity"
+        } else if self == -Double.infinity {
+            return "-Infinity"
+        } else {
+            return String(describing: self).uppercased()
+        }
+    }
+
     /// Converts this `Double` to a corresponding `JSON` in relaxed extendedJSON format.
-    func toRelaxedExtendedJSON() -> JSON {
-        .number(self)
+    internal func toRelaxedExtendedJSON() -> JSON {
+        if self.isInfinite || self.isNaN {
+            return self.toCanonicalExtendedJSON()
+        } else {
+            return .number(self)
+        }
     }
 
     /// Converts this `Double` to a corresponding `JSON` in canonical extendedJSON format.
-    func toCanonicalExtendedJSON() -> JSON {
-        ["$numberDouble": .string(String(describing: self))]
+    internal func toCanonicalExtendedJSON() -> JSON {
+        ["$numberDouble": .string(self.formatForExtendedJSON())]
     }
 
     internal static var bsonType: BSONType { .double }

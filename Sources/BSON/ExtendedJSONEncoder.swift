@@ -21,7 +21,7 @@ public class ExtendedJSONEncoder {
     public var userInfo: [CodingUserInfoKey: Any] = [:]
 
     /// Initialize an `ExtendedJSONEncoder`.
-    public init() {}
+    public init() {} // add sortedkeys internal option
 
     /// Encodes an instance of the Encodable Type `T` into Data representing canonical or relaxed extended JSON.
     /// The value of `self.mode` will determine which format is used. If it is not set explicitly, relaxed will be used.

@@ -73,7 +73,7 @@ final class BSONCorpusTests: BSONTestCase {
     /// A BSON corpus test file for an individual BSON type.
     struct BSONCorpusTestFile: Decodable {
         enum CodingKeys: String, CodingKey {
-            case description, bsonType = "bson_type", valid, parseErrors, decodeErrors, deprecated
+            case description, bsonType = "bson_type", valid, parseErrors, decodeErrors, deprecated, key = "test_key"
         }
 
         /// Human-readable description of the file.
@@ -94,23 +94,45 @@ final class BSONCorpusTests: BSONTestCase {
 
         /// This field will be present (and true) if the BSON type being tested has been deprecated (e.g. Symbol)
         let deprecated: Bool?
+
+        let key: String?
     }
 
     // swiftlint:disable:next cyclomatic_complexity
     func testBSONCorpus() throws {
+        let SKIPPED_CORPUS_TESTS = [
+            "Decimal128":
+                ["[dqbsr531] negatives (Rounded)", 
+                 "[dqbsr531] negatives (Rounded)",
+                 "OK2",
+                 "[dqbsr431] check rounding modes heeded (Rounded)",
+                 "[decq438] clamped zeros... (Clamped)",
+                 "[decq418] clamped zeros... (Clamped)",
+                 "Exact rounding"
+                ],
+            "Multiple types within the same document": ["All BSON types"],
+            "Array": ["Multi Element Array with duplicate indexes"]
+        ]
+
+        let shouldSkip = { testFileDesc, testDesc in
+            SKIPPED_CORPUS_TESTS[testFileDesc]?.contains { $0 == testDesc } == true
+        }
         for (_, testFile) in try retrieveSpecTestFiles(specName: "bson-corpus", asType: BSONCorpusTestFile.self) {
             if let validityTests = testFile.valid {
                 for test in validityTests {
+                    guard !shouldSkip(testFile.description, test.description) else {
+                        continue
+                    }
                     guard let cBData = Data(hexString: test.canonicalBSON) else {
                         XCTFail("Unable to interpret canonical_bson as Data")
                         return
                     }
-                    // guard let cEJData = test.canonicalExtJSON.data(using: .utf8) else {
-                    //     XCTFail("Unable to interpret canonical_extjson as Data")
-                    //     return
-                    // }
+                    guard let cEJData = test.canonicalExtJSON.data(using: .utf8) else {
+                        XCTFail("Unable to interpret canonical_extjson as Data")
+                        return
+                    }
 
-                    // let lossy = test.lossy ?? false
+                    let lossy = test.lossy ?? false
 
                     // for cB input:
                     // native_to_bson( bson_to_native(cB) ) = cB
@@ -129,97 +151,89 @@ final class BSONCorpusTests: BSONTestCase {
                     let docFromNative = BSONDocument(fromArray: nativeFromDoc)
                     expect(docFromNative.toByteString()).to(equal(cBData.toByteString()))
 
-                    if testFile.description == "Decimal128" {
-                        // TODO: This should be tested by EXTJSON
-                        struct Decimal128CanonicalExtJSON: Codable {
-                            struct Value: Codable {
-                                enum CodingKeys: String, CodingKey {
-                                    case numberDecimal = "$numberDecimal"
-                                }
-
-                                var numberDecimal: String
-                            }
-
-                            var d: Value
-                        }
-                        let extjson = test.canonicalExtJSON.data(using: .ascii)!
-                        let jsonResult = try JSONDecoder().decode(Decimal128CanonicalExtJSON.self, from: extjson)
-                        let decimal128CorpusString = jsonResult.d.numberDecimal
-
-                        let decimal128FromString = try BSONDecimal128(decimal128CorpusString)
-                        let decimal128FromBinary = docFromCB.d!.decimal128Value!
-
-                        expect(decimal128FromString.description).to(equal(decimal128CorpusString))
-                        expect(decimal128FromBinary.description).to(equal(decimal128CorpusString))
-                    }
-
                     // native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ
-                    // expect(docFromCB.canonicalExtendedJSON).to(cleanEqual(test.canonicalExtJSON))
+                    let canonicalEncoder = ExtendedJSONEncoder()
+                    canonicalEncoder.mode = .canonical
+                    expect(try canonicalEncoder.encode(docFromCB)).to(cleanEqual(test.canonicalExtJSON), description: test.description)
+
+                    // testing a round trip
 
                     // native_to_relaxed_extended_json( bson_to_native(cB) ) = rEJ (if rEJ exists)
-                    // if let rEJ = test.relaxedExtJSON {
-                    //     expect(try Document(fromBSON: cBData).extendedJSON).to(cleanEqual(rEJ))
-                    // }
+                    let relaxedEncoder = ExtendedJSONEncoder() // default mode is .relaxed
+                    if let rEJ = test.relaxedExtJSON {
+                        expect(try relaxedEncoder.encode(docFromCB)).to(cleanEqual(rEJ), description: test.description)
+                    }
 
                     // for cEJ input:
                     // native_to_canonical_extended_json( json_to_native(cEJ) ) = cEJ
-                    // expect(try Document(fromJSON: cEJData).canonicalExtendedJSON)
-                    //        .to(cleanEqual(test.canonicalExtJSON))
+                    let decoder = ExtendedJSONDecoder()
+                    expect(try canonicalEncoder.encode(try decoder.decode(BSON.self, from: cEJData)))
+                            .to(cleanEqual(test.canonicalExtJSON), description: test.description)
 
-                    // // native_to_bson( json_to_native(cEJ) ) = cB (unless lossy)
-                    // if !lossy {
-                    //     expect(try Document(fromJSON: cEJData).rawBSON).to(equal(cBData))
-                    // }
+                    // native_to_bson( json_to_native(cEJ) ) = cB (unless lossy)
+                    if !lossy {
+                        let decodedActual: BSONDocument = try decoder.decode(BSONDocument.self, from: cEJData)
+                        expect(decodedActual.toData()).to(equal(cBData), description: test.description)
+                    }
 
-                    // for dB input (if it exists):
-                    // if let dB = test.degenerateBSON {
-                    //     guard let dBData = Data(hexString: dB) else {
-                    //         XCTFail("Unable to interpret degenerate_bson as Data")
-                    //         return
-                    //     }
+                    // for dB input (if it exists): (change to language native part)
+                    if let dB = test.degenerateBSON {
+                        guard let dBData = Data(hexString: dB) else {
+                            XCTFail("Unable to interpret degenerate_bson as Data")
+                            return
+                        }
 
-                    //     // bson_to_canonical_extended_json(dB) = cEJ
-                    //     expect(try Document(fromBSON: dBData).canonicalExtendedJSON)
-                    //         .to(cleanEqual(test.canonicalExtJSON))
+                        // TODO: native_to_bson( bson_to_native(dB) ) = cB
 
-                    //     // bson_to_relaxed_extended_json(dB) = rEJ (if rEJ exists)
-                    //     if let rEJ = test.relaxedExtJSON {
-                    //         expect(try Document(fromBSON: dBData).extendedJSON).to(cleanEqual(rEJ))
-                    //     }
-                    // }
+                        // bson_to_canonical_extended_json(dB) = cEJ
+                        expect(try canonicalEncoder.encode(BSONDocument(fromBSON: dBData)))
+                            .to(cleanEqual(test.canonicalExtJSON), description: test.description)
+
+
+                        // bson_to_relaxed_extended_json(dB) = rEJ (if rEJ exists)
+                        if let rEJ = test.relaxedExtJSON {
+                            expect(try relaxedEncoder.encode(dBData)).to(cleanEqual(rEJ), description: test.description)
+                        }
+                    }
 
                     // for dEJ input (if it exists):
-                    // if let dEJ = test.degenerateExtJSON {
-                    //     // native_to_canonical_extended_json( json_to_native(dEJ) ) = cEJ
-                    //     expect(try Document(fromJSON: dEJ).canonicalExtendedJSON)
-                    //           .to(cleanEqual(test.canonicalExtJSON))
-
-                    //     // native_to_bson( json_to_native(dEJ) ) = cB (unless lossy)
-                    //     if !lossy {
-                    //         expect(try Document(fromJSON: dEJ).rawBSON).to(equal(cBData))
-                    //     }
-                    // }
+                    if let dEJ = test.degenerateExtJSON, let dEJData = dEJ.data(using: .utf8) {
+                        // native_to_canonical_extended_json( json_to_native(dEJ) ) = cEJ
+                        expect(try canonicalEncoder.encode(try decoder.decode(BSON.self, from: dEJData)))
+                                .to(cleanEqual(test.canonicalExtJSON), description: test.description)
+                        // native_to_bson( json_to_native(dEJ) ) = cB (unless lossy)
+                        if !lossy {
+                            expect(try decoder.decode(BSONDocument.self, from: dEJData).toData())
+                                    .to(equal(cBData), description: test.description)
+                        }
+                    }
 
                     // for rEJ input (if it exists):
-                    // if let rEJ = test.relaxedExtJSON {
-                    //     // native_to_relaxed_extended_json( json_to_native(rEJ) ) = rEJ
-                    //     expect(try Document(fromJSON: rEJ).extendedJSON).to(cleanEqual(rEJ))
-                    // }
+                    if let rEJ = test.relaxedExtJSON, let rEJData = rEJ.data(using: .utf8) {
+                        // native_to_relaxed_extended_json( json_to_native(rEJ) ) = rEJ
+                        expect(try relaxedEncoder.encode(try decoder.decode(BSON.self, from: rEJData)))
+                                .to(cleanEqual(rEJ), description: test.description)
+                    }
                 }
             }
 
             if let parseErrorTests = testFile.parseErrors {
                 continue // TODO: EXT JSON support required
                 for test in parseErrorTests {
+                    guard !shouldSkip(testFile.description, test.description) else {
+                        continue
+                    }
                     let description = "\(testFile.description)-\(test.description)"
 
                     switch BSONType(rawValue: UInt8(testFile.bsonType.dropFirst(2), radix: 16)!)! {
                     case .invalid: // "top level document" uses 0x00 for the bson type
                         _ = ()
-                    // expect(try BSONDocument(fromJSON: test.string)).to(throwError(), description: description)
+                        expect(try BSONDocument(fromExtJSON: .string(test.string), keyPath: []))
+                            .to(throwError(), description: description)
                     case .decimal128:
                         _ = ()
-                    // expect(BSONDecimal128(test.string)).to(beNil(), description: description)
+                        expect(try BSONDecimal128(fromExtJSON: .string(test.string), keyPath: []))
+                            .to(beNil(), description: description)
                     default:
                         throw TestError(
                             message: "\(description): parse error tests not implemented"
@@ -231,6 +245,9 @@ final class BSONCorpusTests: BSONTestCase {
 
             if let decodeErrors = testFile.decodeErrors {
                 for test in decodeErrors {
+                    guard !shouldSkip(testFile.description, test.description) else {
+                        continue
+                    }
                     let description = "\(testFile.description)-\(test.description)"
                     guard let data = Data(hexString: test.bson) else {
                         XCTFail("\(description): Unable to interpret bson as Data")
