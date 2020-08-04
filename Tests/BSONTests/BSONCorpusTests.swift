@@ -95,6 +95,7 @@ final class BSONCorpusTests: BSONTestCase {
         /// This field will be present (and true) if the BSON type being tested has been deprecated (e.g. Symbol)
         let deprecated: Bool?
     }
+
     // swiftlint:disable:next cyclomatic_complexity
     func testBSONCorpus() throws {
         let SKIPPED_CORPUS_TESTS = [

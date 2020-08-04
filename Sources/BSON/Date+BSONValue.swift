@@ -34,7 +34,7 @@ extension Date: BSONValue {
         case let .string(s):
             // relaxed extended JSON
             // If fractional seconds are omitted in the input (length is 20 instead of 23),
-            // formatter should only account for seconds, otherwise formatter should take milliseconds into account          // Otherwise, fractional seconds SHOULD be omitted if zero.
+            // formatter should only account for seconds, otherwise formatter should take milliseconds into account
             let formatter = s.count == 20
                 ? ExtendedJSONDecoder.extJSONDateFormatterSeconds
                 : ExtendedJSONDecoder.extJSONDateFormatterMilliseconds

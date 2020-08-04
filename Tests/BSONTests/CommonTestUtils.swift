@@ -38,8 +38,9 @@ public func cleanEqual(_ expectedValue: String?) -> Predicate<Data> {
         return PredicateResult(
             status: PredicateStatus(bool: matches),
             message: .expectedCustomValueTo(
-                    "cleanEqual <\(String(describing: cleanedExpected))>",
-                    String(describing: cleanedActual))
+                "cleanEqual <\(String(describing: cleanedExpected))>",
+                String(describing: cleanedActual)
+            )
         )
     }
 }
