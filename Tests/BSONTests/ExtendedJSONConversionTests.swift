@@ -64,8 +64,6 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
     func testAnyExtJSON() throws {
         // Success cases
         expect(try BSON(fromExtJSON: "hello", keyPath: [])).to(equal(BSON.string("hello")))
-        print(try BSON(fromExtJSON: "{\"MinKey\":{\"$minKey\":1}}", keyPath: []))
-        print(try BSON(fromExtJSON:  "{\"$regex\" : {\"$regularExpression\" : { \"pattern\": \"pattern\", \"options\" : \"\"}}, \"$options\" : \"ix\"}", keyPath: []))
         let document = try BSON(fromExtJSON: ["num": ["$numberInt": "5"], "extra": 1], keyPath: [])
         expect(document.documentValue).toNot(beNil())
         expect(document.documentValue!["num"]).to(equal(.int32(5)))

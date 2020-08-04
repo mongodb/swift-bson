@@ -33,6 +33,8 @@ extension Date: BSONValue {
             self = Date(msSinceEpoch: int)
         case let .string(s):
             // relaxed extended JSON
+            // If fractional seconds are omitted in the input (length is 20 instead of 23),
+            // formatter should only account for seconds, otherwise formatter should take milliseconds into account          // Otherwise, fractional seconds SHOULD be omitted if zero.
             let formatter = s.count == 20
                 ? ExtendedJSONDecoder.extJSONDateFormatterSeconds
                 : ExtendedJSONDecoder.extJSONDateFormatterMilliseconds
@@ -55,8 +57,8 @@ extension Date: BSONValue {
         // relaxed extended json depending on if the date is between 1970 and 9999
         // 1970 is 0 milliseconds since epoch, and 10,000 is 253,402,300,800,000.
         if self.msSinceEpoch >= 0 && self.msSinceEpoch < 253_402_300_800_000 {
-            // The ExtendedJSON spec says: Fractional seconds SHOULD have exactly 3 decimal places
-            // if the fractional part is non-zero. Otherwise, fractional seconds SHOULD be omitted if zero.
+            // Fractional seconds SHOULD have exactly 3 decimal places if the fractional part is non-zero.
+            // Otherwise, fractional seconds SHOULD be omitted if zero.
             let formatter = self.timeIntervalSince1970.truncatingRemainder(dividingBy: 1) == 0
                 ? ExtendedJSONDecoder.extJSONDateFormatterSeconds
                 : ExtendedJSONDecoder.extJSONDateFormatterMilliseconds

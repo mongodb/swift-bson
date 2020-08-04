@@ -202,8 +202,11 @@ extension JSON {
 }
 
 extension JSON: Equatable {
-    // create equals which doesnt take ordering into account
+    /// Compares two `JSON`s for equality. In the case of an array, order is ignored.
     static func == (lhs: JSON, rhs: JSON) -> Bool {
+        // Linter throws the following warning:
+        // Cyclomatic Complexity Violation:
+        // Function should have complexity 10 or less: currently complexity equals 15 (cyclomatic_complexity)
         switch lhs {
         case let .number(ln):
             guard case let .number(rn: rn) = rhs else {

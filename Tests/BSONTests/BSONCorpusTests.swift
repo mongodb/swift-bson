@@ -73,7 +73,7 @@ final class BSONCorpusTests: BSONTestCase {
     /// A BSON corpus test file for an individual BSON type.
     struct BSONCorpusTestFile: Decodable {
         enum CodingKeys: String, CodingKey {
-            case description, bsonType = "bson_type", valid, parseErrors, decodeErrors, deprecated, key = "test_key"
+            case description, bsonType = "bson_type", valid, parseErrors, decodeErrors, deprecated
         }
 
         /// Human-readable description of the file.
@@ -94,24 +94,28 @@ final class BSONCorpusTests: BSONTestCase {
 
         /// This field will be present (and true) if the BSON type being tested has been deprecated (e.g. Symbol)
         let deprecated: Bool?
-
-        let key: String?
     }
-
     // swiftlint:disable:next cyclomatic_complexity
     func testBSONCorpus() throws {
         let SKIPPED_CORPUS_TESTS = [
             "Decimal128":
-                ["[dqbsr531] negatives (Rounded)", 
-                 "[dqbsr531] negatives (Rounded)",
-                 "OK2",
-                 "[dqbsr431] check rounding modes heeded (Rounded)",
-                 "[decq438] clamped zeros... (Clamped)",
-                 "[decq418] clamped zeros... (Clamped)",
-                 "Exact rounding"
+                [
+                    "[dqbsr531] negatives (Rounded)",
+                    "[dqbsr531] negatives (Rounded)",
+                    "OK2",
+                    "[dqbsr431] check rounding modes heeded (Rounded)",
+                    "[decq438] clamped zeros... (Clamped)",
+                    "[decq418] clamped zeros... (Clamped)",
+                    "Exact rounding"
                 ],
             "Multiple types within the same document": ["All BSON types"],
-            "Array": ["Multi Element Array with duplicate indexes"]
+            "Array":
+                [
+                    "Multi Element Array with duplicate indexes",
+                    "Single Element Array with index set incorrectly to empty string",
+                    "Single Element Array with index set incorrectly to ab"
+                ],
+            "Regular Expression type": ["flags not alphabetized"]
         ]
 
         let shouldSkip = { testFileDesc, testDesc in
@@ -154,26 +158,26 @@ final class BSONCorpusTests: BSONTestCase {
                     // native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ
                     let canonicalEncoder = ExtendedJSONEncoder()
                     canonicalEncoder.mode = .canonical
-                    expect(try canonicalEncoder.encode(docFromCB)).to(cleanEqual(test.canonicalExtJSON), description: test.description)
-
-                    // testing a round trip
+                    expect(try canonicalEncoder.encode(docFromCB))
+                        .to(cleanEqual(test.canonicalExtJSON), description: test.description)
 
                     // native_to_relaxed_extended_json( bson_to_native(cB) ) = rEJ (if rEJ exists)
                     let relaxedEncoder = ExtendedJSONEncoder() // default mode is .relaxed
                     if let rEJ = test.relaxedExtJSON {
-                        expect(try relaxedEncoder.encode(docFromCB)).to(cleanEqual(rEJ), description: test.description)
+                        expect(try relaxedEncoder.encode(docFromCB))
+                            .to(cleanEqual(rEJ), description: test.description)
                     }
 
                     // for cEJ input:
                     // native_to_canonical_extended_json( json_to_native(cEJ) ) = cEJ
                     let decoder = ExtendedJSONDecoder()
                     expect(try canonicalEncoder.encode(try decoder.decode(BSON.self, from: cEJData)))
-                            .to(cleanEqual(test.canonicalExtJSON), description: test.description)
+                        .to(cleanEqual(test.canonicalExtJSON), description: test.description)
 
                     // native_to_bson( json_to_native(cEJ) ) = cB (unless lossy)
                     if !lossy {
-                        let decodedActual: BSONDocument = try decoder.decode(BSONDocument.self, from: cEJData)
-                        expect(decodedActual.toData()).to(equal(cBData), description: test.description)
+                        try expect(try decoder.decode(BSONDocument.self, from: cEJData))
+                            .to(sortedEqual(BSONDocument(fromBSON: cBData)), description: test.description)
                     }
 
                     // for dB input (if it exists): (change to language native part)
@@ -183,16 +187,28 @@ final class BSONCorpusTests: BSONTestCase {
                             return
                         }
 
-                        // TODO: native_to_bson( bson_to_native(dB) ) = cB
-
                         // bson_to_canonical_extended_json(dB) = cEJ
                         expect(try canonicalEncoder.encode(BSONDocument(fromBSON: dBData)))
                             .to(cleanEqual(test.canonicalExtJSON), description: test.description)
 
-
                         // bson_to_relaxed_extended_json(dB) = rEJ (if rEJ exists)
                         if let rEJ = test.relaxedExtJSON {
                             expect(try relaxedEncoder.encode(dBData)).to(cleanEqual(rEJ), description: test.description)
+                        }
+
+                        let docFromDB = try BSONDocument(fromBSON: dBData)
+
+                        // native_to_bson( bson_to_native(dB) ) = cB
+                        expect(docFromDB.toData()).to(equal(cBData), description: test.description)
+
+                        // native_to_canonical_extended_json( bson_to_native(dB) ) = cEJ
+                        expect(try canonicalEncoder.encode(docFromDB))
+                            .to(cleanEqual(test.canonicalExtJSON))
+
+                        // native_to_relaxed_extended_json( bson_to_native(dB) ) = rEJ (if rEJ exists)
+                        if let rEJ = test.relaxedExtJSON {
+                            expect(try relaxedEncoder.encode(docFromDB))
+                                .to(cleanEqual(rEJ), description: test.description)
                         }
                     }
 
@@ -200,11 +216,11 @@ final class BSONCorpusTests: BSONTestCase {
                     if let dEJ = test.degenerateExtJSON, let dEJData = dEJ.data(using: .utf8) {
                         // native_to_canonical_extended_json( json_to_native(dEJ) ) = cEJ
                         expect(try canonicalEncoder.encode(try decoder.decode(BSON.self, from: dEJData)))
-                                .to(cleanEqual(test.canonicalExtJSON), description: test.description)
+                            .to(cleanEqual(test.canonicalExtJSON), description: test.description)
                         // native_to_bson( json_to_native(dEJ) ) = cB (unless lossy)
                         if !lossy {
-                            expect(try decoder.decode(BSONDocument.self, from: dEJData).toData())
-                                    .to(equal(cBData), description: test.description)
+                            try expect(try decoder.decode(BSONDocument.self, from: dEJData))
+                                .to(sortedEqual(BSONDocument(fromBSON: cBData)), description: test.description)
                         }
                     }
 
@@ -212,7 +228,7 @@ final class BSONCorpusTests: BSONTestCase {
                     if let rEJ = test.relaxedExtJSON, let rEJData = rEJ.data(using: .utf8) {
                         // native_to_relaxed_extended_json( json_to_native(rEJ) ) = rEJ
                         expect(try relaxedEncoder.encode(try decoder.decode(BSON.self, from: rEJData)))
-                                .to(cleanEqual(rEJ), description: test.description)
+                            .to(cleanEqual(rEJ), description: test.description)
                     }
                 }
             }
