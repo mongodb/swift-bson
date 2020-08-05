@@ -367,6 +367,10 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(try Date(fromExtJSON: ["$date": "1970-01-01T00:00:00Z"], keyPath: []))
             .to(equal(date2))
         expect(date2.toRelaxedExtendedJSON()).to(equal(["$date": "1970-01-01T00:00:00Z"]))
+
+        let date3 = Date(msSinceEpoch: 1_356_351_330_501)
+        expect(try Date(fromExtJSON: ["$date": "2012-12-24T12:15:30.501Z"], keyPath: []))
+            .to(equal(date3))
     }
 
     func testMinKey() throws {
