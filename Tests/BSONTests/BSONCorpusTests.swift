@@ -116,8 +116,11 @@ final class BSONCorpusTests: BSONTestCase {
                     "Multi Element Array with duplicate indexes",
                     "Single Element Array with index set incorrectly to empty string",
                     "Single Element Array with index set incorrectly to ab"
-                ] // ,
-//            "Regular Expression type": ["flags not alphabetized"]
+                ],
+            "Top-level document validity": [
+                "Bad DBRef (ref is number, not string)",
+                "Bad DBRef (db is number, not string)"
+            ]
         ]
 
         let shouldSkip = { testFileDesc, testDesc in
@@ -180,7 +183,7 @@ final class BSONCorpusTests: BSONTestCase {
 
                     // native_to_bson( json_to_native(cEJ) ) = cB (unless lossy)
                     if !lossy {
-                        try expect(try decoder.decode(BSONDocument.self, from: cEJData))
+                        expect(try decoder.decode(BSONDocument.self, from: cEJData))
                             .to(sortedEqual(docFromCB), description: test.description)
                     }
 
@@ -193,8 +196,9 @@ final class BSONCorpusTests: BSONTestCase {
 
                         let docFromDB = try BSONDocument(fromBSON: dBData)
 
-                        // native_to_bson( bson_to_native(dB) ) = cB
-                        expect(docFromDB.toData()).to(equal(dBData), description: test.description)
+                        // SKIPPING: native_to_bson( bson_to_native(dB) ) = cB
+                        // We only validate the BSON bytes, we do not clean them up, so can't do this assertion
+                        // Degenerate BSON round trip tests will be added in SWIFT-964
 
                         // native_to_canonical_extended_json( bson_to_native(dB) ) = cEJ
                         // (Not in spec yet, might be added in DRIVERS-1355)
@@ -231,25 +235,21 @@ final class BSONCorpusTests: BSONTestCase {
             }
 
             if let parseErrorTests = testFile.parseErrors {
-                continue // TODO: EXT JSON support required
                 for test in parseErrorTests {
                     guard !shouldSkip(testFile.description, test.description) else {
                         continue
                     }
                     let description = "\(testFile.description)-\(test.description)"
-                    guard let testData = Data(hexString: test.string) else {
-                        XCTFail("Unable to interpret canonical_bson as Data")
-                        return
-                    }
                     switch BSONType(rawValue: UInt8(testFile.bsonType.dropFirst(2), radix: 16)!)! {
                     case .invalid: // "top level document" uses 0x00 for the bson type
-                        _ = ()
+                        guard let testData = test.string.data(using: .utf8) else {
+                            XCTFail("Unable to interpret canonical_bson as Data")
+                            return
+                        }
                         expect(try decoder.decode(BSON.self, from: testData))
                             .to(throwError(), description: description)
                     case .decimal128:
-                        _ = ()
-                        expect(try BSONDecimal128(test.string))
-                            .to(throwError(), description: description)
+                        continue // TODO: SWIFT-968
                     default:
                         throw TestError(
                             message: "\(description): parse error tests not implemented"

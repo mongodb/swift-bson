@@ -47,7 +47,13 @@ extension Date: BSONValue {
             }
             self = date
         default:
-            return nil
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \(value) to be canonical extended JSON representing a " +
+                    "64-bit signed integer giving millisecs relative to the epoch, as a string OR " +
+                    "relaxed extended JSON representing a ISO-8601 Internet Date/Time Format with " +
+                    "maximum time precision of milliseconds as a string."
+            )
         }
     }
 
