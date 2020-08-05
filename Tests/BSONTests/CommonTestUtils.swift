@@ -4,13 +4,10 @@ import Nimble
 import XCTest
 
 /// Cleans and normalizes given JSON Data for comparison purposes
-public func clean(json: Data?) throws -> JSON {
+public func clean(json: Data) throws -> JSON {
     let jsonDecoder = JSONDecoder()
-    guard let jsonData = json else {
-        fatalError("json should be not nil")
-    }
     do {
-        let jsonEnum = try jsonDecoder.decode(JSON.self, from: jsonData)
+        let jsonEnum = try jsonDecoder.decode(JSON.self, from: json)
         return jsonEnum
     } catch {
         fatalError("json should be decodable to jsonEnum")
@@ -19,22 +16,20 @@ public func clean(json: Data?) throws -> JSON {
 
 /// Adds a custom "cleanEqual" predicate that compares Data representing JSON with a JSON string for equality
 /// after normalizing them with the "clean" function
-public func cleanEqual(_ expectedValue: String?) -> Predicate<Data> {
+public func cleanEqual(_ expectedValue: String) -> Predicate<Data> {
     Predicate.define("cleanEqual <\(stringify(expectedValue))>") { actualExpression, msg in
-        let actualValue: Data? = try actualExpression.evaluate()
-        let expectedValueData = expectedValue?.data(using: .utf8)
-        let cleanedActual = try clean(json: actualValue)
-        let cleanedExpected = try clean(json: expectedValueData)
-        let matches = cleanedActual == cleanedExpected && expectedValueData != nil
-        if expectedValueData == nil || actualValue == nil {
-            if expectedValueData == nil && actualValue != nil {
-                return PredicateResult(
-                    status: .fail,
-                    message: msg.appendedBeNilHint()
-                )
-            }
+        guard let actualValue = try actualExpression.evaluate() else {
+            return PredicateResult(
+                status: .fail,
+                message: msg.appendedBeNilHint()
+            )
+        }
+        guard let expectedValueData = expectedValue.data(using: .utf8) else {
             return PredicateResult(status: .fail, message: msg)
         }
+        let cleanedActual = try clean(json: actualValue)
+        let cleanedExpected = try clean(json: expectedValueData)
+        let matches = cleanedActual == cleanedExpected
         return PredicateResult(
             status: PredicateStatus(bool: matches),
             message: .expectedCustomValueTo(

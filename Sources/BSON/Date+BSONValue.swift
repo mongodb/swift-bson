@@ -33,11 +33,11 @@ extension Date: BSONValue {
             self = Date(msSinceEpoch: int)
         case let .string(s):
             // relaxed extended JSON
-            // If fractional seconds are omitted in the input (length is 20 instead of 23),
+            // If fractional seconds are omitted in the input (no decimal point "."),
             // formatter should only account for seconds, otherwise formatter should take milliseconds into account
-            let formatter = s.count == 20
-                ? ExtendedJSONDecoder.extJSONDateFormatterSeconds
-                : ExtendedJSONDecoder.extJSONDateFormatterMilliseconds
+            let formatter = s.contains(".")
+                ? ExtendedJSONDecoder.extJSONDateFormatterMilliseconds
+                : ExtendedJSONDecoder.extJSONDateFormatterSeconds
             guard let date = formatter.date(from: s) else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
