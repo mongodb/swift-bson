@@ -304,7 +304,7 @@ extension BSON {
     }
 
     /// Return this BSON as a `Double` if possible.
-    /// This will coerce numeric cases (e.g. `.decimal128`) into a `Double` if such coercion would be lossless.
+    /// This will coerce numeric cases (e.g. `.int32`) into a `Double` if such coercion would be lossless.
     public func toDouble() -> Double? {
         switch self {
         case let .double(d):
