@@ -291,7 +291,7 @@ public struct BSONDocument {
 
             guard byteLength == self.buffer.readableBytes else {
                 throw BSONError.InvalidArgumentError(
-                    message: "BSONDocument's encoded byte length is \(byteLength) however the" +
+                    message: "BSONDocument's encoded byte length is \(byteLength), however the" +
                         "buffer has \(self.buffer.readableBytes) readable bytes"
                 )
             }
@@ -313,6 +313,10 @@ public struct BSONDocument {
                         continue
                     }
                 }
+            } catch let error as BSONError.InternalError {
+                throw BSONError.InvalidArgumentError(
+                    message: "Validation Failed: \(error.message)"
+                )
             }
         }
     }

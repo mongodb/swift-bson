@@ -69,4 +69,30 @@ final class BSONObjectIDTests: BSONTestCase {
 
         expect(format.string(from: dateFromID)).to(equal(format.string(from: date)))
     }
+
+    /// Test object for testObjectIdJSONCodable
+    private struct TestObject: Codable, Equatable {
+        private let _id: BSONObjectID
+
+        init(id: BSONObjectID) {
+            self._id = id
+        }
+    }
+
+    func testObjectIdJSONCodable() throws {
+        let id = BSONObjectID()
+        let obj = TestObject(id: id)
+        let output = try JSONEncoder().encode(obj)
+        let outputStr = String(decoding: output, as: UTF8.self)
+        expect(outputStr).to(equal("{\"_id\":\"\(id.hex)\"}"))
+
+        let decoded = try JSONDecoder().decode(TestObject.self, from: output)
+        expect(decoded).to(equal(obj))
+
+        // expect a decoding error when the hex string is invalid
+        let invalidHex = id.hex.dropFirst()
+        let invalidJSON = "{\"_id\":\"\(invalidHex)\"}".data(using: .utf8)!
+        expect(try JSONDecoder().decode(TestObject.self, from: invalidJSON))
+            .to(throwError(errorType: DecodingError.self))
+    }
 }

@@ -128,7 +128,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     private static let nanRegex = #"NaN"#
     private static let exponentRegex = "\(indicatorRegex)(\(signRegex))?(\(digitsRegex))"
     private static let numericValueRegex = "(\(signRegex))?(?:(\(decimalRegex))(?:\(exponentRegex))?|(\(infinityRegex)))"
-    public static let decimal128Regex = "\(numericValueRegex)|(\(nanRegex))"
+    private static let decimal128Regex = "^\(numericValueRegex)$|^(\(nanRegex))$"
     // swiftlint:enable line_length
 
     /// The precision of the Decimal128 format
@@ -190,7 +190,7 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         )
         let wholeRepr = NSRange(data.startIndex..<data.endIndex, in: data)
         guard let match: NSTextCheckingResult = regex.firstMatch(in: data, range: wholeRepr) else {
-            throw BSONError.InvalidArgumentError(message: "Syntax Error: \(data) does not match \(regex)")
+            throw BSONError.InvalidArgumentError(message: "Syntax Error: Invalid Decimal128 string \(data)")
         }
 
         var sign = 1

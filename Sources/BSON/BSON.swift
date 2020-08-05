@@ -44,7 +44,7 @@ public enum BSON {
     case regex(BSONRegularExpression)
 
     /// A BSON ObjectID
-    case objectID(BSONObjectID)
+    case objectID(BSONObjectID = BSONObjectID())
 
     /// A BSON DBPointer
     case dbPointer(BSONDBPointer)
@@ -266,7 +266,7 @@ extension BSON {
     }
 }
 
-/// toInt* helper functions
+/// Helper functions for converting to numbers.
 extension BSON {
     /// Return this BSON as an `Int` if possible.
     /// This will coerce non-integer numeric cases (e.g. `.double`) into an `Int` if such coercion would be lossless.
@@ -308,6 +308,37 @@ extension BSON {
             return value
         case let .double(value):
             return Int64(exactly: value)
+        default:
+            return nil
+        }
+    }
+
+    /// Return this BSON as a `Double` if possible.
+    /// This will coerce numeric cases (e.g. `.int32`) into a `Double` if such coercion would be lossless.
+    public func toDouble() -> Double? {
+        switch self {
+        case let .double(d):
+            return d
+        default:
+            guard let intValue = self.toInt() else {
+                return nil
+            }
+            return Double(intValue)
+        }
+    }
+
+    /// Return this BSON as a `BSONDecimal128` if possible.
+    /// This will coerce numeric cases (e.g. `.double`) into a `BSONDecimal128` if such coercion would be lossless.
+    public func toDecimal128() -> BSONDecimal128? {
+        switch self {
+        case let .decimal128(d):
+            return d
+        case let .int64(i):
+            return try? BSONDecimal128(String(i))
+        case let .int32(i):
+            return try? BSONDecimal128(String(i))
+        case let .double(d):
+            return try? BSONDecimal128(String(d))
         default:
             return nil
         }

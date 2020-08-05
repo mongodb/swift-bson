@@ -114,7 +114,7 @@ extension BSONCodeWithScope: BSONValue {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         switch json {
-        case let .object(obj):
+        case .object:
             // canonical and relaxed extended JSON
             guard let (code, scope) = try json.unwrapObject(withKeys: "$code", "$scope", keyPath: keyPath) else {
                 return nil
