@@ -831,10 +831,10 @@ final class CodecTests: BSONTestCase {
         expect(try encoder.encode(CorrectTopLevelEncode(.null))).to(equal(["x": [:]]))
     }
 
-    func testTopLevelArray(){
+    func testTopLevelArray() {
         let encoder = BSONEncoder()
         let decoder = BSONDecoder()
-        expect(try encoder.encodeFragment([1,2,3])).to(equal([1,2,3]))
-        expect(try decoder.decode([Int].self, fromBSON: [1,2,3])).to(equal([1,2,3]))
+        expect(try encoder.encodeFragment([1, 2, 3])).to(equal([1, 2, 3]))
+        expect(try decoder.decode([Int].self, fromBSON: [1, 2, 3])).to(equal([1, 2, 3]))
     }
 }
