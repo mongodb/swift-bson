@@ -18,8 +18,8 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         }
 
         let regexStr = "{\"$regularExpression\":{\"pattern\":\"p\",\"options\":\"i\"}}"
-        let extJSON = "{\"x\":true,\"y\":{\"$numberInt\":\"5\"},\"z\":\(regexStr)}"
-        let data = extJSON.data(using: .utf8)!
+        let canonicalExtJSON = "{\"x\":true,\"y\":{\"$numberInt\":\"5\"},\"z\":\(regexStr)}"
+        let data = canonicalExtJSON.data(using: .utf8)!
         let regexObj = BSONRegularExpression(pattern: "p", options: "i")
         let test = Test(x: true, y: 5, z: regexObj)
 
@@ -27,20 +27,13 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         let encoder = ExtendedJSONEncoder()
         encoder.mode = .canonical
         let encoded: Data = try encoder.encode(test)
-
-        let encodedStr = String(data: encoded, encoding: .utf8)
-        expect(encodedStr).to(contain("\"x\":true"))
-        expect(encodedStr).to(contain("\"y\":{\"$numberInt\":\"5\"}"))
-        expect(encodedStr).to(contain("\"z\":{\"$regularExpression\""))
-        expect(encodedStr).to(contain("\"pattern\":\"p\""))
-        expect(encodedStr).to(contain("\"options\":\"i\""))
+        expect(encoded).to(cleanEqual(canonicalExtJSON))
 
         // Test relaxed encoder
         encoder.mode = .relaxed
         let relaxedEncoded: Data = try encoder.encode(test)
-        let relaxedEncodedStr = String(data: relaxedEncoded, encoding: .utf8)
-        expect(relaxedEncodedStr).to(contain("\"x\":true"))
-        expect(relaxedEncodedStr).to(contain("\"y\":5"))
+        let relaxedExtJSON = "{\"x\":true,\"y\":5,\"z\":\(regexStr)}"
+        expect(relaxedEncoded).to(cleanEqual(relaxedExtJSON))
 
         // Test decoder
         let decoder = ExtendedJSONDecoder()
@@ -169,7 +162,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(try Double(fromExtJSON: ["$numberDouble": "Infinity"], keyPath: [])).to(equal(Double.infinity))
         expect(try Double(fromExtJSON: ["$numberDouble": "-Infinity"], keyPath: [])).to(equal(-Double.infinity))
         expect(try Double(fromExtJSON: ["$numberDouble": "NaN"], keyPath: [])?.isNaN).to(beTrue())
-        expect(Double("NaN")?.toCanonicalExtendedJSON()).to(equal(["$numberDouble": .string("nan")]))
+        expect(Double("NaN")?.toCanonicalExtendedJSON()).to(equal(["$numberDouble": .string("NaN")]))
         expect(Double(5.5).toCanonicalExtendedJSON()).to(equal(["$numberDouble": .string("5.5")]))
         expect(Double(5.5).toRelaxedExtendedJSON()).to(equal(.number(5.5)))
 
@@ -213,7 +206,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         try expect(try BSONBinary(fromExtJSON: ["$binary": ["base64": "//8=", "subType": "81"]], keyPath: []))
             .to(equal(BSONBinary(base64: "//8=", subtype: .userDefined(129))))
         expect(try BSONBinary(base64: "//8=", subtype: .generic).toCanonicalExtendedJSON())
-            .to(equal(["$binary": ["base64": "//8=", "subType": "0"]]))
+            .to(equal(["$binary": ["base64": "//8=", "subType": "00"]]))
 
         // Nil cases
         expect(try BSONBinary(fromExtJSON: 5.5, keyPath: [])).to(beNil())
@@ -370,10 +363,17 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(equal(date))
         expect(date.toCanonicalExtendedJSON()).to(equal(["$date": ["$numberLong": "500004"]]))
         // Relaxed Success case
-        let date2 = Date(msSinceEpoch: 1_356_351_330_501)
-        expect(try Date(fromExtJSON: ["$date": "2012-12-24T12:15:30.501Z"], keyPath: []))
+        let date2 = Date(timeIntervalSince1970: 0)
+        expect(try Date(fromExtJSON: ["$date": "1970-01-01T00:00:00Z"], keyPath: []))
             .to(equal(date2))
-        expect(date2.toRelaxedExtendedJSON()).to(equal(["$date": "2012-12-24T12:15:30.501Z"]))
+        expect(date2.toRelaxedExtendedJSON()).to(equal(["$date": "1970-01-01T00:00:00Z"]))
+
+        let date3 = Date(msSinceEpoch: 1_356_351_330_501)
+        expect(try Date(fromExtJSON: ["$date": "2012-12-24T12:15:30.501Z"], keyPath: []))
+            .to(equal(date3))
+
+        expect(try Date(fromExtJSON: ["$date": 42], keyPath: []))
+            .to(throwError(errorType: DecodingError.self))
     }
 
     func testMinKey() throws {

@@ -1,7 +1,13 @@
 import Foundation
 /// `ExtendedJSONDecoder` facilitates the decoding of ExtendedJSON into `Decodable` values.
 public class ExtendedJSONDecoder {
-    internal static var extJSONDateFormatter: ISO8601DateFormatter = {
+    internal static var extJSONDateFormatterSeconds: ISO8601DateFormatter = {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        return formatter
+    }()
+
+    internal static var extJSONDateFormatterMilliseconds: ISO8601DateFormatter = {
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
         return formatter

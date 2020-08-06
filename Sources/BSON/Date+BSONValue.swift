@@ -33,7 +33,12 @@ extension Date: BSONValue {
             self = Date(msSinceEpoch: int)
         case let .string(s):
             // relaxed extended JSON
-            guard let date = ExtendedJSONDecoder.extJSONDateFormatter.date(from: s) else {
+            // If fractional seconds are omitted in the input (no decimal point "."),
+            // formatter should only account for seconds, otherwise formatter should take milliseconds into account
+            let formatter = s.contains(".")
+                ? ExtendedJSONDecoder.extJSONDateFormatterMilliseconds
+                : ExtendedJSONDecoder.extJSONDateFormatterSeconds
+            guard let date = formatter.date(from: s) else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected \(s) to be an ISO-8601 Internet Date/Time Format" +
@@ -42,7 +47,13 @@ extension Date: BSONValue {
             }
             self = date
         default:
-            return nil
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Expected \(value) to be canonical extended JSON representing a " +
+                    "64-bit signed integer giving millisecs relative to the epoch, as a string OR " +
+                    "relaxed extended JSON representing a ISO-8601 Internet Date/Time Format with " +
+                    "maximum time precision of milliseconds as a string."
+            )
         }
     }
 
@@ -52,7 +63,12 @@ extension Date: BSONValue {
         // relaxed extended json depending on if the date is between 1970 and 9999
         // 1970 is 0 milliseconds since epoch, and 10,000 is 253,402,300,800,000.
         if self.msSinceEpoch >= 0 && self.msSinceEpoch < 253_402_300_800_000 {
-            let date = ExtendedJSONDecoder.extJSONDateFormatter.string(from: self)
+            // Fractional seconds SHOULD have exactly 3 decimal places if the fractional part is non-zero.
+            // Otherwise, fractional seconds SHOULD be omitted if zero.
+            let formatter = self.timeIntervalSince1970.truncatingRemainder(dividingBy: 1) == 0
+                ? ExtendedJSONDecoder.extJSONDateFormatterSeconds
+                : ExtendedJSONDecoder.extJSONDateFormatterMilliseconds
+            let date = formatter.string(from: self)
             return ["$date": .string(date)]
         } else {
             return self.toCanonicalExtendedJSON()
