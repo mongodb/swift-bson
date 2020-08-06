@@ -139,7 +139,7 @@ public class BSONEncoder {
      * - Throws: `EncodingError` if any value throws an error during encoding.
      */
     public func encode<T: Encodable>(_ value: T) throws -> BSONDocument {
-        let encodedBSON: BSON = try self.encode(value)
+        let encodedBSON: BSON = try self.encodeFragment(value)
         switch encodedBSON {
         case let .document(doc):
             return doc
@@ -201,7 +201,7 @@ public class BSONEncoder {
      * - Returns: A new `BSON` containing the encoded BSON data.
      * - Throws: `EncodingError` if any value throws an error during encoding.
      */
-    internal func encode<T: Encodable>(_ value: T) throws -> BSON {
+    internal func encodeFragment<T: Encodable>(_ value: T) throws -> BSON {
         let encoder = _BSONEncoder(options: self.options)
 
         do {
