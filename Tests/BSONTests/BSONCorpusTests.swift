@@ -178,7 +178,7 @@ final class BSONCorpusTests: BSONTestCase {
 
                     // for cEJ input:
                     // native_to_canonical_extended_json( json_to_native(cEJ) ) = cEJ
-                    expect(try canonicalEncoder.encode(try decoder.decode(BSON.self, from: cEJData)))
+                    expect(try canonicalEncoder.encode(try decoder.decode(BSONDocument.self, from: cEJData)))
                         .to(cleanEqual(test.canonicalExtJSON), description: test.description)
 
                     // native_to_bson( json_to_native(cEJ) ) = cB (unless lossy)
@@ -216,7 +216,7 @@ final class BSONCorpusTests: BSONTestCase {
                     // for dEJ input (if it exists):
                     if let dEJ = test.degenerateExtJSON, let dEJData = dEJ.data(using: .utf8) {
                         // native_to_canonical_extended_json( json_to_native(dEJ) ) = cEJ
-                        expect(try canonicalEncoder.encode(try decoder.decode(BSON.self, from: dEJData)))
+                        expect(try canonicalEncoder.encode(try decoder.decode(BSONDocument.self, from: dEJData)))
                             .to(cleanEqual(test.canonicalExtJSON), description: test.description)
                         // native_to_bson( json_to_native(dEJ) ) = cB (unless lossy)
                         if !lossy {
@@ -228,7 +228,7 @@ final class BSONCorpusTests: BSONTestCase {
                     // for rEJ input (if it exists):
                     if let rEJ = test.relaxedExtJSON, let rEJData = rEJ.data(using: .utf8) {
                         // native_to_relaxed_extended_json( json_to_native(rEJ) ) = rEJ
-                        expect(try relaxedEncoder.encode(try decoder.decode(BSON.self, from: rEJData)))
+                        expect(try relaxedEncoder.encode(try decoder.decode(BSONDocument.self, from: rEJData)))
                             .to(cleanEqual(rEJ), description: test.description)
                     }
                 }
@@ -246,8 +246,8 @@ final class BSONCorpusTests: BSONTestCase {
                             XCTFail("Unable to interpret canonical_bson as Data")
                             return
                         }
-                        expect(try decoder.decode(BSON.self, from: testData))
-                            .to(throwError(), description: description)
+                        expect(try decoder.decode(BSONDocument.self, from: testData))
+                            .to(throwError(errorType: DecodingError.self), description: description)
                     case .decimal128:
                         continue // TODO: SWIFT-968
                     default:
