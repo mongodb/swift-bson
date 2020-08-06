@@ -53,8 +53,8 @@ final class CodecTests: BSONTestCase {
         expect(try decoder.decode(Array.self, fromBSON: [BSON.int32(1), BSON.int32(2)]))
             .to(equal([1, 2]))
 
-        expect(try encoder.encode(oid)).to(equal(BSON.objectID(oid)))
-        expect(try encoder.encode([Int32(1), Int32(2)])).to(equal([BSON.int32(1), BSON.int32(2)]))
+        expect(try encoder.encodeFragment(oid)).to(equal(BSON.objectID(oid)))
+        expect(try encoder.encodeFragment([Int32(1), Int32(2)])).to(equal([BSON.int32(1), BSON.int32(2)]))
     }
 
     /// Test encoding/decoding a variety of structs containing simple types that have

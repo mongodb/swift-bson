@@ -40,7 +40,7 @@ public class ExtendedJSONEncoder {
         // The `JSON` is then passed through a `JSONEncoder` and outputted as `Data`.
         let encoder = BSONEncoder()
         encoder.userInfo = self.userInfo
-        let bson: BSON = try encoder.encode(value)
+        let bson: BSON = try encoder.encodeFragment(value)
 
         let json: JSON
         switch self.mode {

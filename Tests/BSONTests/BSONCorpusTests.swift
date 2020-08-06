@@ -108,7 +108,9 @@ final class BSONCorpusTests: BSONTestCase {
                     "OK2",
                     // TODO: SWIFT-965
                     "[decq438] clamped zeros... (Clamped)",
-                    "[decq418] clamped zeros... (Clamped)"
+                    "[decq418] clamped zeros... (Clamped)",
+                    // TODO: SWIFT-972
+                    "Special - Negative NaN"
                 ],
             "Array":
                 [
