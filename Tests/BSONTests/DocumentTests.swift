@@ -237,12 +237,11 @@ final class DocumentTests: BSONTestCase {
             .to(equal(["hi": true, "hello": "hi", "cat": 2] as BSONDocument))
     }
 
-    // TODO: SWIFT-930: unskip
-    // func testRawBSON() throws {
-    //     let doc = try BSONDocument(fromJSON: "{\"a\" : [{\"$numberInt\": \"10\"}]}")
-    //     let fromRawBSON = try BSONDocument(fromBSON: doc.rawBSON)
-    //     expect(doc).to(equal(fromRawBSON))
-    // }
+    func testRawBSON() throws {
+        let doc = try BSONDocument(fromJSON: "{\"a\":[{\"$numberInt\":\"10\"}]}")
+        let fromRawBSON = try BSONDocument(fromBSON: doc.buffer)
+        expect(doc).to(equal(fromRawBSON))
+    }
 
     func testCopyOnWriteBehavior() {
         var doc1: BSONDocument = ["a": 1]

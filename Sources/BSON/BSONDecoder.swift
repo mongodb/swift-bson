@@ -177,38 +177,26 @@ public class BSONDecoder {
         }
     }
 
-    // TODO: SWIFT-930 Implement this
-    // /**
-    //  * Decodes a top-level value of the given type from the given JSON/extended JSON string.
-    //  *
-    //  * - Parameter type: The type of the value to decode.
-    //  * - Parameter json: The JSON string to decode from.
-    //  * - Returns: A value of the requested type.
-    //  * - Throws: `DecodingError` if the JSON data is corrupt or if any value throws an error during decoding.
-    //  */
-    // public func decode<T: Decodable>(_: T.Type, from json: String) throws -> T {
-    //     // we nest the input JSON in another object, and then decode to a `DecodableWrapper`
-    //     // wrapping an object of the requested type. since our decoder only supports decoding
-    //     // objects, this allows us to additionally handle decoding to primitive types like a
-    //     // `String` or an `Int`.
-    //     // while this is not needed to decode JSON representing objects, it is difficult to
-    //     // determine when JSON represents an object vs. a primitive value -- for example,
-    //     // {"$numberInt": "42"} is a JSON object and looks like an object type but is actually
-    //     // a primitive type, Int32. so for simplicity, we just always assume wrapping is needed,
-    //     // and pay a small performance penalty of decoding a few extra bytes.
-    //     let wrapped = "{\"value\": \(json)}"
-
-    //     if let doc = try? BSONDocument(fromJSON: wrapped) {
-    //         let s = try self.decode(DecodableWrapper<T>.self, from: doc)
-    //         return s.value
-    //     }
-
-    //     throw DecodingError.dataCorrupted(
-    //         DecodingError.Context(
-    //             codingPath: [],
-    //             debugDescription: "Unable to parse JSON string \(json)"
-    //         ))
-    // }
+    /**
+     * Decodes a top-level value of the given type from the given JSON/extended JSON string.
+     *
+     * - Parameter type: The type of the value to decode.
+     * - Parameter json: The JSON string to decode from.
+     * - Returns: A value of the requested type.
+     * - Throws: `DecodingError` if the JSON data is corrupt or if any value throws an error during decoding.
+     */
+    @available(*, deprecated, message: "Use ExtendedJSONDecoder.decode instead")
+    public func decode<T: Decodable>(_: T.Type, from json: String) throws -> T {
+        let decoder = ExtendedJSONDecoder()
+        guard let jsonData = json.data(using: .utf8) else {
+            throw DecodingError.dataCorrupted(
+                DecodingError.Context(
+                    codingPath: [],
+                    debugDescription: "Unable to parse JSON string \(json)"
+                ))
+        }
+        return try decoder.decode(T.self, from: jsonData)
+    }
 
     /// A struct to wrap a `Decodable` type, allowing us to support decoding to types that
     /// are not inside a wrapping object (for ex., Int or String).

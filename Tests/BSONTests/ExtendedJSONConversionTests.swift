@@ -258,6 +258,18 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         // Success case
         expect(try BSONDocument(fromExtJSON: ["key": ["$numberInt": "5"]], keyPath: []))
             .to(equal(["key": .int32(5)]))
+        expect(try BSONDocument(fromJSON: "{\"key\": {\"$numberInt\": \"5\"}}".data(using: .utf8)!))
+            .to(equal(["key": .int32(5)]))
+
+        let canonicalExtJSON = "{\"key\":{\"$numberInt\":\"5\"}}"
+        let relaxedExtJSON = "{\"key\":5}"
+        let canonicalDoc = try BSONDocument(fromJSON: canonicalExtJSON)
+        let relaxedDoc = try BSONDocument(fromJSON: relaxedExtJSON)
+        expect(canonicalDoc).to(equal(["key": .int32(5)]))
+        expect(relaxedDoc).to(equal(["key": .int32(5)]))
+
+        expect(canonicalDoc.toCanonicalExtendedJSONString()).to(equal(canonicalExtJSON))
+        expect(canonicalDoc.toExtendedJSONString()).to(equal(relaxedExtJSON))
         // Nil case
         expect(try BSONDocument(fromExtJSON: 1, keyPath: [])).to(beNil())
 
