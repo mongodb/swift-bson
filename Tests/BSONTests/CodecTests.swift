@@ -296,7 +296,7 @@ final class CodecTests: BSONTestCase {
         let ts: BSONTimestamp
         let int32: Int32
         let int64: Int64
-//        let dec: BSONDecimal128
+        let dec: BSONDecimal128
         let minkey: BSONMinKey
         let maxkey: BSONMaxKey
         let regex: BSONRegularExpression
@@ -320,7 +320,7 @@ final class CodecTests: BSONTestCase {
                 ts: BSONTimestamp(timestamp: 1, inc: 2),
                 int32: 5,
                 int64: 6,
-//                dec: try BSONDecimal128("1.2E+10"),
+                dec: try BSONDecimal128("1.2E+10"),
                 minkey: BSONMinKey(),
                 maxkey: BSONMaxKey(),
                 regex: BSONRegularExpression(pattern: "^abc", options: "imx"),
@@ -347,7 +347,7 @@ final class CodecTests: BSONTestCase {
                 "ts": .timestamp(self.ts),
                 "int32": .int32(self.int32),
                 "int64": .int64(self.int64),
-                // "dec": .decimal128(self.dec),
+                "dec": .decimal128(self.dec),
                 "minkey": .minKey,
                 "maxkey": .maxKey,
                 "regex": .regex(self.regex),
@@ -359,168 +359,187 @@ final class CodecTests: BSONTestCase {
         }
     }
 
-    // TODO: SWIFT-930 unskip
-    // /// Test decoding/encoding to all possible BSON types
-    // func testBSONValues() throws {
-    //     let expected = try AllBSONTypes.factory()
+    /// Test decoding/encoding to all possible BSON types
+    func testBSONValues() throws {
+        let expected = try AllBSONTypes.factory()
 
-    //     let decoder = BSONDecoder()
+        let decoder = BSONDecoder()
+        let extendedJSONDecoder = ExtendedJSONDecoder()
 
-    //     let doc = expected.toDocument()
+        let doc = expected.toDocument()
 
-    //     let res = try decoder.decode(AllBSONTypes.self, from: doc)
-    //     expect(res).to(equal(expected))
+        let res = try decoder.decode(AllBSONTypes.self, from: doc)
+        expect(res).to(equal(expected))
 
-    //     expect(try BSONEncoder().encode(expected)).to(equal(doc))
+        expect(try BSONEncoder().encode(expected)).to(equal(doc))
 
-    //     // swiftlint:disable line_length
-    //     let base64 = "//8="
-    //     let extjson = """
-    //     {
-    //         "double" : 2.0,
-    //         "string" : "hi",
-    //         "doc" : { "x" : { "$numberLong": "1" } },
-    //         "arr" : [ 1, 2 ],
-    //         "binary" : { "$binary" : { "base64": "\(base64)", "subType" : "00" } },
-    //         "oid" : { "$oid" : "507f1f77bcf86cd799439011" },
-    //         "bool" : true,
-    //         "date" : { "$date" : "2001-01-01T01:23:20Z" },
-    //         "code" : { "$code" : "hi" },
-    //         "codeWithScope" : { "$code" : "hi", "$scope" : { "x" : { "$numberLong": "1" } } },
-    //         "int" : 1,
-    //         "ts" : { "$timestamp" : { "t" : 1, "i" : 2 } },
-    //         "int32" : 5,
-    //         "int64" : 6,
-    //         "dec" : { "$numberDecimal" : "1.2E+10" },
-    //         "minkey" : { "$minKey" : 1 },
-    //         "maxkey" : { "$maxKey" : 1 },
-    //         "regex" : { "$regularExpression" : { "pattern" : "^abc", "options" : "imx" } },
-    //         "symbol" : { "$symbol" : "i am a symbol" },
-    //         "undefined": { "$undefined" : true },
-    //         "dbpointer": { "$dbPointer" : { "$ref" : "some.namespace", "$id" : { "$oid" : "507f1f77bcf86cd799439011" } } },
-    //         "null": null
-    //     }
-    //     """
-    //     // swiftlint:enable line_length
+        // swiftlint:disable line_length
+        let base64 = "//8="
+        let extjson = """
+        {
+            "double" : 2.0,
+            "string" : "hi",
+            "doc" : { "x" : { "$numberLong": "1" } },
+            "arr" : [ 1, 2 ],
+            "binary" : { "$binary" : { "base64": "\(base64)", "subType" : "00" } },
+            "oid" : { "$oid" : "507f1f77bcf86cd799439011" },
+            "bool" : true,
+            "date" : { "$date" : "2001-01-01T01:23:20Z" },
+            "code" : { "$code" : "hi" },
+            "codeWithScope" : { "$code" : "hi", "$scope" : { "x" : { "$numberLong": "1" } } },
+            "int" : 1,
+            "ts" : { "$timestamp" : { "t" : 1, "i" : 2 } },
+            "int32" : 5,
+            "int64" : 6,
+            "dec" : { "$numberDecimal" : "1.2E+10" },
+            "minkey" : { "$minKey" : 1 },
+            "maxkey" : { "$maxKey" : 1 },
+            "regex" : { "$regularExpression" : { "pattern" : "^abc", "options" : "imx" } },
+            "symbol" : { "$symbol" : "i am a symbol" },
+            "undefined": { "$undefined" : true },
+            "dbpointer": { "$dbPointer" : { "$ref" : "some.namespace", "$id" : { "$oid" : "507f1f77bcf86cd799439011" } } },
+            "null": null
+        }
+        """
+        // swiftlint:enable line_length
 
-    //     let res2 = try decoder.decode(AllBSONTypes.self, from: extjson)
-    //     expect(res2).to(equal(expected))
-    // }
+        let res2 = try extendedJSONDecoder.decode(AllBSONTypes.self, from: extjson.data(using: .utf8)!)
+        expect(res2).to(equal(expected))
+    }
 
-    // /// Test decoding extJSON and JSON for standalone values
-    // func testDecodeScalars() throws {
-    //     let decoder = BSONDecoder()
+    /// Test decoding extJSON and JSON for standalone values
+    func testDecodeScalars() throws {
+        let extendedJSONDecoder = ExtendedJSONDecoder()
 
-    //     expect(try decoder.decode(Int32.self, from: "42")).to(equal(Int32(42)))
-    //     expect(try decoder.decode(Int32.self, from: "{\"$numberInt\": \"42\"}")).to(equal(Int32(42)))
+        expect(try extendedJSONDecoder.decode(Int32.self, from: "42".data(using: .utf8)!)).to(equal(Int32(42)))
+        expect(try extendedJSONDecoder.decode(Int32.self, from: "{\"$numberInt\": \"42\"}".data(using: .utf8)!))
+            .to(equal(Int32(42)))
 
-    //     let oid = try BSONObjectID("507f1f77bcf86cd799439011")
-    //     expect(try decoder.decode(BSONObjectID.self, from: "{\"$oid\": \"507f1f77bcf86cd799439011\"}"))
-    // .to(equal(oid))
+        let oid = try BSONObjectID("507f1f77bcf86cd799439011")
+        expect(try extendedJSONDecoder.decode(
+            BSONObjectID.self,
+            from: "{\"$oid\": \"507f1f77bcf86cd799439011\"}".data(using: .utf8)!
+        )).to(equal(oid))
 
-    //     expect(try decoder.decode(String.self, from: "\"somestring\"")).to(equal("somestring"))
+        expect(try extendedJSONDecoder.decode(
+            String.self,
+            from: "\"somestring\"".data(using: .utf8)!
+        )).to(equal("somestring"))
 
-    //     expect(try decoder.decode(Int64.self, from: "42")).to(equal(Int64(42)))
-    //     expect(try decoder.decode(Int64.self, from: "{\"$numberLong\": \"42\"}")).to(equal(Int64(42)))
+        expect(try extendedJSONDecoder.decode(Int64.self, from: "42".data(using: .utf8)!)).to(equal(Int64(42)))
+        expect(try extendedJSONDecoder.decode(
+            Int64.self,
+            from: "{\"$numberLong\": \"42\"}".data(using: .utf8)!
+        )).to(equal(Int64(42)))
 
-    //     expect(try decoder.decode(Double.self, from: "42.42")).to(equal(42.42))
-    //     expect(try decoder.decode(Double.self, from: "{\"$numberDouble\": \"42.42\"}")).to(equal(42.42))
+        expect(try extendedJSONDecoder.decode(Double.self, from: "42.42".data(using: .utf8)!)).to(equal(42.42))
+        expect(try extendedJSONDecoder.decode(
+            Double.self,
+            from: "{\"$numberDouble\": \"42.42\"}".data(using: .utf8)!
+        )).to(equal(42.42))
 
-    //     expect(try decoder.decode(
-    //         BSONDecimal128.self,
-    //         from: "{\"$numberDecimal\": \"1.2E+10\"}"
-    //     )).to(equal(try BSONDecimal128("1.2E+10")))
+        expect(try extendedJSONDecoder.decode(
+            BSONDecimal128.self,
+            from: "{\"$numberDecimal\": \"1.2E+10\"}".data(using: .utf8)!
+        )).to(equal(try BSONDecimal128("1.2E+10")))
 
-    //     let binary = try BSONBinary(base64: "//8=", subtype: .generic)
-    //     expect(
-    //         try decoder.decode(
-    //             BSONBinary.self,
-    //             from: "{\"$binary\" : {\"base64\": \"//8=\", \"subType\" : \"00\"}}"
-    //         )
-    //     ).to(equal(binary))
+        let binary = try BSONBinary(base64: "//8=", subtype: .generic)
+        expect(
+            try extendedJSONDecoder.decode(
+                BSONBinary.self,
+                from: "{\"$binary\" : {\"base64\": \"//8=\", \"subType\" : \"00\"}}".data(using: .utf8)!
+            )
+        ).to(equal(binary))
 
-    //     expect(try decoder.decode(
-    //         BSONCode.self,
-    //         from: "{\"$code\": \"hi\" }"
-    //     )).to(equal(BSONCode(code: "hi")))
-    //     let code = BSONCode(code: "hi")
-    //     expect(try decoder.decode(
-    //         BSONCode.self,
-    //         from: "{\"$code\": \"hi\", \"$scope\": {\"x\" : { \"$numberLong\": \"1\" }} }"
-    //     )
-    //     ).to(throwError())
-    //     expect(try decoder.decode(BSONCode.self, from: "{\"$code\": \"hi\" }")).to(equal(code))
+        expect(try extendedJSONDecoder.decode(
+            BSONCode.self,
+            from: "{\"$code\": \"hi\" }".data(using: .utf8)!
+        )).to(equal(BSONCode(code: "hi")))
+        let code = BSONCode(code: "hi")
+        expect(try extendedJSONDecoder.decode(
+            BSONCode.self,
+            from: "{\"$code\": \"hi\", \"$scope\": {\"x\" : { \"$numberLong\": \"1\" }} }".data(using: .utf8)!
+        )
+        ).to(throwError())
+        expect(try extendedJSONDecoder.decode(
+            BSONCode.self,
+            from: "{\"$code\": \"hi\" }".data(using: .utf8)!
+        )).to(equal(code))
 
-    //     expect(try decoder.decode(
-    //         BSONCodeWithScope.self,
-    //         from: "{\"$code\": \"hi\" }"
-    //     )).to(throwError())
-    //     let cws = BSONCodeWithScope(code: "hi", scope: ["x": 1])
-    //     expect(try decoder.decode(
-    //         BSONCodeWithScope.self,
-    //         from: "{\"$code\": \"hi\", \"$scope\": {\"x\" : { \"$numberLong\": \"1\" }} }"
-    //     )
-    //     ).to(equal(cws))
-    //     expect(try decoder.decode(BSONDocument.self, from: "{\"x\": 1}")).to(equal(["x": .int32(1)]))
+        expect(try extendedJSONDecoder.decode(
+            BSONCodeWithScope.self,
+            from: "{\"$code\": \"hi\" }".data(using: .utf8)!
+        )).to(throwError())
+        let cws = BSONCodeWithScope(code: "hi", scope: ["x": 1])
+        expect(try extendedJSONDecoder.decode(
+            BSONCodeWithScope.self,
+            from: "{\"$code\": \"hi\", \"$scope\": {\"x\" : { \"$numberLong\": \"1\" }} }".data(using: .utf8)!
+        )
+        ).to(equal(cws))
+        expect(try extendedJSONDecoder.decode(BSONDocument.self, from: "{\"x\": 1}".data(using: .utf8)!))
+            .to(equal(["x": .int32(1)]))
 
-    //     let ts = BSONTimestamp(timestamp: 1, inc: 2)
-    //     expect(try decoder.decode(BSONTimestamp.self, from: "{ \"$timestamp\" : { \"t\" : 1, \"i\" : 2 } }"))
-    //         .to(equal(ts))
+        let ts = BSONTimestamp(timestamp: 1, inc: 2)
+        expect(try extendedJSONDecoder.decode(
+            BSONTimestamp.self,
+            from: "{ \"$timestamp\" : { \"t\" : 1, \"i\" : 2 } }".data(using: .utf8)!
+        )).to(equal(ts))
 
-    //     let regex = BSONRegularExpression(pattern: "^abc", options: "imx")
-    //     expect(
-    //         try decoder.decode(
-    //             BSONRegularExpression.self,
-    //             from: "{ \"$regularExpression\" : { \"pattern\" :\"^abc\", \"options\" : \"imx\" } }"
-    //         )
-    //     ).to(equal(regex))
+        let regex = BSONRegularExpression(pattern: "^abc", options: "imx")
+        expect(
+            try extendedJSONDecoder.decode(
+                BSONRegularExpression.self,
+                from: "{ \"$regularExpression\" : { \"pattern\" :\"^abc\", \"options\" : \"imx\" } }"
+                    .data(using: .utf8)!
+            )
+        ).to(equal(regex))
 
-    //     expect(try decoder.decode(BSONMinKey.self, from: "{\"$minKey\": 1}")).to(equal(BSONMinKey()))
-    //     expect(try decoder.decode(BSONMaxKey.self, from: "{\"$maxKey\": 1}")).to(equal(BSONMaxKey()))
+        expect(try extendedJSONDecoder.decode(BSONMinKey.self, from: "{\"$minKey\": 1}".data(using: .utf8)!))
+            .to(equal(BSONMinKey()))
+        expect(try extendedJSONDecoder.decode(BSONMaxKey.self, from: "{\"$maxKey\": 1}".data(using: .utf8)!))
+            .to(equal(BSONMaxKey()))
 
-    //     expect(try decoder.decode(Bool.self, from: "false")).to(beFalse())
-    //     expect(try decoder.decode(Bool.self, from: "true")).to(beTrue())
+        expect(try extendedJSONDecoder.decode(Bool.self, from: "false".data(using: .utf8)!))
+            .to(beFalse())
+        expect(try extendedJSONDecoder.decode(Bool.self, from: "true".data(using: .utf8)!))
+            .to(beTrue())
 
-    //     expect(try decoder.decode([Int].self, from: "[1, 2, 3]")).to(equal([1, 2, 3]))
-    // }
+        expect(try extendedJSONDecoder.decode([Int].self, from: "[1, 2, 3]".data(using: .utf8)!))
+            .to(equal([1, 2, 3]))
+    }
 
     // test that Document.init(from decoder: Decoder) works with a non BSON decoder and that
     // Document.encode(to encoder: Encoder) works with a non BSON encoder
-    func testDocumentIsCodable() throws {
-        // We presently have no way to control the order of emitted JSON in `cleanEqual`, so this
-        // test will no longer run deterministically on both OSX and Linux in Swift 5.0+. Instead
-        // of doing this, one can (and should) just initialize a Document with the `init(fromJSON:)`
-        // constructor, and convert to JSON using the .extendedJSON property. This test is just
-        // to demonstrate that a Document can theoretically work with any encoder/decoder.
-        // let encoder = JSONEncoder()
-        // let decoder = JSONDecoder()
-
-        // let json = """
-        // {
-        //     "name": "Durian",
-        //     "points": 600,
-        //     "pointsDouble": 600.5,
-        //     "description": "A fruit with a distinctive scent.",
-        //     "array": ["a", "b", "c"],
-        //     "doc": { "x" : 2.0 }
-        // }
-        // """
-
-        // let expected: Document = [
-        //     "name": "Durian",
-        //     "points": 600,
-        //     "pointsDouble": 600.5,
-        //     "description": "A fruit with a distinctive scent.",
-        //     "array": ["a", "b", "c"],
-        //     "doc": ["x": 2] as Document
-        // ]
-
-        // let decoded = try decoder.decode(Document.self, from: json.data(using: .utf8)!)
-        // expect(decoded).to(sortedEqual(expected))
-
-        // let encoded = try String(data: encoder.encode(expected), encoding: .utf8)
-        // expect(encoded).to(cleanEqual(json))
-    }
+//    func testDocumentIsCodable() throws {
+//         let encoder = JSONEncoder()
+//         let decoder = JSONDecoder()
+//
+//         let json = """
+//         {
+//             "name": "Durian",
+//             "points": 600,
+//             "pointsDouble": 600.5,
+//             "description": "A fruit with a distinctive scent.",
+//             "array": ["a", "b", "c"],
+//             "doc": { "x" : 2.0 }
+//         }
+//         """
+//
+//         let expected: BSONDocument = [
+//             "name": "Durian",
+//             "points": 600,
+//             "pointsDouble": 600.5,
+//             "description": "A fruit with a distinctive scent.",
+//             "array": ["a", "b", "c"],
+//             "doc": BSON.document(["x": 2])
+//         ]
+//
+//         let decoded = try decoder.decode(BSONDocument.self, from: json.data(using: .utf8)!)
+//         expect(decoded).to(sortedEqual(expected))
+//
+//         let encoded = try String(data: encoder.encode(expected), encoding: .utf8)
+//         expect(encoded).to(cleanEqual(json))
+//    }
 
     func testEncodeArray() throws {
         let encoder = BSONEncoder()
@@ -544,61 +563,63 @@ final class CodecTests: BSONTestCase {
     func testBSONIsBSONCodable() throws {
         let encoder = BSONEncoder()
         let decoder = BSONDecoder()
+        let extendedJSONDecoder = ExtendedJSONDecoder()
 
         // standalone document
         let doc: BSONDocument = ["y": 1]
         let bsonDoc = BSON.document(doc)
         expect(try encoder.encode(bsonDoc)).to(equal(doc))
         expect(try decoder.decode(BSON.self, from: doc)).to(equal(bsonDoc))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(BSON.self, from: doc.toCanonicalExtendedJSONString())).to(equal(bsonDoc))
-        // doc wrapped in a struct
+        expect(try extendedJSONDecoder.decode(BSON.self, from: doc.toCanonicalExtendedJSONString().data(using: .utf8)!))
+            .to(equal(bsonDoc))
 
+        // doc wrapped in a struct
         let wrappedDoc: BSONDocument = ["x": bsonDoc]
         expect(try encoder.encode(AnyBSONStruct(bsonDoc))).to(equal(wrappedDoc))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDoc).x).to(equal(bsonDoc))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(
-        //     AnyBSONStruct.self,
-        //     from: wrappedDoc.toCanonicalExtendedJSONString()
-        // ).x).to(equal(bsonDoc))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedDoc.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(bsonDoc))
 
         // values wrapped in an `AnyBSONStruct`
         let double: BSON = 42.0
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(BSON.self, from: "{\"$numberDouble\": \"42\"}")).to(equal(double))
+        expect(try extendedJSONDecoder.decode(BSON.self, from: "{\"$numberDouble\": \"42\"}".data(using: .utf8)!))
+            .to(equal(double))
 
         let wrappedDouble: BSONDocument = ["x": double]
         expect(try encoder.encode(AnyBSONStruct(double))).to(equal(wrappedDouble))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDouble).x).to(equal(double))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDouble.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(double))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedDouble.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x)
+            .to(equal(double))
 
         // string
         let string: BSON = "hi"
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(BSON.self, from: "\"hi\"")).to(equal(string))
+        expect(try extendedJSONDecoder.decode(BSON.self, from: "\"hi\"".data(using: .utf8)!)).to(equal(string))
 
         let wrappedString: BSONDocument = ["x": string]
         expect(try encoder.encode(AnyBSONStruct(string))).to(equal(wrappedString))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedString).x).to(equal(string))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedString.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(string))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedString.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x)
+            .to(equal(string))
 
         // array
         let array: BSON = [1, 2, "hello"]
 
-        // TODO: SWIFT-930 unskip
-        // let decodedArray = try decoder.decode(
-        //     BSON.self,
-        //     from: "[{\"$numberLong\": \"1\"}, {\"$numberLong\": \"2\"}, \"hello\"]"
-        // ).arrayValue
-        // expect(decodedArray).toNot(beNil())
-        // expect(decodedArray?[0]).to(equal(1))
-        // expect(decodedArray?[1]).to(equal(2))
-        // expect(decodedArray?[2]).to(equal("hello"))
+        let decodedArray = try extendedJSONDecoder.decode(
+            BSON.self,
+            from: "[{\"$numberLong\": \"1\"}, {\"$numberLong\": \"2\"}, \"hello\"]".data(using: .utf8)!
+        ).arrayValue
+        expect(decodedArray).toNot(beNil())
+        expect(decodedArray?[0]).to(equal(1))
+        expect(decodedArray?[1]).to(equal(2))
+        expect(decodedArray?[2]).to(equal("hello"))
 
         let wrappedArray: BSONDocument = ["x": array]
         expect(try encoder.encode(AnyBSONStruct(array))).to(equal(wrappedArray))
@@ -610,63 +631,64 @@ final class CodecTests: BSONTestCase {
         // binary
         let binary = BSON.binary(try BSONBinary(base64: "//8=", subtype: .generic))
 
-        // TODO: SWIFT-930 unskip
-        // expect(
-        //     try decoder.decode(
-        //         BSON.self,
-        //         from: "{\"$binary\" : {\"base64\": \"//8=\", \"subType\" : \"00\"}}"
-        //     )
-        // ).to(equal(binary))
+        expect(
+            try extendedJSONDecoder.decode(
+                BSON.self,
+                from: "{\"$binary\" : {\"base64\": \"//8=\", \"subType\" : \"00\"}}".data(using: .utf8)!
+            )
+        ).to(equal(binary))
 
         let wrappedBinary: BSONDocument = ["x": binary]
         expect(try encoder.encode(AnyBSONStruct(binary))).to(equal(wrappedBinary))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedBinary).x).to(equal(binary))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(
-        //     AnyBSONStruct.self,
-        //     from: wrappedBinary.toCanonicalExtendedJSONString()
-        // ).x).to(equal(binary))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedBinary.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(binary))
 
         // BSONObjectID
         let oid = BSONObjectID()
         let bsonOid = BSON.objectID(oid)
 
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(BSON.self, from: "{\"$oid\": \"\(oid.hex)\"}")).to(equal(bsonOid))
+        expect(try extendedJSONDecoder.decode(BSON.self, from: "{\"$oid\": \"\(oid.hex)\"}".data(using: .utf8)!))
+            .to(equal(bsonOid))
 
         let wrappedOid: BSONDocument = ["x": bsonOid]
         expect(try encoder.encode(AnyBSONStruct(bsonOid))).to(equal(wrappedOid))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedOid).x).to(equal(bsonOid))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedOid.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(bsonOid))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedOid.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(bsonOid))
 
         // bool
         let bool: BSON = true
 
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(BSON.self, from: "true")).to(equal(bool))
+        expect(try extendedJSONDecoder.decode(BSON.self, from: "true".data(using: .utf8)!)).to(equal(bool))
 
         let wrappedBool: BSONDocument = ["x": bool]
         expect(try encoder.encode(AnyBSONStruct(bool))).to(equal(wrappedBool))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedBool).x).to(equal(bool))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedBool.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(bool))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedBool.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(bool))
 
         // date
         let date = BSON.datetime(Date(timeIntervalSince1970: 5000))
 
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(BSON.self, from: "{ \"$date\" : { \"$numberLong\" : \"5000000\" } }"))
-        // .to(equal(date))
+        expect(try extendedJSONDecoder.decode(
+            BSON.self,
+            from: "{ \"$date\" : { \"$numberLong\" : \"5000000\" } }".data(using: .utf8)!
+        )).to(equal(date))
 
         let wrappedDate: BSONDocument = ["x": date]
         expect(try encoder.encode(AnyBSONStruct(date))).to(equal(wrappedDate))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDate).x).to(equal(date))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDate.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(date))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedDate.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(date))
 
         let dateEncoder = BSONEncoder()
         dateEncoder.dateEncodingStrategy = .millisecondsSince1970
@@ -679,114 +701,124 @@ final class CodecTests: BSONTestCase {
         // regex
         let regex = BSON.regex(BSONRegularExpression(pattern: "abc", options: "imx"))
 
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(
-        //     BSON.self,
-        //     from: "{ \"$regularExpression\" : { \"pattern\" : \"abc\", \"options\" : \"imx\" } }"
-        // )
-        // ).to(equal(regex))
+        expect(try extendedJSONDecoder.decode(
+            BSON.self,
+            from: "{ \"$regularExpression\" : { \"pattern\" : \"abc\", \"options\" : \"imx\" } }".data(using: .utf8)!
+        )
+        ).to(equal(regex))
 
         let wrappedRegex: BSONDocument = ["x": regex]
         expect(try encoder.encode(AnyBSONStruct(regex))).to(equal(wrappedRegex))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedRegex).x).to(equal(regex))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedRegex.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(regex))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedRegex.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(regex))
 
         // codewithscope
         let code = BSON.codeWithScope(BSONCodeWithScope(code: "console.log(x);", scope: ["x": 1]))
 
-        // TODO: SWIFT-930 unskip
-        // expect(
-        //     try decoder.decode(
-        //         BSON.self,
-        //         from: "{ \"$code\" : \"console.log(x);\", "
-        //             + "\"$scope\" : { \"x\" : { \"$numberLong\" : \"1\" } } }"
-        //     )
-        // ).to(equal(code))
+        expect(
+            try extendedJSONDecoder.decode(
+                BSON.self,
+                from: ("{ \"$code\" : \"console.log(x);\", "
+                    + "\"$scope\" : { \"x\" : { \"$numberLong\" : \"1\" } } }").data(using: .utf8)!
+            )
+        ).to(equal(code))
 
         let wrappedCode: BSONDocument = ["x": code]
         expect(try encoder.encode(AnyBSONStruct(code))).to(equal(wrappedCode))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedCode).x).to(equal(code))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedCode.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(code))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedCode.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(code))
 
         // int32
         let int32 = BSON.int32(5)
 
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(BSON.self, from: "{ \"$numberInt\" : \"5\" }")).to(equal(int32))
+        expect(try extendedJSONDecoder.decode(BSON.self, from: "{ \"$numberInt\" : \"5\" }".data(using: .utf8)!))
+            .to(equal(int32))
 
         let wrappedInt32: BSONDocument = ["x": int32]
         expect(try encoder.encode(AnyBSONStruct(int32))).to(equal(wrappedInt32))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt32).x).to(equal(int32))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt32.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(int32))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedInt32.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(int32))
 
         // int
         let int: BSON = 5
 
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(BSON.self, from: "{ \"$numberLong\" : \"5\" }")).to(equal(int))
+        expect(try extendedJSONDecoder.decode(BSON.self, from: "{ \"$numberLong\" : \"5\" }".data(using: .utf8)!))
+            .to(equal(int))
 
         let wrappedInt: BSONDocument = ["x": int]
         expect(try encoder.encode(AnyBSONStruct(int))).to(equal(wrappedInt))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt).x).to(equal(int))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(int))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedInt.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(int))
 
         // int64
         let int64 = BSON.int64(5)
 
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(BSON.self, from: "{\"$numberLong\":\"5\"}")).to(equal(int64))
+        expect(try extendedJSONDecoder.decode(BSON.self, from: "{\"$numberLong\":\"5\"}".data(using: .utf8)!))
+            .to(equal(int64))
 
         let wrappedInt64: BSONDocument = ["x": int64]
         expect(try encoder.encode(AnyBSONStruct(int64))).to(equal(wrappedInt64))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt64).x).to(equal(int64))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedInt64.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(int64))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedInt64.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(int64))
 
-        // // decimal128
-        // let decimal = BSON.decimal128(try BSONDecimal128("1.2E+10"))
+        // decimal128
+        let decimal = BSON.decimal128(try BSONDecimal128("1.2E+10"))
 
-        // expect(try decoder.decode(BSON.self, from: "{ \"$numberDecimal\" : \"1.2E+10\" }")).to(equal(decimal))
+        expect(try extendedJSONDecoder.decode(
+            BSON.self,
+            from: "{ \"$numberDecimal\" : \"1.2E+10\" }".data(using: .utf8)!
+        )).to(equal(decimal))
 
-        // let wrappedDecimal: BSONDocument = ["x": decimal]
-        // expect(try encoder.encode(AnyBSONStruct(decimal))).to(equal(wrappedDecimal))
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDecimal).x).to(equal(decimal))
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDecimal.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(decimal))
+        let wrappedDecimal: BSONDocument = ["x": decimal]
+        expect(try encoder.encode(AnyBSONStruct(decimal))).to(equal(wrappedDecimal))
+        expect(try decoder.decode(AnyBSONStruct.self, from: wrappedDecimal).x).to(equal(decimal))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedDecimal.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(decimal))
 
         // maxkey
         let maxKey = BSON.maxKey
 
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(BSON.self, from: "{ \"$maxKey\" : 1 }")).to(equal(maxKey))
+        expect(try extendedJSONDecoder.decode(BSON.self, from: "{ \"$maxKey\" : 1 }".data(using: .utf8)!))
+            .to(equal(maxKey))
 
         let wrappedMaxKey: BSONDocument = ["x": maxKey]
         expect(try encoder.encode(AnyBSONStruct(maxKey))).to(equal(wrappedMaxKey))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedMaxKey).x).to(equal(maxKey))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedMaxKey.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(maxKey))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedMaxKey.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(maxKey))
 
         // minkey
         let minKey = BSON.minKey
 
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(BSON.self, from: "{ \"$minKey\" : 1 }")).to(equal(minKey))
+        expect(try extendedJSONDecoder.decode(BSON.self, from: "{ \"$minKey\" : 1 }".data(using: .utf8)!))
+            .to(equal(minKey))
 
         let wrappedMinKey: BSONDocument = ["x": minKey]
         expect(try encoder.encode(AnyBSONStruct(minKey))).to(equal(wrappedMinKey))
         expect(try decoder.decode(AnyBSONStruct.self, from: wrappedMinKey).x).to(equal(minKey))
-        // TODO: SWIFT-930 unskip
-        // expect(try decoder.decode(AnyBSONStruct.self, from: wrappedMinKey.toCanonicalExtendedJSONString()).x)
-        //     .to(equal(minKey))
+        expect(try extendedJSONDecoder.decode(
+            AnyBSONStruct.self,
+            from: wrappedMinKey.toCanonicalExtendedJSONString().data(using: .utf8)!
+        ).x).to(equal(minKey))
 
         // BSONNull
         expect(try decoder.decode(AnyBSONStruct.self, from: ["x": .null]).x).to(equal(BSON.null))

@@ -115,6 +115,50 @@ public struct BSONDocument {
         }
     }
 
+    /**
+     * Constructs a new `BSONDocument` from the provided JSON text.
+     *
+     * - Parameters:
+     *   - fromJSON: a JSON document as `Data` to parse into a `BSONDocument`
+     *
+     * - Returns: the parsed `BSONDocument`
+     *
+     * - Throws: `DecodingError` if `json` is a partial match or is malformed.
+     */
+    public init(fromJSON json: Data) throws {
+        let decoder = ExtendedJSONDecoder()
+        self = try decoder.decode(BSONDocument.self, from: json)
+    }
+
+    /// Convenience initializer for constructing a `BSONDocument` from a `String`.
+    /// - Throws: `DecodingError` if `json` is a partial match or is malformed.
+    public init(fromJSON json: String) throws {
+        // `String`s are Unicode under the hood so force unwrap always succeeds.
+        // see https://www.objc.io/blog/2018/02/13/string-to-data-and-back/
+        try self.init(fromJSON: json.data(using: .utf8)!) // swiftlint:disable:this force_unwrapping
+    }
+
+    /// Returns the relaxed extended JSON representation of this `BSONDocument`.
+    /// On error, an empty string will be returned.
+    public func toExtendedJSONString() -> String {
+        let encoder = ExtendedJSONEncoder()
+        guard let encoded = try? encoder.encode(self) else {
+            return ""
+        }
+        return String(data: encoded, encoding: .utf8) ?? ""
+    }
+
+    /// Returns the canonical extended JSON representation of this `BSONDocument`.
+    /// On error, an empty string will be returned.
+    public func toCanonicalExtendedJSONString() -> String {
+        let encoder = ExtendedJSONEncoder()
+        encoder.mode = .canonical
+        guard let encoded = try? encoder.encode(self) else {
+            return ""
+        }
+        return String(data: encoded, encoding: .utf8) ?? ""
+    }
+
     /// The keys in this `BSONDocument`.
     public var keys: [String] { self.map { key, _ in key } }
 
