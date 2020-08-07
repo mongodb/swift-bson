@@ -195,7 +195,7 @@ public class BSONDecoder {
                     debugDescription: "Unable to parse JSON string \(json)"
                 ))
         }
-        return try self.decode(T.self, fromBSON: try decoder.decode(BSON.self, from: jsonData))
+        return try decoder.decode(T.self, from: jsonData)
     }
 
     /// A struct to wrap a `Decodable` type, allowing us to support decoding to types that
