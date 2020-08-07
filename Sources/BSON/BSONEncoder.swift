@@ -217,6 +217,9 @@ public class BSONEncoder {
             if let mutableDict = boxedValue as? MutableDictionary {
                 return .document(try mutableDict.toDocument())
             }
+            if let mutableArray = boxedValue as? MutableArray {
+                return .array(try mutableArray.toBSONArray())
+            }
             return boxedValue.bson
         } catch let error as BSONErrorProtocol {
             throw EncodingError.invalidValue(
