@@ -14,11 +14,35 @@ public class ExtendedJSONEncoder {
         case relaxed
     }
 
+    /// The output formatting options that determine the readability, size, and element order of an encoded JSON object.
+    public struct OutputFormatting: OptionSet {
+        internal let value: JSONEncoder.OutputFormatting
+
+        public var rawValue: UInt { self.value.rawValue }
+
+        public init(rawValue: UInt) {
+            self.value = JSONEncoder.OutputFormatting(rawValue: rawValue)
+        }
+
+        internal init(_ value: JSONEncoder.OutputFormatting) {
+            self.value = value
+        }
+
+        /// Produce human-readable JSON with indented output.
+        public static let prettyPrinted = OutputFormatting(.prettyPrinted)
+
+        /// Produce JSON with dictionary keys sorted in lexicographic order.
+        public static let sortedKeys = OutputFormatting(.sortedKeys)
+    }
+
     /// Determines whether to encode to canonical or relaxed extended JSON. Default is relaxed.
     public var mode: Mode = .relaxed
 
     /// Contextual user-provided information for use during encoding.
     public var userInfo: [CodingUserInfoKey: Any] = [:]
+
+    /// A value that determines the readability, size, and element order of the encoded JSON object.
+    public var outputFormatting: ExtendedJSONEncoder.OutputFormatting = []
 
     /// Initialize an `ExtendedJSONEncoder`.
     public init() {}
@@ -50,6 +74,8 @@ public class ExtendedJSONEncoder {
             json = bson.bsonValue.toRelaxedExtendedJSON()
         }
 
-        return try JSONEncoder().encode(json)
+        let jsonEncoder = JSONEncoder()
+        jsonEncoder.outputFormatting = self.outputFormatting.value
+        return try jsonEncoder.encode(json)
     }
 }
