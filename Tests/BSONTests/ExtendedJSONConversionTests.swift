@@ -41,6 +41,48 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(decoded).to(equal(test))
     }
 
+    func testExtendedJSONDecodingWithUserInfo() throws {
+        struct Foo: Decodable, Equatable {
+            let val: BSON
+            let bar: Bar
+
+            init(from decoder: Decoder) throws {
+                guard let info = decoder.userInfo[.barInfo] as? BSON else {
+                    throw TestError(message: "userInfo not present")
+                }
+                self.val = info
+
+                // test userinfo is propogated to sub containers
+                let container = try decoder.singleValueContainer()
+                self.bar = try container.decode(Bar.self)
+            }
+        }
+
+        struct Bar: Decodable, Equatable {
+            let val: BSON
+
+            init(from decoder: Decoder) throws {
+                guard let info = decoder.userInfo[.barInfo] as? BSON else {
+                    throw TestError(message: "userInfo not present")
+                }
+                self.val = info
+            }
+        }
+
+        let obj = "{}".data(using: .utf8)!
+        let decoder = ExtendedJSONDecoder()
+
+        decoder.userInfo[.barInfo] = BSON.bool(true)
+        let boolDecoded = try decoder.decode(Foo.self, from: obj)
+        expect(boolDecoded.val).to(equal(true))
+        expect(boolDecoded.bar.val).to(equal(true))
+
+        decoder.userInfo[.barInfo] = BSON.string("hello world")
+        let stringDecoded = try decoder.decode(Foo.self, from: obj)
+        expect(stringDecoded.val).to(equal("hello world"))
+        expect(stringDecoded.bar.val).to(equal("hello world"))
+    }
+
     func testExtendedJSONEncodingWithUserInfo() throws {
         struct Foo: Codable, Equatable {
             func encode(to encoder: Encoder) throws {
