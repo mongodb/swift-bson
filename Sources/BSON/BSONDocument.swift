@@ -142,6 +142,7 @@ public struct BSONDocument {
     /// On error, an empty string will be returned.
     public func toExtendedJSONString() -> String {
         let encoder = ExtendedJSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted]
         guard let encoded = try? encoder.encode(self) else {
             return ""
         }
@@ -153,6 +154,7 @@ public struct BSONDocument {
     public func toCanonicalExtendedJSONString() -> String {
         let encoder = ExtendedJSONEncoder()
         encoder.mode = .canonical
+        encoder.outputFormatting = [.prettyPrinted]
         guard let encoded = try? encoder.encode(self) else {
             return ""
         }
@@ -461,4 +463,8 @@ extension BSONDocument: BSONValue {
         var doc = ByteBuffer(self.storage.buffer.readableBytesView)
         buffer.writeBuffer(&doc)
     }
+}
+
+extension BSONDocument: CustomStringConvertible {
+    public var description: String { self.toExtendedJSONString() }
 }

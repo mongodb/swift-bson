@@ -103,6 +103,41 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(String(data: fooEncoded, encoding: .utf8)).to(contain("false"))
     }
 
+    func testOutputFormatting() throws {
+        let encoder = ExtendedJSONEncoder()
+        let input: BSONDocument = ["topLevel": ["hello": "world"]]
+
+        let defaultFormat = String(data: try encoder.encode(input), encoding: .utf8)
+        expect(defaultFormat).to(equal("{\"topLevel\":{\"hello\":\"world\"}}"))
+
+        encoder.outputFormatting = [.prettyPrinted]
+        let prettyPrint = String(data: try encoder.encode(input), encoding: .utf8)
+        let prettyOutput = """
+        {
+          "topLevel" : {
+            "hello" : "world"
+          }
+        }
+        """
+        expect(prettyPrint).to(equal(prettyOutput))
+
+        let multiKeyInput: BSONDocument = ["x": 1, "a": 2]
+
+        encoder.outputFormatting = [.sortedKeys]
+        let sorted = String(data: try encoder.encode(multiKeyInput), encoding: .utf8)
+        expect(sorted).to(equal("{\"a\":2,\"x\":1}"))
+
+        encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
+        let both = String(data: try encoder.encode(multiKeyInput), encoding: .utf8)
+        let sortedPrettyOutput = """
+        {
+          \"a\" : 2,
+          \"x\" : 1
+        }
+        """
+        expect(both).to(equal(sortedPrettyOutput))
+    }
+
     func testAnyExtJSON() throws {
         // Success cases
         expect(try BSON(fromExtJSON: "hello", keyPath: [])).to(equal(BSON.string("hello")))
@@ -303,8 +338,18 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(try BSONDocument(fromJSON: "{\"key\": {\"$numberInt\": \"5\"}}".data(using: .utf8)!))
             .to(equal(["key": .int32(5)]))
 
-        let canonicalExtJSON = "{\"key\":{\"$numberInt\":\"5\"}}"
-        let relaxedExtJSON = "{\"key\":5}"
+        let canonicalExtJSON = """
+        {
+          "key" : {
+            "$numberInt" : "5"
+          }
+        }
+        """
+        let relaxedExtJSON = """
+        {
+          "key" : 5
+        }
+        """
         let canonicalDoc = try BSONDocument(fromJSON: canonicalExtJSON)
         let relaxedDoc = try BSONDocument(fromJSON: relaxedExtJSON)
         expect(canonicalDoc).to(equal(["key": .int32(5)]))
