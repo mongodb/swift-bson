@@ -107,11 +107,11 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         let encoder = ExtendedJSONEncoder()
         let input: BSONDocument = ["topLevel": ["hello": "world"]]
 
-        let defaultFormat = String(data: try encoder.encode(input), encoding: .utf8) ?? ""
+        let defaultFormat = String(data: try encoder.encode(input), encoding: .utf8)
         expect(defaultFormat).to(equal("{\"topLevel\":{\"hello\":\"world\"}}"))
 
         encoder.outputFormatting = [.prettyPrinted]
-        let prettyPrint = String(data: try encoder.encode(input), encoding: .utf8) ?? ""
+        let prettyPrint = String(data: try encoder.encode(input), encoding: .utf8)
         let prettyOutput = """
         {
           "topLevel" : {
@@ -124,11 +124,11 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         let multiKeyInput: BSONDocument = ["x": 1, "a": 2]
 
         encoder.outputFormatting = [.sortedKeys]
-        let sorted = String(data: try encoder.encode(multiKeyInput), encoding: .utf8) ?? ""
+        let sorted = String(data: try encoder.encode(multiKeyInput), encoding: .utf8)
         expect(sorted).to(equal("{\"a\":2,\"x\":1}"))
 
         encoder.outputFormatting = [.sortedKeys, .prettyPrinted]
-        let both = String(data: try encoder.encode(multiKeyInput), encoding: .utf8) ?? ""
+        let both = String(data: try encoder.encode(multiKeyInput), encoding: .utf8)
         let sortedPrettyOutput = """
         {
           \"a\" : 2,
