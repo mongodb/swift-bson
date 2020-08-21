@@ -45,12 +45,12 @@ extension Int32: BSONValue {
     }
 
     /// Converts this `Int32` to a corresponding `JSON` in relaxed extendedJSON format.
-    func toRelaxedExtendedJSON() -> JSON {
+    internal func toRelaxedExtendedJSON() -> JSON {
         .number(Double(self))
     }
 
     /// Converts this `Int32` to a corresponding `JSON` in canonical extendedJSON format.
-    func toCanonicalExtendedJSON() -> JSON {
+    internal func toCanonicalExtendedJSON() -> JSON {
         ["$numberInt": .string(String(describing: self))]
     }
 
@@ -115,12 +115,12 @@ extension Int64: BSONValue {
     }
 
     /// Converts this `Int64` to a corresponding `JSON` in relaxed extendedJSON format.
-    func toRelaxedExtendedJSON() -> JSON {
+    internal func toRelaxedExtendedJSON() -> JSON {
         .number(Double(self))
     }
 
     /// Converts this `Int64` to a corresponding `JSON` in canonical extendedJSON format.
-    func toCanonicalExtendedJSON() -> JSON {
+    internal func toCanonicalExtendedJSON() -> JSON {
         ["$numberLong": .string(String(describing: self))]
     }
 

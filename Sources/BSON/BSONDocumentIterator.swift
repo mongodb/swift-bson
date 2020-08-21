@@ -1,6 +1,8 @@
 import Foundation
 import NIO
 
+/// Iterator over a `BSONDocument`. This type is not meant to be used directly; please use `Sequence` protocol methods
+/// instead.
 public struct BSONDocumentIterator: IteratorProtocol {
     /// The buffer we are iterating over.
     private var buffer: ByteBuffer

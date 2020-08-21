@@ -39,7 +39,7 @@ swiftenv local $SWIFT_VERSION
 
 if [ $1 == "swiftlint" ]
 then
-    build_from_gh swiftlint https://github.com/realm/SwiftLint "0.39.2"
+    build_from_gh swiftlint https://github.com/realm/SwiftLint "0.40.0"
 elif [ $1 == "swiftformat" ]
 then
     build_from_gh swiftformat https://github.com/nicklockwood/SwiftFormat "0.44.13"

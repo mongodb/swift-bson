@@ -118,6 +118,7 @@ internal struct UInt128: Equatable, Hashable {
     }
 }
 
+/// A struct to represent the BSON Decimal128 type.
 public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
     // swiftlint:disable line_length
     private static let digitsRegex = #"(?:\d+)"#
@@ -182,6 +183,8 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
         self.value = value
     }
 
+    /// Initializes a new `BSONDecimal128` from the input string.
+    /// - Throws: `BSONError.InvalidArgumentError` if the input is not a valid Decimal128 string.
     public init(_ data: String) throws {
         // swiftlint:disable:previous cyclomatic_complexity
         let regex = try NSRegularExpression(
