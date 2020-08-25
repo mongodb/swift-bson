@@ -1,5 +1,8 @@
 import NIO
 
+/// A struct to represent the BSON Timestamp type. This type is for internal MongoDB use. For most cases, in
+/// application development, you should use the BSON date type (represented in this library by `Date`.)
+/// - SeeAlso: https://docs.mongodb.com/manual/reference/bson-types/#timestamps
 public struct BSONTimestamp: BSONValue, Equatable, Hashable {
     internal static var bsonType: BSONType { .timestamp }
     internal var bson: BSON { .timestamp(self) }
