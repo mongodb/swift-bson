@@ -251,10 +251,11 @@ final class BSONCorpusTests: BSONTestCase {
                         expect(try decoder.decode(BSONDocument.self, from: testData))
                             .to(throwError(errorType: DecodingError.self), description: description)
                     case .decimal128:
-                        continue // TODO: SWIFT-968
+                        expect(try BSONDecimal128(test.string))
+                            .to(throwError(), description: description)
                     default:
                         throw TestError(
-                            message: "\(description): parse error tests not implemented"
+                            message: "\(description): parse error tests not implemented "
                                 + "for bson type \(testFile.bsonType)"
                         )
                     }
