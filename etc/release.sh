@@ -6,7 +6,7 @@
 set -e
 
 # ensure we are on master before releasing
-#git checkout master
+git checkout master
 
 version=${1}
 # Ensure version is non-empty
