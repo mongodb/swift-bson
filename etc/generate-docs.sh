@@ -11,6 +11,9 @@ fi
 
 version=${1}
 
+# Ensure version is non-empty
+[ ! -z "${version}" ] || { echo "ERROR: Missing version string"; exit 1; }
+
 jazzy_args=(--clean
             --author "Neal Beeken, Nellie Spektor, Patrick Freed, and Kaitlin Mahar" 
             --readme "etc/docs-main.md" 
