@@ -1,4 +1,4 @@
-import BSON
+import SwiftBSON
 import Foundation
 import Nimble
 import NIO
@@ -77,25 +77,25 @@ func toByteString(_ bytes: [UInt8]?, ascii: Bool = false) -> String {
 
 public extension Data {
     func toByteString(ascii: Bool = true) -> String {
-        BSONTests.toByteString([UInt8](self), ascii: ascii)
+        SwiftBSONTests.toByteString([UInt8](self), ascii: ascii)
     }
 }
 
 public extension Array where Element == UInt8 {
     func toByteString(ascii: Bool = true) -> String {
-        BSONTests.toByteString(self, ascii: ascii)
+        SwiftBSONTests.toByteString(self, ascii: ascii)
     }
 }
 
 public extension ByteBuffer {
     func toByteString(ascii: Bool = true) -> String {
-        BSONTests.toByteString(self.getBytes(at: 0, length: self.readableBytes), ascii: ascii)
+        SwiftBSONTests.toByteString(self.getBytes(at: 0, length: self.readableBytes), ascii: ascii)
     }
 }
 
 public extension BSONDocument {
     func toByteString(ascii: Bool = true) -> String {
-        BSONTests.toByteString(self.buffer.getBytes(at: 0, length: self.buffer.readableBytes), ascii: ascii)
+        SwiftBSONTests.toByteString(self.buffer.getBytes(at: 0, length: self.buffer.readableBytes), ascii: ascii)
     }
 }
 

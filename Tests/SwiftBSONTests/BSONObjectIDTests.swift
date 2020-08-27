@@ -1,4 +1,4 @@
-@testable import BSON
+@testable import SwiftBSON
 import Foundation
 import Nimble
 
