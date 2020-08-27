@@ -298,7 +298,7 @@ public struct BSONDocument {
         self.storage = newStorage
         self.byteLength = newSize
         guard self.byteLength == self.storage.buffer.readableBytes else {
-            fatalError("BSONDocument's encoded byte length is \(self.byteLength) however the" +
+            fatalError("BSONDocument's encoded byte length is \(self.byteLength), however the " +
                 "buffer has \(self.storage.buffer.readableBytes) readable bytes")
         }
     }
