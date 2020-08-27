@@ -1,6 +1,6 @@
-@testable import SwiftBSON
 import Foundation
 import Nimble
+@testable import SwiftBSON
 import XCTest
 
 final class DocumentTests: BSONTestCase {

@@ -1,7 +1,7 @@
-import SwiftBSON
 import Foundation
 import Nimble
 import NIO
+import SwiftBSON
 import XCTest
 
 open class BSONTestCase: XCTestCase {

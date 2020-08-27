@@ -1,6 +1,6 @@
-@testable import SwiftBSON
 import Foundation
 import Nimble
+@testable import SwiftBSON
 import XCTest
 
 /// Cleans and normalizes given JSON Data for comparison purposes

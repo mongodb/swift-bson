@@ -1,5 +1,5 @@
-@testable import SwiftBSON
 import Nimble
+@testable import SwiftBSON
 import XCTest
 
 final class CodecTests: BSONTestCase {
