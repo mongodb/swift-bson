@@ -28,13 +28,18 @@ jazzy_args=(--clean
 modules=( BSON )
 
 for module in "${modules[@]}"; do
-  args=("${jazzy_args[@]}"  --output "docs/${module}" --module "${module}" 
+  args=("${jazzy_args[@]}"  --output "docs-temp/${module}" --module "${module}" 
         --root-url "https://mongodb.github.io/swift-bson/docs/${module}/")
   jazzy "${args[@]}"
 done
 
 # switch to docs branch to commit and push
 git checkout gh-pages
+
+rm -rf docs/*
+cp -r docs-temp/* docs/
+rm -rf docs-temp
+
 git add docs/
 git commit -m "${version} docs"
 git push
