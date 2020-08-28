@@ -42,7 +42,7 @@ let package = Package(
         .package(url: "https://github.com/mongodb/swift-bson.git", from: "VERSION.STRING.HERE"),
     ],
     targets: [
-        .target(name: "MyTarget", dependencies: ["BSON"])
+        .target(name: "MyTarget", dependencies: ["SwiftBSON"])
     ]
 )
 ```
@@ -52,6 +52,8 @@ let package = Package(
 ### Work With and Modify Documents
 
 ```swift
+import SwiftBSON
+
 var doc: BSONDocument = ["a": 1, "b": 2, "c": 3]
 
 print(doc) // prints `{"a" : 1, "b" : 2, "c" : 3}`

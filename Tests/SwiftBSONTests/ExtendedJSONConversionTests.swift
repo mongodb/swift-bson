@@ -1,7 +1,7 @@
-@testable import BSON
 import Foundation
 import Nimble
 import NIO
+@testable import SwiftBSON
 import XCTest
 
 extension CodingUserInfoKey {
