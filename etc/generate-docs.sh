@@ -34,6 +34,7 @@ for module in "${modules[@]}"; do
 done
 
 # switch to docs branch to commit and push
+git stash
 git checkout gh-pages
 
 rm -rf docs/*
@@ -41,6 +42,10 @@ cp -r docs-temp/* docs/
 rm -rf docs-temp
 
 git add docs/
+
+echo '<html><head><meta http-equiv="refresh" content="0; url=BSON/index.html" /></head></html>' > docs/index.html
+git add docs/index.html
+
 git commit -m "${version} docs"
 git push
 
