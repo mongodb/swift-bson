@@ -259,7 +259,7 @@ public struct BSONDocument {
             return
         }
 
-        var iter = BSONDocumentIterator(over: self.storage.buffer)
+        let iter = BSONDocumentIterator(over: self.storage.buffer)
 
         guard let range = iter.findByteRange(for: key) else {
             throw BSONError.InternalError(message: "Cannot find \(key) to delete")
@@ -342,7 +342,7 @@ public struct BSONDocument {
                 )
             }
 
-            var iter = BSONDocumentIterator(over: self.buffer)
+            let iter = BSONDocumentIterator(over: self.buffer)
             // Implicitly validate with iterator
             do {
                 while let (_, value) = try iter.nextThrowing() {

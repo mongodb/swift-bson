@@ -6,14 +6,14 @@ import XCTest
 final class DocumentIteratorTests: BSONTestCase {
     func testFindByteRangeEmpty() {
         let d: BSONDocument = [:]
-        var iter = d.makeIterator()
+        let iter = d.makeIterator()
         let range = iter.findByteRange(for: "item")
         expect(range).to(beNil())
     }
 
     func testFindByteRangeItemsInt32() {
         let d: BSONDocument = ["item0": .int32(32), "item1": .int32(32)]
-        var iter = d.makeIterator()
+        let iter = d.makeIterator()
         let maybeRange = iter.findByteRange(for: "item1")
 
         expect(maybeRange).toNot(beNil())
