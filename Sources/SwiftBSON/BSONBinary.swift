@@ -10,7 +10,7 @@ public struct BSONBinary: Equatable, Hashable {
     public let subtype: Subtype
 
     /// Subtypes for BSON Binary values.
-    public struct Subtype: Equatable, Hashable, RawRepresentable {
+    public struct Subtype: Equatable, Hashable, RawRepresentable, Codable {
         // swiftlint:disable force_unwrapping
         /// Generic binary subtype
         public static let generic = Subtype(rawValue: 0x00)!
