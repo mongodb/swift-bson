@@ -38,7 +38,7 @@ extension BSONDocument: Collection {
         // criticism also applies to key-based subscripting via `String`.
         // See SWIFT-250.
         self.failIndexCheck(position)
-        var iter = BSONDocumentIterator(over: self)
+        let iter = BSONDocumentIterator(over: self)
 
         for pos in 0..<position {
             guard (try? iter.nextThrowing()) != nil else {

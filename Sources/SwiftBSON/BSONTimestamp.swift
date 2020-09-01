@@ -18,6 +18,12 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
         self.increment = inc
     }
 
+    /// Initializes a new  `BSONTimestamp` with the provided `timestamp` and `increment` values. Assumes
+    /// the values can successfully be converted to `UInt32`s without loss of precision.
+    public init(timestamp: Int, inc: Int) {
+        self.init(timestamp: UInt32(timestamp), inc: UInt32(inc))
+    }
+
     /*
      * Initializes a `BSONTimestamp` from ExtendedJSON.
      *

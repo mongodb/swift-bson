@@ -21,7 +21,7 @@ final class Document_SequenceTests: BSONTestCase {
         ]
 
         // create and use iter manually
-        var iter = doc.makeIterator()
+        let iter = doc.makeIterator()
 
         let stringTup = iter.next()!
         expect(stringTup.key).to(equal("string"))

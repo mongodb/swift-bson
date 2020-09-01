@@ -3,7 +3,7 @@ import NIO
 
 /// Iterator over a `BSONDocument`. This type is not meant to be used directly; please use `Sequence` protocol methods
 /// instead.
-public struct BSONDocumentIterator: IteratorProtocol {
+public class BSONDocumentIterator: IteratorProtocol {
     /// The buffer we are iterating over.
     private var buffer: ByteBuffer
     private var exhausted: Bool
@@ -15,12 +15,12 @@ public struct BSONDocumentIterator: IteratorProtocol {
         self.buffer.moveReaderIndex(to: 4)
     }
 
-    internal init(over doc: BSONDocument) {
-        self = BSONDocumentIterator(over: doc.buffer)
+    internal convenience init(over doc: BSONDocument) {
+        self.init(over: doc.buffer)
     }
 
     /// Advances to the next element and returns it, or nil if no next element exists.
-    public mutating func next() -> BSONDocument.KeyValuePair? {
+    public func next() -> BSONDocument.KeyValuePair? {
         // The only time this would crash is when the document is incorrectly formatted
         do {
             return try self.nextThrowing()
@@ -34,7 +34,7 @@ public struct BSONDocumentIterator: IteratorProtocol {
      * - Throws:
      *   - `InternalError` if the underlying buffer contains invalid BSON
      */
-    internal mutating func nextThrowing() throws -> BSONDocument.KeyValuePair? {
+    internal func nextThrowing() throws -> BSONDocument.KeyValuePair? {
         guard self.buffer.readableBytes != 0 else {
             // Iteration has been exhausted
             guard self.exhausted else {
@@ -88,7 +88,7 @@ public struct BSONDocumentIterator: IteratorProtocol {
 
     /// Finds the key in the underlying buffer, and returns the [startIndex, endIndex) containing the corresponding
     /// element.
-    internal mutating func findByteRange(for searchKey: String) -> Range<Int>? {
+    internal func findByteRange(for searchKey: String) -> Range<Int>? {
         while true {
             let startIndex = self.buffer.readerIndex
             guard let (key, _) = self.next() else {
@@ -116,7 +116,7 @@ public struct BSONDocumentIterator: IteratorProtocol {
             fatalError("endIndex must be >= startIndex")
         }
 
-        var iter = BSONDocumentIterator(over: doc)
+        let iter = BSONDocumentIterator(over: doc)
 
         var excludedKeys: [String] = []
 
