@@ -1,0 +1,47 @@
+module: SwiftBSON
+author: Neal Beeken, Nellie Spektor, Patrick Freed, and Kaitlin Mahar
+author_url: https://github.com/mongodb/swift-bson
+github_url: https://github.com/mongodb/swift-bson
+theme: fullwidth
+swift_build_tool: spm
+readme: "etc/docs-main.md"
+root_url: https://mongodb.github.io/swift-bson/docs/SwiftBSON/
+documentation: "Guides/*.md"
+
+custom_categories:
+  - name: General Guides
+    children:
+      - BSON-Guide
+      - JSON-Interop
+  - name: BSON Types
+    children:
+      - BSON
+      - BSONType
+      - BSONBinary
+      - BSONCode
+      - BSONCodeWithScope
+      - BSONDBPointer
+      - BSONDecimal128
+      - BSONDocument
+      - BSONObjectID
+      - BSONRegularExpression
+      - BSONSymbol
+      - BSONTimestamp
+  - name: Encoding and Decoding BSON
+    children:
+      - BSONEncoder
+      - BSONDecoder
+      - DataCodingStrategy
+      - DateCodingStrategy
+      - UUIDCodingStrategy
+      - CodingStrategyProvider
+      - BSONCoderOptions
+  - name: Encoding and Decoding Extended JSON
+    children:
+      - ExtendedJSONEncoder
+      - ExtendedJSONDecoder
+  - name: Errors
+    children:
+      - BSONError
+      - BSONErrorProtocol
+
