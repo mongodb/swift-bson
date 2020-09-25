@@ -141,18 +141,37 @@ axes:
       - id: "5.1"
         display_name: "Swift 5.1"
         variables:
-          SWIFT_VERSION: "5.1.4"
+          SWIFT_VERSION: "5.1.5"
       - id: "5.2"
         display_name: "Swift 5.2"
         variables:
-          SWIFT_VERSION: "5.2.4"
+          SWIFT_VERSION: "5.2.5"
+      - id: "5.3"
+        display_name: "Swift 5.3"
+        variables:
+          SWIFT_VERSION: "5.3"
 
 buildvariants:
   - matrix_name: "tests-all"
     display_name: "${swift-version} ${os-fully-featured}"
     matrix_spec:
       os-fully-featured: "*"
-      swift-version: "*"
+      swift-version:
+        - "5.1"
+        - "5.2"
+    tasks:
+      - name: "test"
+
+# define a separate matrix for 5.3 - no way to remove 5.3 + macOS from the definition above.
+# see EVG-13092
+  - matrix_name: "tests-all"
+    display_name: "${swift-version} ${os-fully-featured}"
+    matrix_spec:
+      os-fully-featured:
+        - "ubuntu-18.04"
+        - "ubuntu-16.04"
+      swift-version:
+        - "5.3"
     tasks:
       - name: "test"
 
