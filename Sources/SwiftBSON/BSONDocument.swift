@@ -272,7 +272,8 @@ public struct BSONDocument {
             }
             // appending new key
             self.keySet.insert(key)
-            self.storage.buffer.moveWriterIndex(to: self.storage.encodedLength - 1) // setup to overwrite null terminator
+            // setup to overwrite null terminator
+            self.storage.buffer.moveWriterIndex(to: self.storage.encodedLength - 1)
             let size = self.storage.append(key: key, value: value)
             self.storage.buffer.writeInteger(0, endianness: .little, as: UInt8.self) // add back in our null terminator
             self.storage.encodedLength += size
@@ -285,14 +286,17 @@ public struct BSONDocument {
             throw BSONError.InternalError(message: "Cannot find \(key) to delete")
         }
 
+        let prefixLength = range.startIndex
+        let suffixLength = self.storage.encodedLength - range.endIndex
+
         guard
-            let prefix = self.storage.buffer.getBytes(at: 0, length: range.startIndex),
-            let suffix = self.storage.buffer.getBytes(at: range.endIndex, length: self.storage.encodedLength - range.endIndex)
+            let prefix = self.storage.buffer.getBytes(at: 0, length: prefixLength),
+            let suffix = self.storage.buffer.getBytes(at: range.endIndex, length: suffixLength)
         else {
             throw BSONError.InternalError(
                 message: "Cannot slice buffer from " +
                     "0 to len \(range.startIndex) and from \(range.endIndex) " +
-                    "to len \(self.storage.encodedLength - range.endIndex) : \(self.storage.buffer)"
+                    "to len \(suffixLength) : \(self.storage.buffer)"
             )
         }
 
@@ -383,7 +387,7 @@ public struct BSONDocument {
             // Implicitly validate with iterator
             do {
                 while let (key, value) = try iter.nextThrowing() {
-                    let  (inserted, _) = keySet.insert(key)
+                    let (inserted, _) = keySet.insert(key)
                     guard inserted else {
                         throw BSONError.InvalidArgumentError(
                             message: "Validation Failed: BSON contains multiple values for key \(key)"

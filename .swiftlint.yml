@@ -5,6 +5,7 @@ disabled_rules:
   - todo
   - type_body_length
   - type_name
+  - cyclomatic_complexity
 
 opt_in_rules:
   - array_init
