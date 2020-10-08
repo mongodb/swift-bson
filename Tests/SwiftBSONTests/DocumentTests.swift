@@ -758,4 +758,38 @@ final class DocumentTests: BSONTestCase {
             expect(try BSONDocument(fromBSON: data)).to(throwError(errorType: BSONError.InvalidArgumentError.self))
         }
     }
+
+    func testWithID() throws {
+        let doc1: BSONDocument = ["a": .int32(1)]
+
+        let withID1 = try doc1.withID()
+        expect(withID1.keys).to(equal(["_id", "a"]))
+        expect(withID1["_id"]?.objectIDValue).toNot(beNil())
+
+        let data = withID1.toData()
+        // 4 for length, 17 for "_id": oid, 7 for "a": 1, 1 for null terminator
+        expect(data).to(haveCount(29))
+
+        // build what we expect the data to look like
+        let length = "1d000000" // little-endian Int32 rep of 29
+        // byte prefix for ObjectID + "_id" as cstring + oid bytes
+        let oid = "07" + "5f696400" + withID1["_id"]!.objectIDValue!.hex
+        // byte prefix for Int32 + "a" as cstring + little-endian Int32 rep of 1
+        let a = "10" + "6100" + "01000000"
+
+        let expectedHex = length + oid + a + "00" // null terminator
+        expect(data.hexDescription).to(equal(expectedHex))
+
+        // verify a document with an _id is unchanged by calling this method
+        let doc2: BSONDocument = ["x": 1, "_id": .objectID()]
+        let withID2 = try doc2.withID()
+        expect(withID2).to(equal(doc2))
+    }
+
+    func testDuplicateKeyInBSON() throws {
+        // contains multiple values for key "a"
+        let hex = "1b0000001261000100000000000000126100020000000000000000"
+        let data = Data(hexString: hex)!
+        expect(try BSONDocument(fromBSON: data)).to(throwError(errorType: BSONError.InvalidArgumentError.self))
+    }
 }
