@@ -102,11 +102,19 @@ functions:
         script: |
           ${PREPARE_SHELL}
           SWIFT_VERSION=${SWIFT_VERSION} \
-          sh ${PROJECT_DIRECTORY}/.evergreen/run-tests.sh
+          ${PROJECT_DIRECTORY}/.evergreen/run-tests.sh
+  
+  "upload test results":
+    - command: attach.xunit_results
+      params:
+        file: ./src/testResults.xml
 
 pre:
   - func: "fetch source"
   - func: "install swift"
+
+post:
+  - func: "upload test results"
 
 tasks:
   - name: "test"
