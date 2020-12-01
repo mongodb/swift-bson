@@ -42,7 +42,7 @@ then
     build_from_gh swiftlint https://github.com/realm/SwiftLint "0.40.0"
 elif [ $1 == "swiftformat" ]
 then
-    build_from_gh swiftformat https://github.com/nicklockwood/SwiftFormat "0.44.13"
+    build_from_gh swiftformat https://github.com/nicklockwood/SwiftFormat "0.47.3"
 elif [ $1 == "sourcery" ]
 then
     install_from_gh sourcery https://github.com/krzysztofzablocki/Sourcery/releases/download/0.18.0/Sourcery-0.18.0.zip

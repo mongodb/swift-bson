@@ -1,4 +1,5 @@
 --exclude .build/*,opt/*
+--exclude etc
 
 # unnecessary
 --disable andOperator
@@ -10,7 +11,7 @@
 --indent 4
 
 # 0..<3 vs 0 ..< 3
---nospaceoperators "..<","..."
+--nospaceoperators ...,..<
 
 # always want explicit acl
 --disable redundantExtensionACL
@@ -35,5 +36,8 @@
 # the ordering doesn't match linter's
 --disable specifiers
 
-# Temporary while library is implemented
---disable unusedArguments
+# conflicts with our Swiftlint explicit ACL rule
+--disable extensionAccessControl
+
+# creates non-compiling code on Swift 5.1
+--disable preferKeyPath
