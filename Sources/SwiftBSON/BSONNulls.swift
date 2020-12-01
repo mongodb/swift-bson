@@ -14,7 +14,7 @@ internal struct BSONNull: BSONValue, Equatable {
      *   - `nil` if the provided value is not `null`.
      *
      */
-    internal init?(fromExtJSON json: JSON, keyPath: [String]) {
+    internal init?(fromExtJSON json: JSON, keyPath _: [String]) {
         switch json {
         case .null:
             // canonical or relaxed extended JSON
@@ -41,11 +41,11 @@ internal struct BSONNull: BSONValue, Equatable {
     /// Initializes a new `BSONNull` instance.
     internal init() {}
 
-    internal static func read(from: inout ByteBuffer) throws -> BSON {
+    internal static func read(from _: inout ByteBuffer) throws -> BSON {
         .null
     }
 
-    internal func write(to: inout ByteBuffer) {
+    internal func write(to _: inout ByteBuffer) {
         // no-op
     }
 }
@@ -97,11 +97,11 @@ internal struct BSONUndefined: BSONValue, Equatable {
     /// Initializes a new `BSONUndefined` instance.
     internal init() {}
 
-    internal static func read(from: inout ByteBuffer) throws -> BSON {
+    internal static func read(from _: inout ByteBuffer) throws -> BSON {
         .undefined
     }
 
-    internal func write(to: inout ByteBuffer) {
+    internal func write(to _: inout ByteBuffer) {
         // no-op
     }
 }
@@ -153,11 +153,11 @@ internal struct BSONMinKey: BSONValue, Equatable {
     /// Initializes a new `MinKey` instance.
     internal init() {}
 
-    internal static func read(from: inout ByteBuffer) throws -> BSON {
+    internal static func read(from _: inout ByteBuffer) throws -> BSON {
         .minKey
     }
 
-    internal func write(to: inout ByteBuffer) {
+    internal func write(to _: inout ByteBuffer) {
         // no-op
     }
 }
@@ -209,11 +209,11 @@ internal struct BSONMaxKey: BSONValue, Equatable {
     /// Initializes a new `MaxKey` instance.
     internal init() {}
 
-    internal static func read(from: inout ByteBuffer) throws -> BSON {
+    internal static func read(from _: inout ByteBuffer) throws -> BSON {
         .maxKey
     }
 
-    internal func write(to: inout ByteBuffer) {
+    internal func write(to _: inout ByteBuffer) {
         // no-op
     }
 }

@@ -226,7 +226,8 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 
         let decimalPartNSRange = match.range(at: REGroups.decimalPart.rawValue)
         guard decimalPartNSRange.location != NSNotFound,
-            let decimalPartRange = Range(decimalPartNSRange, in: data) else {
+              let decimalPartRange = Range(decimalPartNSRange, in: data)
+        else {
             throw BSONError.InvalidArgumentError(
                 message: "Syntax Error: \(data) Missing digits in front of the exponent"
             )
