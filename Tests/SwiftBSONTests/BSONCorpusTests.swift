@@ -243,7 +243,7 @@ final class BSONCorpusTests: BSONTestCase {
                     }
                     let description = "\(testFile.description)-\(test.description)"
                     switch BSONType(rawValue: UInt8(testFile.bsonType.dropFirst(2), radix: 16)!)! {
-                    case .invalid: // "top level document" uses 0x00 for the bson type
+                    case .binary, .invalid: // "top level document" uses 0x00 for the bson type
                         guard let testData = test.string.data(using: .utf8) else {
                             XCTFail("Unable to interpret canonical_bson as Data")
                             return
