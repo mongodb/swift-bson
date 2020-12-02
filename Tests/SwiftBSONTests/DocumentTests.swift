@@ -237,6 +237,96 @@ final class DocumentTests: BSONTestCase {
             .to(equal(["hi": true, "hello": "hi", "cat": 2] as BSONDocument))
     }
 
+    func testEqualsIgnoreOrder() throws {
+        // basic comparisons
+        let doc1: BSONDocument = ["foo": "bar", "bread": 1]
+        let doc2: BSONDocument = ["foo": "bar", "bread": 1]
+        expect(doc1.equalsIgnoreOrder(doc2)).to(equal(true))
+
+        let doc3: BSONDocument = ["foo": "bar", "bread": 1]
+        let doc4: BSONDocument = ["foo": "foo", "bread": 2]
+        expect(doc3.equalsIgnoreOrder(doc4)).to(equal(false))
+
+        // more complex comparisons
+        let a: BSONDocument = [
+            "string": "test string",
+            "true": true,
+            "false": false,
+            "int": 25,
+            "int32": .int32(5),
+            "int64": .int64(10),
+            "double": .double(15),
+            "regex": .regex(BSONRegularExpression(pattern: "^abc", options: "imx")),
+            "decimal128": .decimal128(try! BSONDecimal128("1.2E+10")),
+            "minkey": .minKey,
+            "maxkey": .maxKey,
+            "date": .datetime(Date(timeIntervalSince1970: 500.004)),
+            "timestamp": .timestamp(BSONTimestamp(timestamp: 5, inc: 10)),
+            "nesteddoc": ["a": 1, "b": 2, "c": false, "d": [3, 4]],
+            "oid": .objectID(try! BSONObjectID("507f1f77bcf86cd799439011")),
+            "array1": [1, 2],
+            "array2": ["string1", "string2"],
+            "null": .null,
+            "code": .code(BSONCode(code: "console.log('hi');")),
+            "nestedarray": [[1, 2], [.int32(3), .int32(4)]],
+            "codewscope": .codeWithScope(BSONCodeWithScope(code: "console.log(x);", scope: ["x": 2]))
+        ]
+
+        let b: BSONDocument = [
+            "true": true,
+            "int": 25,
+            "int32": .int32(5),
+            "int64": .int64(10),
+            "string": "test string",
+            "double": .double(15),
+            "decimal128": .decimal128(try! BSONDecimal128("1.2E+10")),
+            "minkey": .minKey,
+            "date": .datetime(Date(timeIntervalSince1970: 500.004)),
+            "timestamp": .timestamp(BSONTimestamp(timestamp: 5, inc: 10)),
+            "nestedarray": [[1, 2], [.int32(3), .int32(4)]],
+            "codewscope": .codeWithScope(BSONCodeWithScope(code: "console.log(x);", scope: ["x": 2])),
+            "nesteddoc": ["b": 2, "a": 1, "d": [3, 4], "c": false],
+            "oid": .objectID(try! BSONObjectID("507f1f77bcf86cd799439011")),
+            "false": false,
+            "regex": .regex(BSONRegularExpression(pattern: "^abc", options: "imx")),
+            "array1": [1, 2],
+            "array2": ["string1", "string2"],
+            "null": .null,
+            "code": .code(BSONCode(code: "console.log('hi');")),
+            "maxkey": .maxKey
+        ]
+
+        // comparing two documents with the same key-value pairs in different order should return true
+        expect(a.equalsIgnoreOrder(b)).to(equal(true))
+
+        let c: BSONDocument = [
+            "true": true,
+            "int": 25,
+            "int32": .int32(5),
+            "int64": .int64(10),
+            "string": "string",
+            "double": .double(15),
+            "decimal128": .decimal128(try! BSONDecimal128("1.2E+10")),
+            "minkey": .minKey,
+            "date": .datetime(Date(timeIntervalSince1970: 500.004)),
+            "timestamp": .timestamp(BSONTimestamp(timestamp: 5, inc: 10)),
+            "nestedarray": [[1, 2], [.int32(3), .int32(4)]],
+            "codewscope": .codeWithScope(BSONCodeWithScope(code: "console.log(x);", scope: ["x": 2])),
+            "nesteddoc": ["1": 1, "2": 2, "3": true, "4": [5, 6]],
+            "oid": .objectID(try! BSONObjectID("507f1f77bcf86cd799439011")),
+            "false": false,
+            "regex": .regex(BSONRegularExpression(pattern: "^abc", options: "imx")),
+            "array1": [1, 2],
+            "array2": ["string1", "string2"],
+            "null": .null,
+            "code": .code(BSONCode(code: "console.log('hi');")),
+            "maxkey": .maxKey
+        ]
+
+        // comparing two documents with same keys but different values should return false
+        expect(a.equalsIgnoreOrder(c)).to(equal(false))
+    }
+
     func testRawBSON() throws {
         let doc = try BSONDocument(fromJSON: "{\"a\":[{\"$numberInt\":\"10\"}]}")
         let fromRawBSON = try BSONDocument(fromBSON: doc.buffer)
