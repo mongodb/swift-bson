@@ -163,7 +163,7 @@ extension BSONBinary: BSONValue {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected value for key $uuid \"\(uuidJSON)\" to be a string"
-                        + " but got \(type(of: uuidJSON))"
+                        + " but got some other value"
                 )
             }
             guard let uuid = UUID(uuidString: uuidString) else {
