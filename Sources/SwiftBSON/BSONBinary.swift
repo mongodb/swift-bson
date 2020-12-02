@@ -158,6 +158,32 @@ extension BSONBinary: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        if let uuidJSON = try json.unwrapObject(withKey: "$uuid", keyPath: keyPath) {
+            guard let uuidString = uuidJSON.stringValue else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Expected value for key $uuid \"\(uuidJSON)\" to be a string"
+                        + " but got some other value"
+                )
+            }
+            guard let uuid = UUID(uuidString: uuidString) else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Invalid UUID string: \(uuidString)"
+                )
+            }
+
+            do {
+                self = try BSONBinary(from: uuid)
+                return
+            } catch {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: error.localizedDescription
+                )
+            }
+        }
+
         // canonical and relaxed extended JSON
         guard let binary = try json.unwrapObject(withKey: "$binary", keyPath: keyPath) else {
             return nil
