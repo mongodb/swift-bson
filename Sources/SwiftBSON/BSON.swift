@@ -95,26 +95,6 @@ public enum BSON {
             self = int64.bson
             return
         }
-
-        if let uuidJSON = try json.unwrapObject(withKey: "$uuid", keyPath: keyPath) {
-            guard let uuidString = uuidJSON.stringValue else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Could not parse `uuid` from \"\(uuidJSON)\", "
-                )
-            }
-            guard let uuid = UUID(uuidString: uuidString) else {
-                throw DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Invalid UUID string"
-                )
-            }
-
-            let binary = try BSONBinary(from: uuid)
-            self = binary.bson
-            return
-        }
-
         for bsonType in BSON.allBSONTypes.values {
             guard bsonType != Int32.self && bsonType != Int64.self && bsonType != BSONDocument.self else {
                 continue
@@ -148,9 +128,9 @@ public enum BSON {
 }
 
 /// Value getters
-public extension BSON {
+extension BSON {
     /// If this `BSON` is an `.int32`, return it as an `Int32`. Otherwise, return nil.
-    var int32Value: Int32? {
+    public var int32Value: Int32? {
         guard case let .int32(i) = self else {
             return nil
         }
@@ -158,7 +138,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is an `.int64`, return it as an `Int64`. Otherwise, return nil.
-    var int64Value: Int64? {
+    public var int64Value: Int64? {
         guard case let .int64(i) = self else {
             return nil
         }
@@ -166,7 +146,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is an `.decimal128`, return it as an `BSONDecimal128`. Otherwise, return nil.
-    var decimal128Value: BSONDecimal128? {
+    public var decimal128Value: BSONDecimal128? {
         guard case let .decimal128(i) = self else {
             return nil
         }
@@ -174,7 +154,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.document`, return it as a `BSONDocument`. Otherwise, return nil.
-    var documentValue: BSONDocument? {
+    public var documentValue: BSONDocument? {
         guard case let .document(d) = self else {
             return nil
         }
@@ -182,7 +162,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.array`, return it as a `[BSON]`. Otherwise, return nil.
-    var arrayValue: [BSON]? {
+    public var arrayValue: [BSON]? {
         guard case let .array(d) = self else {
             return nil
         }
@@ -190,7 +170,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.bool`, return it as a `Bool`. Otherwise, return nil.
-    var boolValue: Bool? {
+    public var boolValue: Bool? {
         guard case let .bool(d) = self else {
             return nil
         }
@@ -198,7 +178,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.date`, return it as a `Date`. Otherwise, return nil.
-    var dateValue: Date? {
+    public var dateValue: Date? {
         guard case let .datetime(d) = self else {
             return nil
         }
@@ -206,7 +186,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.double`, return it as a `Double`. Otherwise, return nil.
-    var doubleValue: Double? {
+    public var doubleValue: Double? {
         guard case let .double(d) = self else {
             return nil
         }
@@ -214,7 +194,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.string`, return it as a `String`. Otherwise, return nil.
-    var stringValue: String? {
+    public var stringValue: String? {
         guard case let .string(d) = self else {
             return nil
         }
@@ -222,7 +202,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.symbol`, return it as a `BSONSymbol`. Otherwise, return nil.
-    var symbolValue: BSONSymbol? {
+    public var symbolValue: BSONSymbol? {
         guard case let .symbol(d) = self else {
             return nil
         }
@@ -230,7 +210,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.timestamp`, return it as a `BSONTimestamp`. Otherwise, return nil.
-    var timestampValue: BSONTimestamp? {
+    public var timestampValue: BSONTimestamp? {
         guard case let .timestamp(d) = self else {
             return nil
         }
@@ -238,7 +218,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.binary`, return it as a `BSONBinary`. Otherwise, return nil.
-    var binaryValue: BSONBinary? {
+    public var binaryValue: BSONBinary? {
         guard case let .binary(d) = self else {
             return nil
         }
@@ -246,7 +226,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.regex`, return it as a `BSONRegularExpression`. Otherwise, return nil.
-    var regexValue: BSONRegularExpression? {
+    public var regexValue: BSONRegularExpression? {
         guard case let .regex(d) = self else {
             return nil
         }
@@ -254,7 +234,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.objectID`, return it as a `BSONObjectID`. Otherwise, return nil.
-    var objectIDValue: BSONObjectID? {
+    public var objectIDValue: BSONObjectID? {
         guard case let .objectID(d) = self else {
             return nil
         }
@@ -262,7 +242,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.dbPointer`, return it as a `BSONDBPointer`. Otherwise, return nil.
-    var dbPointerValue: BSONDBPointer? {
+    public var dbPointerValue: BSONDBPointer? {
         guard case let .dbPointer(d) = self else {
             return nil
         }
@@ -270,7 +250,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.code`, return it as a `BSONCode`. Otherwise, return nil.
-    var codeValue: BSONCode? {
+    public var codeValue: BSONCode? {
         guard case let .code(d) = self else {
             return nil
         }
@@ -278,7 +258,7 @@ public extension BSON {
     }
 
     /// If this `BSON` is a `.codeWithScope`, return it as a `BSONCodeWithScope`. Otherwise, return nil.
-    var codeWithScopeValue: BSONCodeWithScope? {
+    public var codeWithScopeValue: BSONCodeWithScope? {
         guard case let .codeWithScope(d) = self else {
             return nil
         }
@@ -287,10 +267,10 @@ public extension BSON {
 }
 
 /// Helper functions for converting to numbers.
-public extension BSON {
+extension BSON {
     /// Return this BSON as an `Int` if possible.
     /// This will coerce non-integer numeric cases (e.g. `.double`) into an `Int` if such coercion would be lossless.
-    func toInt() -> Int? {
+    public func toInt() -> Int? {
         switch self {
         case let .int32(value):
             return Int(value)
@@ -305,7 +285,7 @@ public extension BSON {
 
     /// Return this BSON as an `Int32` if possible.
     /// This will coerce numeric cases (e.g. `.double`) into an `Int32` if such coercion would be lossless.
-    func toInt32() -> Int32? {
+    public func toInt32() -> Int32? {
         switch self {
         case let .int32(value):
             return value
@@ -320,7 +300,7 @@ public extension BSON {
 
     /// Return this BSON as an `Int64` if possible.
     /// This will coerce numeric cases (e.g. `.double`) into an `Int64` if such coercion would be lossless.
-    func toInt64() -> Int64? {
+    public func toInt64() -> Int64? {
         switch self {
         case let .int32(value):
             return Int64(value)
@@ -335,7 +315,7 @@ public extension BSON {
 
     /// Return this BSON as a `Double` if possible.
     /// This will coerce numeric cases (e.g. `.int32`) into a `Double` if such coercion would be lossless.
-    func toDouble() -> Double? {
+    public func toDouble() -> Double? {
         switch self {
         case let .double(d):
             return d
@@ -349,7 +329,7 @@ public extension BSON {
 
     /// Return this BSON as a `BSONDecimal128` if possible.
     /// This will coerce numeric cases (e.g. `.double`) into a `BSONDecimal128` if such coercion would be lossless.
-    func toDecimal128() -> BSONDecimal128? {
+    public func toDecimal128() -> BSONDecimal128? {
         switch self {
         case let .decimal128(d):
             return d
@@ -368,7 +348,7 @@ public extension BSON {
 /// Extension providing the internal API of `BSON`
 extension BSON {
     /// List of all BSONValue types. Can be used to exhaustively check each one at runtime.
-    static var allBSONTypes: [BSONType: BSONValue.Type] = [
+    internal static var allBSONTypes: [BSONType: BSONValue.Type] = [
         .document: BSONDocument.self,
         .int32: Int32.self,
         .int64: Int64.self,
@@ -393,7 +373,7 @@ extension BSON {
     ]
 
     /// Get the associated `BSONValue` to this `BSON` case.
-    var bsonValue: BSONValue {
+    internal var bsonValue: BSONValue {
         switch self {
         case let .document(v):
             return v
