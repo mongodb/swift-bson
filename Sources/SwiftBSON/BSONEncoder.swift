@@ -676,7 +676,8 @@ private struct _BSONUnkeyedEncodingContainer: UnkeyedEncodingContainer {
     }
 
     public mutating func nestedContainer<NestedKey>(keyedBy _: NestedKey.Type)
-        -> KeyedEncodingContainer<NestedKey> {
+        -> KeyedEncodingContainer<NestedKey>
+    {
         self.codingPath.append(_BSONKey(index: self.count))
         defer { self.codingPath.removeLast() }
 
@@ -769,7 +770,7 @@ private class MutableArray: BSONValue {
 
     fileprivate init() {}
 
-    internal required init(fromExtJSON json: JSON, keyPath: [String]) throws {
+    internal required init(fromExtJSON _: JSON, keyPath _: [String]) throws {
         fatalError("MutableArray: BSONValue.init(fromExtJSON) should be unused")
     }
 
@@ -783,11 +784,11 @@ private class MutableArray: BSONValue {
 
     /// methods required by the BSONValue protocol that we don't actually need/use. MutableArray
     /// is just a BSONValue to simplify usage alongside true BSONValues within the encoder.
-    static func read(from buffer: inout ByteBuffer) throws -> BSON {
+    static func read(from _: inout ByteBuffer) throws -> BSON {
         fatalError("MutableArray is not meant to be read from a ByteBuffer")
     }
 
-    func write(to buffer: inout ByteBuffer) {
+    func write(to _: inout ByteBuffer) {
         fatalError("MutableArray is not meant to be written to a ByteBuffer")
     }
 
@@ -865,7 +866,7 @@ private class MutableDictionary: BSONValue {
 
     fileprivate init() {}
 
-    internal required init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+    internal required init?(fromExtJSON _: JSON, keyPath _: [String]) throws {
         fatalError("MutableDictionary: BSONValue.init(fromExtJSON) should be unused")
     }
 
@@ -879,11 +880,11 @@ private class MutableDictionary: BSONValue {
 
     /// methods required by the BSONValue protocol that we don't actually need/use. MutableDictionary
     /// is just a BSONValue to simplify usage alongside true BSONValues within the encoder.
-    static func read(from buffer: inout ByteBuffer) throws -> BSON {
+    static func read(from _: inout ByteBuffer) throws -> BSON {
         fatalError("MutableDictionary is not meant to be read from a ByteBuffer")
     }
 
-    func write(to buffer: inout ByteBuffer) {
+    func write(to _: inout ByteBuffer) {
         fatalError("MutableDictionary is not meant to be encoded to a ByteBuffer")
     }
 

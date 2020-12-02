@@ -12,7 +12,7 @@ extension Bool: BSONValue {
      * Returns:
      *   - `nil` if the provided value is not a `Bool`.
      */
-    internal init?(fromExtJSON json: JSON, keyPath: [String]) {
+    internal init?(fromExtJSON json: JSON, keyPath _: [String]) {
         switch json {
         case let .bool(b):
             // canonical or relaxed extended JSON

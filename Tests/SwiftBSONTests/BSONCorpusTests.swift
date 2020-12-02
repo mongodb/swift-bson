@@ -9,9 +9,9 @@ final class BSONCorpusTests: BSONTestCase {
     struct BSONCorpusValidityTest: Decodable {
         enum CodingKeys: String, CodingKey {
             case description, canonicalBSON = "canonical_bson", canonicalExtJSON = "canonical_extjson",
-                relaxedExtJSON = "relaxed_extjson", degenerateBSON = "degenerate_bson",
-                degenerateExtJSON = "degenerate_extjson", convertedBSON = "converted_bson",
-                convertedExtJSON = "converted_extjson", lossy
+                 relaxedExtJSON = "relaxed_extjson", degenerateBSON = "degenerate_bson",
+                 degenerateExtJSON = "degenerate_extjson", convertedBSON = "converted_bson",
+                 convertedExtJSON = "converted_extjson", lossy
         }
 
         /// Human-readable test case label.

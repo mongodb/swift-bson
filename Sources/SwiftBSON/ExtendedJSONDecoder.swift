@@ -27,7 +27,7 @@ public class ExtendedJSONDecoder {
     ///   - data: `Data` which represents the JSON that will be decoded.
     /// - Returns: Decoded representation of the JSON input as an instance of `T`.
     /// - Throws: `DecodingError` if the JSON data is corrupt or if any value throws an error during decoding.
-    public func decode<T: Decodable>(_ type: T.Type, from data: Data) throws -> T {
+    public func decode<T: Decodable>(_: T.Type, from data: Data) throws -> T {
         // Data --> JSON --> BSON --> T
         // Takes in JSON as `Data` encoded with `.utf8` and runs it through a `JSONDecoder` to get an
         // instance of the `JSON` enum.

@@ -12,7 +12,7 @@ extension String: BSONValue {
      * Returns:
      *   - `nil` if the provided value is not an `String`.
      */
-    internal init?(fromExtJSON json: JSON, keyPath: [String]) {
+    internal init?(fromExtJSON json: JSON, keyPath _: [String]) {
         switch json {
         case let .string(s):
             self = s
