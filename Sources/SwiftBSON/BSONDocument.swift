@@ -532,23 +532,18 @@ extension BSONDocument {
      * - Returns: a `Bool` indicating whether the two documents are equal.
      */
     public func equalsIgnoreKeyOrder(_ other: BSONDocument) -> Bool {
-        let a = self
-        let b = other
-        let keysA = a.keys.sorted()
-        let keysB = b.keys.sorted()
-
-        guard keysA.count == keysB.count else {
+        guard self.keys.count == other.keys.count else {
             return false
         }
 
         for (k, v) in self {
-            if case let (.document(aDoc), .document(bDoc)?) = (v, other[k]) {
-                guard aDoc.equalsIgnoreKeyOrder(bDoc) else {
+            if case let (.document(docA), .document(docB)?) = (v, other[k]) {
+                guard docA.equalsIgnoreKeyOrder(docB) else {
                     return false
                 }
                 continue
             }
-            guard v == b[k] else {
+            guard v == other[k] else {
                 return false
             }
         }
