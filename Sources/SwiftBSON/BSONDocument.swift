@@ -520,10 +520,10 @@ extension BSONDocument: CustomStringConvertible {
 
 extension BSONDocument {
     /**
-     * Returns whether this BSONDocument contains exactly the same key/value pairs as the provided BSONDocument,
+     * Returns whether this `BSONDocument` contains exactly the same key/value pairs as the provided `BSONDocument`,
      * regardless of the order of the keys.
      *
-     * Note: This method is much less efficient than checking for regular equality since the document is internally
+     * Warning: This method is much less efficient than checking for regular equality since the document is internally
      * ordered.
      *
      * - Parameters:
