@@ -519,40 +519,40 @@ extension BSONDocument: CustomStringConvertible {
 }
 
 extension BSONDocument {
-    /// Helper function to check for BSON document equality regardless of the order of key-value pairs
-    internal func equalsIgnoreOrderHelper(a: BSONDocument, b: BSONDocument) -> Bool {
-        let keysA = a.keys.sorted()
-        let keysB = b.keys.sorted()
-
-        guard keysA == keysB else {
-            return false
-        }
-
-        for k in keysA {
-            if case let (.document(aDoc), .document(bDoc)?) = (a[k], b[k]) {
-                guard self.equalsIgnoreOrderHelper(a: aDoc, b: bDoc) else {
-                    return false
-                }
-                continue
-            }
-            guard a[k] == b[k] else {
-                return false
-            }
-        }
-
-        return true
-    }
-
     /**
-     * Compares this `BSONDocument` with another provided one and returns true if they have the same key/value pairs
-     * in them regardless of the order.
+     * Returns whether this BSONDocument contains exactly the same key/value pairs as the provided BSONDocument,
+     * regardless of the order of the keys.
+     *
+     * Note: This method is much less efficient than checking for regular equality since the document is internally
+     * ordered.
      *
      * - Parameters:
      *   - other: a `BSONDocument` to compare this document with.
      *
      * - Returns: a `Bool` indicating whether the two documents are equal.
      */
-    public func equalsIgnoreOrder(_ other: BSONDocument) -> Bool {
-        self.equalsIgnoreOrderHelper(a: self, b: other)
+    public func equalsIgnoreKeyOrder(_ other: BSONDocument) -> Bool {
+        let a = self
+        let b = other
+        let keysA = a.keys.sorted()
+        let keysB = b.keys.sorted()
+
+        guard keysA.count == keysB.count else {
+            return false
+        }
+
+        for (k, v) in self {
+            if case let (.document(aDoc), .document(bDoc)?) = (v, other[k]) {
+                guard aDoc.equalsIgnoreKeyOrder(bDoc) else {
+                    return false
+                }
+                continue
+            }
+            guard v == b[k] else {
+                return false
+            }
+        }
+
+        return true
     }
 }

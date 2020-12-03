@@ -56,7 +56,7 @@ public func sortedEqual(_ expectedValue: BSONDocument?) -> Predicate<BSONDocumen
             return PredicateResult(status: .fail, message: msg)
         }
 
-        let matches = expected.equalsIgnoreOrder(actual)
+        let matches = expected.equalsIgnoreKeyOrder(actual)
         return PredicateResult(status: PredicateStatus(bool: matches), message: msg)
     }
 }

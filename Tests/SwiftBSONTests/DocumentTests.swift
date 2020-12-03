@@ -237,15 +237,15 @@ final class DocumentTests: BSONTestCase {
             .to(equal(["hi": true, "hello": "hi", "cat": 2] as BSONDocument))
     }
 
-    func testEqualsIgnoreOrder() throws {
+    func testEqualsIgnoreKeyOrder() throws {
         // basic comparisons
         let doc1: BSONDocument = ["foo": "bar", "bread": 1]
         let doc2: BSONDocument = ["foo": "bar", "bread": 1]
-        expect(doc1.equalsIgnoreOrder(doc2)).to(equal(true))
+        expect(doc1.equalsIgnoreKeyOrder(doc2)).to(equal(true))
 
         let doc3: BSONDocument = ["foo": "bar", "bread": 1]
         let doc4: BSONDocument = ["foo": "foo", "bread": 2]
-        expect(doc3.equalsIgnoreOrder(doc4)).to(equal(false))
+        expect(doc3.equalsIgnoreKeyOrder(doc4)).to(equal(false))
 
         // more complex comparisons
         let a: BSONDocument = [
@@ -297,7 +297,7 @@ final class DocumentTests: BSONTestCase {
         ]
 
         // comparing two documents with the same key-value pairs in different order should return true
-        expect(a.equalsIgnoreOrder(b)).to(equal(true))
+        expect(a.equalsIgnoreKeyOrder(b)).to(equal(true))
 
         let c: BSONDocument = [
             "true": true,
@@ -324,7 +324,7 @@ final class DocumentTests: BSONTestCase {
         ]
 
         // comparing two documents with same keys but different values should return false
-        expect(a.equalsIgnoreOrder(c)).to(equal(false))
+        expect(a.equalsIgnoreKeyOrder(c)).to(equal(false))
     }
 
     func testRawBSON() throws {
