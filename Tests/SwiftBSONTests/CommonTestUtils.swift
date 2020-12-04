@@ -56,22 +56,8 @@ public func sortedEqual(_ expectedValue: BSONDocument?) -> Predicate<BSONDocumen
             return PredicateResult(status: .fail, message: msg)
         }
 
-        let matches = expected.sortedEquals(actual)
+        let matches = expected.equalsIgnoreKeyOrder(actual)
         return PredicateResult(status: PredicateStatus(bool: matches), message: msg)
-    }
-}
-
-extension BSONDocument {
-    /// Compares two `BSONDocument`s and returns true if they have the same key/value pairs in them.
-    public func sortedEquals(_ other: BSONDocument) -> Bool {
-        let keys = self.keys.sorted()
-        let otherKeys = other.keys.sorted()
-
-        // first compare keys, because rearrangeDoc will discard any that don't exist in `expected`
-        expect(keys).to(equal(otherKeys))
-
-        let rearranged = rearrangeDoc(other, toLookLike: self)
-        return self == rearranged
     }
 }
 

@@ -517,3 +517,38 @@ extension BSONDocument: BSONValue {
 extension BSONDocument: CustomStringConvertible {
     public var description: String { self.toExtendedJSONString() }
 }
+
+extension BSONDocument {
+    /**
+     * Returns whether this `BSONDocument` contains exactly the same key/value pairs as the provided `BSONDocument`,
+     * regardless of the order of the keys.
+     *
+     * Warning: This method is much less efficient than checking for regular equality since the document is internally
+     * ordered.
+     *
+     * - Parameters:
+     *   - other: a `BSONDocument` to compare this document with.
+     *
+     * - Returns: a `Bool` indicating whether the two documents are equal.
+     */
+    public func equalsIgnoreKeyOrder(_ other: BSONDocument) -> Bool {
+        guard self.count == other.count else {
+            return false
+        }
+
+        for (k, v) in self {
+            let otherValue = other[k]
+            if case let (.document(docA), .document(docB)?) = (v, otherValue) {
+                guard docA.equalsIgnoreKeyOrder(docB) else {
+                    return false
+                }
+                continue
+            }
+            guard v == otherValue else {
+                return false
+            }
+        }
+
+        return true
+    }
+}
