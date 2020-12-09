@@ -16,6 +16,8 @@ public struct BSONDBPointer: Equatable, Hashable {
 }
 
 extension BSONDBPointer: BSONValue {
+    internal static let extJSONTypeWrapperKeys: [String] = ["$dbPointer"]
+
     /*
      * Initializes a `BSONDBPointer` from ExtendedJSON.
      *
@@ -32,7 +34,7 @@ extension BSONDBPointer: BSONValue {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let value = try json.unwrapObject(withKey: "$dbPointer", keyPath: keyPath) else {
+        guard let value = try json.value.unwrapObject(withKey: "$dbPointer", keyPath: keyPath) else {
             return nil
         }
         guard let dbPointerObj = value.objectValue else {
@@ -54,7 +56,7 @@ extension BSONDBPointer: BSONValue {
         }
         guard
             let refStr = ref.stringValue,
-            let oid = try BSONObjectID(fromExtJSON: id, keyPath: keyPath)
+            let oid = try BSONObjectID(fromExtJSON: JSON(id), keyPath: keyPath)
         else {
             throw DecodingError._extendedJSONError(
                 keyPath: keyPath,
@@ -75,7 +77,7 @@ extension BSONDBPointer: BSONValue {
     internal func toCanonicalExtendedJSON() -> JSON {
         [
             "$dbPointer": [
-                "$ref": .string(self.ref),
+                "$ref": JSON(.string(self.ref)),
                 "$id": self.id.toCanonicalExtendedJSON()
             ]
         ]

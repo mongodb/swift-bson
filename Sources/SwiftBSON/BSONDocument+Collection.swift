@@ -45,7 +45,7 @@ extension BSONDocument: Collection {
                 fatalError("Failed to advance iterator to position \(pos)")
             }
         }
-        guard let (k, v) = try? iter.nextThrowing() else {
+        guard let (k, v) = iter.next() else {
             fatalError("Failed get current key and value at \(position)")
         }
         return (k, v)

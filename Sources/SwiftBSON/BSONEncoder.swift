@@ -753,6 +753,7 @@ extension _BSONEncoder: SingleValueEncodingContainer {
 /// it allows us to preserve Swift type information.
 private class MutableArray: BSONValue {
     fileprivate static var bsonType: BSONType { .array }
+    internal static let extJSONTypeWrapperKeys: [String] = []
 
     fileprivate var bson: BSON { fatalError("MutableArray: BSONValue.bson should be unused") }
 
@@ -817,6 +818,7 @@ private class MutableArray: BSONValue {
 /// for encoder storage purposes. We use this rather than NSMutableDictionary
 /// because it allows us to preserve Swift type information.
 private class MutableDictionary: BSONValue {
+    internal static let extJSONTypeWrapperKeys: [String] = []
     fileprivate static var bsonType: BSONType { .document }
 
     fileprivate var bson: BSON { fatalError("MutableDictionary: BSONValue.bson should be unused") }

@@ -1,55 +1,29 @@
+import ExtrasJSON
 import Foundation
 
-/// Enum representing a JSON value, used internally for modeling JSON
-/// during extendedJSON parsing/generation.
-internal enum JSON: Codable {
-    case number(Double)
-    case string(String)
-    case bool(Bool)
-    indirect case array([JSON])
-    indirect case object([String: JSON])
-    case null
+internal struct JSON {
+    internal let value: JSONValue
 
-    /// Initialize a `JSON` from a decoder.
-    /// Tries to decode into each of the JSON types one by one until one succeeds or
-    /// throws an error indicating that the input is not a valid `JSON` type.
-    internal init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        if let d = try? container.decode(Double.self) {
-            self = .number(d)
-        } else if let s = try? container.decode(String.self) {
-            self = .string(s)
-        } else if let b = try? container.decode(Bool.self) {
-            self = .bool(b)
-        } else if let a = try? container.decode([JSON].self) {
-            self = .array(a)
-        } else if let d = try? container.decode([String: JSON].self) {
-            self = .object(d)
-        } else if container.decodeNil() {
-            self = .null
-        } else {
-            throw DecodingError.dataCorrupted(
-                DecodingError.Context(
-                    codingPath: decoder.codingPath,
-                    debugDescription: "Not a valid JSON type"
-                ))
-        }
+    internal init(_ value: JSONValue) {
+        self.value = value
     }
+}
 
+extension JSON: Encodable {
     /// Encode a `JSON` to a container by encoding the type of this `JSON` instance.
     internal func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        switch self {
+        switch self.value {
         case let .number(n):
-            try container.encode(n)
+            try container.encode(Double(n))
         case let .string(s):
             try container.encode(s)
         case let .bool(b):
             try container.encode(b)
         case let .array(a):
-            try container.encode(a)
+            try container.encode(a.map(JSON.init))
         case let .object(o):
-            try container.encode(o)
+            try container.encode(o.mapValues(JSON.init))
         case .null:
             try container.encodeNil()
         }
@@ -58,49 +32,53 @@ internal enum JSON: Codable {
 
 extension JSON: ExpressibleByFloatLiteral {
     internal init(floatLiteral value: Double) {
-        self = .number(value)
+        self.value = .number(String(value))
     }
 }
 
 extension JSON: ExpressibleByIntegerLiteral {
     internal init(integerLiteral value: Int) {
         // The number `JSON` type is a Double, so we cast any integers to doubles.
-        self = .number(Double(value))
+        self.value = .number(String(value))
     }
 }
 
 extension JSON: ExpressibleByStringLiteral {
     internal init(stringLiteral value: String) {
-        self = .string(value)
+        self.value = .string(value)
     }
 }
 
 extension JSON: ExpressibleByBooleanLiteral {
     internal init(booleanLiteral value: Bool) {
-        self = .bool(value)
+        self.value = .bool(value)
     }
 }
 
 extension JSON: ExpressibleByArrayLiteral {
     internal init(arrayLiteral elements: JSON...) {
-        self = .array(elements)
+        self.value = .array(elements.map(\.value))
     }
 }
 
 extension JSON: ExpressibleByDictionaryLiteral {
     internal init(dictionaryLiteral elements: (String, JSON)...) {
-        self = .object([String: JSON](uniqueKeysWithValues: elements))
+        var map: [String: JSONValue] = [:]
+        for (k, v) in elements {
+            map[k] = v.value
+        }
+        self.value = .object(map)
     }
 }
 
 /// Value Getters
-extension JSON {
+extension JSONValue {
     /// If this `JSON` is a `.double`, return it as a `Double`. Otherwise, return nil.
     internal var doubleValue: Double? {
         guard case let .number(n) = self else {
             return nil
         }
-        return n
+        return Double(n)
     }
 
     /// If this `JSON` is a `.string`, return it as a `String`. Otherwise, return nil.
@@ -120,7 +98,7 @@ extension JSON {
     }
 
     /// If this `JSON` is a `.array`, return it as a `[JSON]`. Otherwise, return nil.
-    internal var arrayValue: [JSON]? {
+    internal var arrayValue: [JSONValue]? {
         guard case let .array(a) = self else {
             return nil
         }
@@ -128,7 +106,7 @@ extension JSON {
     }
 
     /// If this `JSON` is a `.object`, return it as a `[String: JSON]`. Otherwise, return nil.
-    internal var objectValue: [String: JSON]? {
+    internal var objectValue: [String: JSONValue]? {
         guard case let .object(o) = self else {
             return nil
         }
@@ -137,7 +115,7 @@ extension JSON {
 }
 
 /// Helpers
-extension JSON {
+extension JSONValue {
     /// Helper function used in `BSONValue` initializers that take in extended JSON.
     /// If the current JSON is an object with only the specified key, return its value.
     ///
@@ -149,8 +127,8 @@ extension JSON {
     ///    - a JSON which is the value at the given `key` in `self`
     ///    - or `nil` if `self` is not an `object` or does not contain the given `key`
     ///
-    /// - Throws: `DecodingError` if `self` has too many keys
-    internal func unwrapObject(withKey key: String, keyPath: [String]) throws -> JSON? {
+    /// - Throws: `DecodingError` if `self` includes the expected key along with other keys
+    internal func unwrapObject(withKey key: String, keyPath: [String]) throws -> JSONValue? {
         guard case let .object(obj) = self else {
             return nil
         }
@@ -181,7 +159,11 @@ extension JSON {
     ///    - or `nil` if `self` is not an `object` or does not contain the given keys
     ///
     /// - Throws: `DecodingError` if `self` has too many keys
-    internal func unwrapObject(withKeys key1: String, _ key2: String, keyPath: [String]) throws -> (JSON, JSON)? {
+    internal func unwrapObject(
+        withKeys key1: String,
+        _ key2: String,
+        keyPath: [String]
+    ) throws -> (JSONValue, JSONValue)? {
         guard case let .object(obj) = self else {
             return nil
         }
@@ -201,4 +183,19 @@ extension JSON {
     }
 }
 
-extension JSON: Equatable {}
+extension JSON: Equatable {
+    internal static func == (lhs: JSON, rhs: JSON) -> Bool {
+        switch (lhs.value, rhs.value) {
+        case let (.number(lhsNum), .number(rhsNum)):
+            return Double(lhsNum) == Double(rhsNum)
+        case (_, .number), (.number, _):
+            return false
+        case let (.object(lhsObject), .object(rhsObject)):
+            return lhsObject.mapValues(JSON.init) == rhsObject.mapValues(JSON.init)
+        case let (.array(lhsArray), .array(rhsArray)):
+            return lhsArray.map(JSON.init) == rhsArray.map(JSON.init)
+        default:
+            return lhs.value == rhs.value
+        }
+    }
+}

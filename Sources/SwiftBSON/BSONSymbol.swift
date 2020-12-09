@@ -3,6 +3,8 @@ import NIO
 /// A struct to represent the deprecated Symbol type.
 /// Symbols cannot be instantiated, but they can be read from existing documents that contain them.
 public struct BSONSymbol: BSONValue, CustomStringConvertible, Equatable, Hashable {
+    internal static let extJSONTypeWrapperKeys: [String] = ["$symbol"]
+
     /*
      * Initializes a `Symbol` from ExtendedJSON.
      *
@@ -18,7 +20,7 @@ public struct BSONSymbol: BSONValue, CustomStringConvertible, Equatable, Hashabl
      *   - `nil` if the provided value is not an `Symbol`.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        guard let value = try json.unwrapObject(withKey: "$symbol", keyPath: keyPath) else {
+        guard let value = try json.value.unwrapObject(withKey: "$symbol", keyPath: keyPath) else {
             return nil
         }
         guard let str = value.stringValue else {
@@ -38,7 +40,7 @@ public struct BSONSymbol: BSONValue, CustomStringConvertible, Equatable, Hashabl
 
     /// Converts this `Symbol` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        ["$symbol": .string(self.stringValue)]
+        ["$symbol": JSON(.string(self.stringValue))]
     }
 
     internal static var bsonType: BSONType { .symbol }

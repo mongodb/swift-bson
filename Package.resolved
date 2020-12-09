@@ -11,6 +11,24 @@
         }
       },
       {
+        "package": "swift-extras-base64",
+        "repositoryURL": "https://github.com/swift-extras/swift-extras-base64",
+        "state": {
+          "branch": null,
+          "revision": "bf6706e1811e746cb204deaa921d8c7b4d0509e2",
+          "version": "0.4.0"
+        }
+      },
+      {
+        "package": "swift-extras-json",
+        "repositoryURL": "https://github.com/swift-extras/swift-extras-json",
+        "state": {
+          "branch": null,
+          "revision": "122b9454ef01bf89a4c190b8fd3717ddd0a2fbd0",
+          "version": "0.6.0"
+        }
+      },
+      {
         "package": "swift-nio",
         "repositoryURL": "https://github.com/apple/swift-nio",
         "state": {

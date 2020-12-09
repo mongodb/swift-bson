@@ -1,6 +1,8 @@
 import NIO
 
 extension String: BSONValue {
+    internal static let extJSONTypeWrapperKeys: [String] = ["$maxKey"]
+
     /*
      * Initializes a `String` from ExtendedJSON.
      *
@@ -13,7 +15,7 @@ extension String: BSONValue {
      *   - `nil` if the provided value is not an `String`.
      */
     internal init?(fromExtJSON json: JSON, keyPath _: [String]) {
-        switch json {
+        switch json.value {
         case let .string(s):
             self = s
         default:
@@ -28,7 +30,7 @@ extension String: BSONValue {
 
     /// Converts this `String` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        .string(self)
+        JSON(.string(self))
     }
 
     internal static var bsonType: BSONType { .string }

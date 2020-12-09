@@ -1,3 +1,4 @@
+import ExtrasJSON
 import Foundation
 import Nimble
 @testable import SwiftBSON
@@ -5,10 +6,8 @@ import XCTest
 
 /// Cleans and normalizes given JSON Data for comparison purposes
 public func clean(json: Data) throws -> JSON {
-    let jsonDecoder = JSONDecoder()
     do {
-        let jsonEnum = try jsonDecoder.decode(JSON.self, from: json)
-        return jsonEnum
+        return try JSON(JSONParser().parse(bytes: json))
     } catch {
         fatalError("json should be decodable to jsonEnum")
     }
@@ -29,7 +28,9 @@ public func cleanEqual(_ expectedValue: String) -> Predicate<Data> {
         }
         let cleanedActual = try clean(json: actualValue)
         let cleanedExpected = try clean(json: expectedValueData)
+
         let matches = cleanedActual == cleanedExpected
+
         return PredicateResult(
             status: PredicateStatus(bool: matches),
             message: .expectedCustomValueTo(
