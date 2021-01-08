@@ -11,15 +11,6 @@
         }
       },
       {
-        "package": "swift-extras-base64",
-        "repositoryURL": "https://github.com/swift-extras/swift-extras-base64",
-        "state": {
-          "branch": null,
-          "revision": "bf6706e1811e746cb204deaa921d8c7b4d0509e2",
-          "version": "0.4.0"
-        }
-      },
-      {
         "package": "swift-extras-json",
         "repositoryURL": "https://github.com/swift-extras/swift-extras-json",
         "state": {

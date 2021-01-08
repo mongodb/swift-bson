@@ -1,4 +1,3 @@
-import ExtrasBase64
 import Foundation
 import NIO
 
@@ -109,14 +108,13 @@ public struct BSONBinary: Equatable, Hashable {
     ///   - `BSONError.InvalidArgumentError` if the base64 `String` is invalid or if the provided data is
     ///     incompatible with the specified subtype.
     public init(base64: String, subtype: Subtype) throws {
-        do {
-            let bytes = try base64.base64decoded()
-            try self.init(bytes: bytes, subtype: subtype)
-        } catch let error as ExtrasBase64.DecodingError {
+        guard let dataObj = Data(base64Encoded: base64) else {
             throw BSONError.InvalidArgumentError(
-                message: "failed to create Data object from invalid base64 string \(base64): \(error)"
+                message:
+                "failed to create Data object from invalid base64 string \(base64)"
             )
         }
+        try self.init(data: dataObj, subtype: subtype)
     }
 
     /// Converts this `BSONBinary` instance to a `UUID`.
@@ -164,14 +162,14 @@ extension BSONBinary: BSONValue {
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         if let uuidJSON = try json.value.unwrapObject(withKey: "$uuid", keyPath: keyPath) {
             guard let uuidString = uuidJSON.stringValue else {
-                throw Swift.DecodingError._extendedJSONError(
+                throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected value for key $uuid \"\(uuidJSON)\" to be a string"
                         + " but got some other value"
                 )
             }
             guard let uuid = UUID(uuidString: uuidString) else {
-                throw Swift.DecodingError._extendedJSONError(
+                throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Invalid UUID string: \(uuidString)"
                 )
@@ -181,7 +179,7 @@ extension BSONBinary: BSONValue {
                 self = try BSONBinary(from: uuid)
                 return
             } catch {
-                throw Swift.DecodingError._extendedJSONError(
+                throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: error.localizedDescription
                 )
@@ -195,13 +193,13 @@ extension BSONBinary: BSONValue {
         guard
             let (base64, subTypeInput) = try binary.unwrapObject(withKeys: "base64", "subType", keyPath: keyPath)
         else {
-            throw Swift.DecodingError._extendedJSONError(
+            throw DecodingError._extendedJSONError(
                 keyPath: keyPath,
                 debugDescription: "Missing \"base64\" or \"subType\" in \(binary)"
             )
         }
         guard let base64Str = base64.stringValue else {
-            throw Swift.DecodingError._extendedJSONError(
+            throw DecodingError._extendedJSONError(
                 keyPath: keyPath,
                 debugDescription: "Could not parse `base64` from \"\(base64)\", " +
                     "input must be a base64-encoded (with padding as =) payload as a string"
@@ -212,7 +210,7 @@ extension BSONBinary: BSONValue {
             let subTypeInt = UInt8(subTypeStr, radix: 16),
             let subType = Subtype(rawValue: subTypeInt)
         else {
-            throw Swift.DecodingError._extendedJSONError(
+            throw DecodingError._extendedJSONError(
                 keyPath: keyPath,
                 debugDescription: "Could not parse `SubType` from \"\(subTypeInput)\", " +
                     "input must be a BSON binary type as a one- or two-character hex string"
@@ -221,7 +219,7 @@ extension BSONBinary: BSONValue {
         do {
             self = try BSONBinary(base64: base64Str, subtype: subType)
         } catch {
-            throw Swift.DecodingError._extendedJSONError(
+            throw DecodingError._extendedJSONError(
                 keyPath: keyPath,
                 debugDescription: error.localizedDescription
             )
