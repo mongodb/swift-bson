@@ -374,7 +374,7 @@ public struct BSONDocument {
         /// how many bytes it wrote.
         ///
         /// This may be used to build up a fresh document or a subdocument.
-        internal mutating func buildDocument(_ appendFunc: (inout Self) throws -> Int) throws -> Int {
+        internal mutating func buildDocument(_ appendFunc: (inout Self) throws -> Int) rethrows -> Int {
             var totalBytes = 0
 
             // write length of document

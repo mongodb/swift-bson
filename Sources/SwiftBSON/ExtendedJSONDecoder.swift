@@ -84,7 +84,7 @@ public class ExtendedJSONDecoder {
             return .array(bsonArr)
         case let .encodedObject(obj):
             var storage = BSONDocument.BSONDocumentStorage()
-            _ = try self.appendObject(obj, to: &storage)
+            _ = try self.appendObject(obj, to: &storage, keyPath: keyPath)
             return .document(BSONDocument(fromUnsafeBSON: storage, keys: Set(obj.keys)))
         }
     }
@@ -92,12 +92,13 @@ public class ExtendedJSONDecoder {
     /// Decode and append the given extended JSON object to the provided BSONDocumentStorage.
     private func appendObject(
         _ object: [String: JSONValue],
-        to storage: inout BSONDocument.BSONDocumentStorage
+        to storage: inout BSONDocument.BSONDocumentStorage,
+        keyPath: [String]
     ) throws -> Int {
         try storage.buildDocument { storage in
             var bytes = 0
             for (k, v) in object {
-                bytes += try self.appendElement(v, to: &storage, forKey: k)
+                bytes += try self.appendElement(v, to: &storage, forKey: k, keyPath: keyPath + [k])
             }
             return bytes
         }
@@ -107,9 +108,10 @@ public class ExtendedJSONDecoder {
     private func appendElement(
         _ value: JSONValue,
         to storage: inout BSONDocument.BSONDocumentStorage,
-        forKey key: String
+        forKey key: String,
+        keyPath: [String]
     ) throws -> Int {
-        switch try self.decodeScalar(value, keyPath: []) {
+        switch try self.decodeScalar(value, keyPath: keyPath) {
         case let .scalar(s):
             return storage.append(key: key, value: s)
         case let .encodedArray(arr):
@@ -118,7 +120,7 @@ public class ExtendedJSONDecoder {
             bytes += try storage.buildDocument { storage in
                 var bytes = 0
                 for (i, v) in arr.enumerated() {
-                    bytes += try self.appendElement(v, to: &storage, forKey: String(i))
+                    bytes += try self.appendElement(v, to: &storage, forKey: String(i), keyPath: keyPath + [String(i)])
                 }
                 return bytes
             }
@@ -126,7 +128,7 @@ public class ExtendedJSONDecoder {
         case let .encodedObject(obj):
             var bytes = 0
             bytes += storage.appendElementHeader(key: key, bsonType: .document)
-            bytes += try self.appendObject(obj, to: &storage)
+            bytes += try self.appendObject(obj, to: &storage, keyPath: keyPath)
             return bytes
         }
     }
@@ -157,7 +159,7 @@ public class ExtendedJSONDecoder {
         case let .object(obj):
             if let (key, _) = obj.first, let bsonTypes = Self.wrapperKeyMap[key] {
                 for bsonType in bsonTypes {
-                    guard let bsonValue = try bsonType.init(fromExtJSON: JSON(json), keyPath: keyPath + [key]) else {
+                    guard let bsonValue = try bsonType.init(fromExtJSON: JSON(json), keyPath: keyPath) else {
                         continue
                     }
                     return .scalar(bsonValue.bson)

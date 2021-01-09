@@ -41,6 +41,26 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(decoded).to(equal(test))
     }
 
+    func testExtendedJSONDecoderErrorKeyPath() throws {
+        let badExtJSON = "{ \"mydoc\": [ true, { \"bar\": 12, \"foo\": { \"$numberInt\": 3, \"extra\": true } } ] }"
+        let decoder = ExtendedJSONDecoder()
+        let result = Result {
+            try decoder.decode(BSON.self, from: badExtJSON.data(using: .utf8)!)
+        }
+
+        guard case let .failure(error) = result else {
+            XCTFail("expected decode to fail, but succeeded: \(result)")
+            return
+        }
+
+        guard case let .dataCorrupted(context) = error as? DecodingError else {
+            XCTFail("expected DecodingError, got: \(error)")
+            return
+        }
+
+        expect(context.debugDescription).to(contain("mydoc.1.foo"))
+    }
+
     func testExtendedJSONDecodingWithUserInfo() throws {
         struct Foo: Decodable, Equatable {
             let val: BSON
