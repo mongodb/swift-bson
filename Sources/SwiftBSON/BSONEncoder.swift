@@ -1,3 +1,4 @@
+import ExtrasBase64
 import Foundation
 import NIO
 
@@ -483,7 +484,7 @@ extension _BSONEncoder {
         case .binary:
             return try BSONBinary(data: data, subtype: .generic)
         case .base64:
-            return data.base64EncodedString()
+            return String(base64Encoding: data)
         case let .custom(f):
             return try self.handleCustomStrategy(encodeFunc: f, forValue: data)
         }

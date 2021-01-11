@@ -380,15 +380,16 @@ extension _BSONDecoder {
         case .base64:
             let base64Str = try self.unboxCustom(value) { $0.stringValue }
 
-            guard let data = Data(base64Encoded: base64Str) else {
+            do {
+                return try Data(base64Str.base64decoded())
+            } catch {
                 throw DecodingError.dataCorrupted(
                     DecodingError.Context(
                         codingPath: self.codingPath,
-                        debugDescription: "Malformatted base64 encoded string. Got: \(value)"
+                        debugDescription: "Malformatted base64 encoded string: \(error). Input string: \(value)"
                     )
                 )
             }
-            return data
         case let .custom(f):
             self.storage.push(container: value)
             defer { self.storage.popContainer() }
