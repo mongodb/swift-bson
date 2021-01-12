@@ -38,7 +38,6 @@ extension JSON: ExpressibleByFloatLiteral {
 
 extension JSON: ExpressibleByIntegerLiteral {
     internal init(integerLiteral value: Int) {
-        // The number `JSON` type is a Double, so we cast any integers to doubles.
         self.value = .number(String(value))
     }
 }
