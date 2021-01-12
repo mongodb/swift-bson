@@ -30,12 +30,7 @@ public class ExtendedJSONDecoder {
         var map: [String: [BSONValue.Type]] = [:]
         for t in BSON.allBSONTypes.values {
             for k in t.extJSONTypeWrapperKeys {
-                if var existingList = map[k] {
-                    existingList.append(t.self)
-                    map[k] = existingList
-                } else {
-                    map[k] = [t]
-                }
+                map[k, default: []].append(t.self)
             }
         }
         return map
