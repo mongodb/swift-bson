@@ -82,7 +82,8 @@ public class ExtendedJSONDecoder {
         }
     }
 
-    /// Decode and append the given extended JSON object to the provided BSONDocumentStorage.
+    /// Decode and append the given extended JSON object to the provided BSONDocumentStorage, returning the number of
+    /// bytes written to the storage.
     private func appendObject(
         _ object: [String: JSONValue],
         to storage: inout BSONDocument.BSONDocumentStorage,
@@ -97,7 +98,8 @@ public class ExtendedJSONDecoder {
         }
     }
 
-    /// Decode the given extended JSON value to BSON and append it to the provided storage.
+    /// Decode the given extended JSON value to BSON and append it to the provided storage, returning the number of
+    /// bytes written to the storage.
     private func appendElement(
         _ value: JSONValue,
         to storage: inout BSONDocument.BSONDocumentStorage,
