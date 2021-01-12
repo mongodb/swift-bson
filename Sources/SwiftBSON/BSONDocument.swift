@@ -370,19 +370,25 @@ public struct BSONDocument {
             return self.buffer.writerIndex - writer
         }
 
-        /// Build a document at the current position in the storage via the provided closure which returns
-        /// how many bytes it wrote.
+        /// Build a document at the current position in the storage via the provided closure which appends
+        /// the elements of the document and returns how many bytes it wrote in total. This method will append the
+        /// required metadata surrounding the document as necessary (length, null byte).
+        ///
+        /// If this method is used to build a subdocument, the caller is responsible for updating
+        /// the length of the containing document based on this method's return value. If this method was invoked
+        /// recursively from `buildDocument`, such updating will happen automatically if the returned byte count
+        /// is propagated.
         ///
         /// This may be used to build up a fresh document or a subdocument.
-        internal mutating func buildDocument(_ appendFunc: (inout Self) throws -> Int) rethrows -> Int {
+        internal mutating func buildDocument(_ appendElementsFunc: (inout Self) throws -> Int) rethrows -> Int {
             var totalBytes = 0
 
-            // write length of document
+            // write placeholder length of document
             let lengthIndex = self.buffer.writerIndex
             totalBytes += self.buffer.writeInteger(0, endianness: .little, as: Int32.self)
 
             // write contents
-            totalBytes += try appendFunc(&self)
+            totalBytes += try appendElementsFunc(&self)
 
             // write null byte
             totalBytes += self.buffer.writeInteger(0, as: UInt8.self)
