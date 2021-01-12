@@ -15,7 +15,7 @@ public class ExtendedJSONDecoder {
         return formatter
     }()
 
-    /// A set of all the possible extenededJSON wrapper keys.
+    /// A set of all the possible extendedJSON wrapper keys.
     private static var wrapperKeySet: Set<String> = {
         Set(ExtendedJSONDecoder.wrapperKeyMap.keys)
     }()
