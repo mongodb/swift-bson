@@ -52,14 +52,12 @@ public class ExtendedJSONDecoder {
     /// - Throws: `DecodingError` if the JSON data is corrupt or if any value throws an error during decoding.
     public func decode<T: Decodable>(_: T.Type, from data: Data) throws -> T {
         // Data --> JSONValue --> BSON --> T
-        // Takes in JSON as `Data` encoded with `.utf8` and runs it through a `JSONDecoder` to get an
-        // instance of the `JSON` enum.
+        // Takes in JSON as `Data` encoded with `.utf8` and runs it through ExtrasJSON's parser to get an
+        // instance of the `JSONValue` enum.
         let json = try JSONParser().parse(bytes: data)
 
-        // Then a `BSON` enum instance is created via the `JSON`.
-        // let bson = try json.toBSON(keyPath: [])
+        // Then a `BSON` enum instance is decoded from the `JSONValue`.
         let bson = try self.decodeBSONFromJSON(json, keyPath: [])
-        // let bson = BSON(fromExtJSON: json)
 
         // The `BSON` is then passed through a `BSONDecoder` where it is outputted as a `T`
         let bsonDecoder = BSONDecoder()
