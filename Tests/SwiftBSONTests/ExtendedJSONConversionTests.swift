@@ -41,6 +41,26 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(decoded).to(equal(test))
     }
 
+    func testExtendedJSONDecoderErrorKeyPath() throws {
+        let badExtJSON = "{ \"mydoc\": [ true, { \"bar\": 12, \"foo\": { \"$numberInt\": 3, \"extra\": true } } ] }"
+        let decoder = ExtendedJSONDecoder()
+        let result = Result {
+            try decoder.decode(BSON.self, from: badExtJSON.data(using: .utf8)!)
+        }
+
+        guard case let .failure(error) = result else {
+            XCTFail("expected decode to fail, but succeeded: \(result)")
+            return
+        }
+
+        guard case let .dataCorrupted(context) = error as? DecodingError else {
+            XCTFail("expected DecodingError, got: \(error)")
+            return
+        }
+
+        expect(context.debugDescription).to(contain("mydoc.1.foo"))
+    }
+
     func testExtendedJSONDecodingWithUserInfo() throws {
         struct Foo: Decodable, Equatable {
             let val: BSON
@@ -151,10 +171,10 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         let oid = "5F07445CFBBBBBBBBBFAAAAA"
 
         // Success case
-        let bson = try BSONObjectID(fromExtJSON: ["$oid": JSON.string(oid)], keyPath: [])
+        let bson = try BSONObjectID(fromExtJSON: ["$oid": JSON(.string(oid))], keyPath: [])
         expect(bson).to(equal(try BSONObjectID(oid)))
-        expect(bson?.toRelaxedExtendedJSON()).to(equal(["$oid": JSON.string(oid.lowercased())]))
-        expect(bson?.toCanonicalExtendedJSON()).to(equal(["$oid": JSON.string(oid.lowercased())]))
+        expect(bson?.toRelaxedExtendedJSON()).to(equal(["$oid": JSON(.string(oid.lowercased()))]))
+        expect(bson?.toCanonicalExtendedJSON()).to(equal(["$oid": JSON(.string(oid.lowercased()))]))
 
         // Nil cases
         expect(try BSONObjectID(fromExtJSON: ["random": "hello"], keyPath: [])).to(beNil())
@@ -165,7 +185,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(throwError(errorType: DecodingError.self))
         expect(try BSONObjectID(fromExtJSON: ["$oid": "hello"], keyPath: []))
             .to(throwError(errorType: DecodingError.self))
-        expect(try BSONObjectID(fromExtJSON: ["$oid": .string(oid), "extra": "hello"], keyPath: []))
+        expect(try BSONObjectID(fromExtJSON: ["$oid": JSON(.string(oid)), "extra": "hello"], keyPath: []))
             .to(throwError(errorType: DecodingError.self))
     }
 
@@ -191,13 +211,13 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         // Success cases
         let bson = try Int32(fromExtJSON: 5, keyPath: [])
         expect(bson).to(equal(5))
-        expect(bson?.toRelaxedExtendedJSON()).to(equal(.number(5)))
-        expect(bson?.toCanonicalExtendedJSON()).to(equal(["$numberInt": .string("5")]))
+        expect(bson?.toRelaxedExtendedJSON()).to(equal(5))
+        expect(bson?.toCanonicalExtendedJSON()).to(equal(["$numberInt": JSON(.string("5"))]))
         expect(try Int32(fromExtJSON: ["$numberInt": "5"], keyPath: [])).to(equal(5))
 
         // Nil cases
-        expect(try Int32(fromExtJSON: .number(Double(Int32.max) + 1), keyPath: [])).to(beNil())
-        expect(try Int32(fromExtJSON: .bool(true), keyPath: [])).to(beNil())
+        expect(try Int32(fromExtJSON: JSON(.number(String(Int64(Int32.max) + 1))), keyPath: [])).to(beNil())
+        expect(try Int32(fromExtJSON: true, keyPath: [])).to(beNil())
         expect(try Int32(fromExtJSON: ["bad": "5"], keyPath: [])).to(beNil())
 
         // Error cases
@@ -205,7 +225,8 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(throwError(errorType: DecodingError.self))
         expect(try Int32(fromExtJSON: ["$numberInt": "5", "extra": true], keyPath: []))
             .to(throwError(errorType: DecodingError.self))
-        expect(try Int32(fromExtJSON: ["$numberInt": .string("\(Double(Int32.max) + 1)")], keyPath: ["key", "path"]))
+        expect(
+            try Int32(fromExtJSON: ["$numberInt": JSON(.string("\(Double(Int32.max) + 1)"))], keyPath: ["key", "path"]))
             .to(throwError(errorType: DecodingError.self))
     }
 
@@ -213,13 +234,13 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         // Success cases
         let bson = try Int64(fromExtJSON: 5, keyPath: [])
         expect(bson).to(equal(5))
-        expect(bson?.toRelaxedExtendedJSON()).to(equal(.number(5)))
-        expect(bson?.toCanonicalExtendedJSON()).to(equal(["$numberLong": .string("5")]))
+        expect(bson?.toRelaxedExtendedJSON()).to(equal(5))
+        expect(bson?.toCanonicalExtendedJSON()).to(equal(["$numberLong": "5"]))
         expect(try Int64(fromExtJSON: ["$numberLong": "5"], keyPath: [])).to(equal(5))
 
         // Nil cases
-        expect(try Int64(fromExtJSON: .number(Double(Int64.max) + 1), keyPath: [])).to(beNil())
-        expect(try Int64(fromExtJSON: .bool(true), keyPath: [])).to(beNil())
+        expect(try Int64(fromExtJSON: JSON(.number(String(Double(Int64.max) + 1))), keyPath: [])).to(beNil())
+        expect(try Int64(fromExtJSON: true, keyPath: [])).to(beNil())
         expect(try Int64(fromExtJSON: ["bad": "5"], keyPath: [])).to(beNil())
 
         // Error cases
@@ -227,8 +248,10 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(throwError(errorType: DecodingError.self))
         expect(try Int64(fromExtJSON: ["$numberLong": "5", "extra": true], keyPath: []))
             .to(throwError(errorType: DecodingError.self))
-        expect(try Int64(fromExtJSON: ["$numberLong": .string("\(Double(Int64.max) + 1)")], keyPath: ["key", "path"]))
-            .to(throwError(errorType: DecodingError.self))
+        expect(try Int64(
+            fromExtJSON: ["$numberLong": JSON(.string("\(Double(Int64.max) + 1)"))],
+            keyPath: ["key", "path"]
+        )).to(throwError(errorType: DecodingError.self))
     }
 
     /// Tests the BSON Double [finite] and Double [non-finite] types.
@@ -239,12 +262,12 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         expect(try Double(fromExtJSON: ["$numberDouble": "Infinity"], keyPath: [])).to(equal(Double.infinity))
         expect(try Double(fromExtJSON: ["$numberDouble": "-Infinity"], keyPath: [])).to(equal(-Double.infinity))
         expect(try Double(fromExtJSON: ["$numberDouble": "NaN"], keyPath: [])?.isNaN).to(beTrue())
-        expect(Double("NaN")?.toCanonicalExtendedJSON()).to(equal(["$numberDouble": .string("NaN")]))
-        expect(Double(5.5).toCanonicalExtendedJSON()).to(equal(["$numberDouble": .string("5.5")]))
-        expect(Double(5.5).toRelaxedExtendedJSON()).to(equal(.number(5.5)))
+        expect(Double("NaN")?.toCanonicalExtendedJSON()).to(equal(["$numberDouble": "NaN"]))
+        expect(Double(5.5).toCanonicalExtendedJSON()).to(equal(["$numberDouble": "5.5"]))
+        expect(Double(5.5).toRelaxedExtendedJSON()).to(equal(5.5))
 
         // Nil cases
-        expect(try Double(fromExtJSON: .bool(true), keyPath: [])).to(beNil())
+        expect(try Double(fromExtJSON: true, keyPath: [])).to(beNil())
         expect(try Double(fromExtJSON: ["bad": "5.5"], keyPath: [])).to(beNil())
 
         // Error cases
@@ -252,7 +275,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(throwError(errorType: DecodingError.self))
         expect(try Double(fromExtJSON: ["$numberDouble": "5.5", "extra": true], keyPath: []))
             .to(throwError(errorType: DecodingError.self))
-        expect(try Double(fromExtJSON: ["$numberDouble": .bool(true)], keyPath: ["key", "path"]))
+        expect(try Double(fromExtJSON: ["$numberDouble": true], keyPath: ["key", "path"]))
             .to(throwError(errorType: DecodingError.self))
     }
 
@@ -264,7 +287,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(equal(["$numberDecimal": "0.020000000000000004"]))
 
         // Nil cases
-        expect(try BSONDecimal128(fromExtJSON: .bool(true), keyPath: [])).to(beNil())
+        expect(try BSONDecimal128(fromExtJSON: true, keyPath: [])).to(beNil())
         expect(try BSONDecimal128(fromExtJSON: ["bad": "5.5"], keyPath: [])).to(beNil())
 
         // Error cases
@@ -272,7 +295,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(throwError(errorType: DecodingError.self))
         expect(try BSONDecimal128(fromExtJSON: ["$numberDecimal": "5.5", "extra": true], keyPath: []))
             .to(throwError(errorType: DecodingError.self))
-        expect(try BSONDecimal128(fromExtJSON: ["$numberDecimal": .bool(true)], keyPath: ["key", "path"]))
+        expect(try BSONDecimal128(fromExtJSON: ["$numberDecimal": true], keyPath: ["key", "path"]))
             .to(throwError(errorType: DecodingError.self))
     }
 
@@ -427,7 +450,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
     }
 
     func testDBPointer() throws {
-        let oid = JSON.object(["$oid": .string("5F07445CFBBBBBBBBBFAAAAA")])
+        let oid: JSON = ["$oid": "5F07445CFBBBBBBBBBFAAAAA"]
         let objectId: BSONObjectID = try BSONObjectID("5F07445CFBBBBBBBBBFAAAAA")
 
         // Success case
@@ -507,14 +530,14 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
 
     func testUndefined() throws {
         // Success cases
-        expect(try BSONUndefined(fromExtJSON: ["$undefined": .bool(true)], keyPath: [])).to(equal(BSONUndefined()))
+        expect(try BSONUndefined(fromExtJSON: ["$undefined": true], keyPath: [])).to(equal(BSONUndefined()))
 
         // Nil cases
         expect(try BSONUndefined(fromExtJSON: "undefined", keyPath: [])).to(beNil())
         expect(try BSONUndefined(fromExtJSON: ["bad": "5.5"], keyPath: [])).to(beNil())
 
         // Error cases
-        expect(try BSONUndefined(fromExtJSON: ["$undefined": .bool(true), "extra": 1], keyPath: []))
+        expect(try BSONUndefined(fromExtJSON: ["$undefined": true, "extra": 1], keyPath: []))
             .to(throwError(errorType: DecodingError.self))
         expect(try BSONUndefined(fromExtJSON: ["$undefined": 1], keyPath: []))
             .to(throwError(errorType: DecodingError.self))
@@ -540,7 +563,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
 
     func testBoolean() {
         // Success cases
-        expect(Bool(fromExtJSON: .bool(true), keyPath: [])).to(equal(true))
+        expect(Bool(fromExtJSON: true, keyPath: [])).to(equal(true))
 
         // Nil cases
         expect(Bool(fromExtJSON: 5.5, keyPath: [])).to(beNil())
@@ -549,7 +572,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
 
     func testNull() {
         // Success cases
-        expect(BSONNull(fromExtJSON: .null, keyPath: [])).to(equal(BSONNull()))
+        expect(BSONNull(fromExtJSON: JSON(.null), keyPath: [])).to(equal(BSONNull()))
 
         // Nil cases
         expect(BSONNull(fromExtJSON: 5.5, keyPath: [])).to(beNil())

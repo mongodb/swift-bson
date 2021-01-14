@@ -477,6 +477,8 @@ public struct BSONDecimal128: Equatable, Hashable, CustomStringConvertible {
 }
 
 extension BSONDecimal128: BSONValue {
+    internal static let extJSONTypeWrapperKeys: [String] = ["$numberDecimal"]
+
     /*
      * Initializes a `Decimal128` from ExtendedJSON.
      *
@@ -493,7 +495,7 @@ extension BSONDecimal128: BSONValue {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let value = try json.unwrapObject(withKey: "$numberDecimal", keyPath: keyPath) else {
+        guard let value = try json.value.unwrapObject(withKey: "$numberDecimal", keyPath: keyPath) else {
             return nil
         }
         guard let str = value.stringValue else {
@@ -520,7 +522,7 @@ extension BSONDecimal128: BSONValue {
 
     /// Converts this `Decimal128` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        ["$numberDecimal": .string(self.toString())]
+        ["$numberDecimal": JSON(.string(self.toString()))]
     }
 
     internal static var bsonType: BSONType { .decimal128 }

@@ -2,6 +2,8 @@ import Foundation
 import NIO
 
 extension Date: BSONValue {
+    internal static let extJSONTypeWrapperKeys: [String] = ["$date"]
+
     /*
      * Initializes a `Date` from ExtendedJSON.
      *
@@ -17,13 +19,13 @@ extension Date: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        guard let value = try json.unwrapObject(withKey: "$date", keyPath: keyPath) else {
+        guard let value = try json.value.unwrapObject(withKey: "$date", keyPath: keyPath) else {
             return nil
         }
         switch value {
         case .object:
             // canonical extended JSON
-            guard let int = try Int64(fromExtJSON: value, keyPath: keyPath) else {
+            guard let int = try Int64(fromExtJSON: JSON(value), keyPath: keyPath) else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Expected \(value) to be canonical extended JSON representing a " +
@@ -69,7 +71,7 @@ extension Date: BSONValue {
                 ? ExtendedJSONDecoder.extJSONDateFormatterSeconds
                 : ExtendedJSONDecoder.extJSONDateFormatterMilliseconds
             let date = formatter.string(from: self)
-            return ["$date": .string(date)]
+            return ["$date": JSON(.string(date))]
         } else {
             return self.toCanonicalExtendedJSON()
         }

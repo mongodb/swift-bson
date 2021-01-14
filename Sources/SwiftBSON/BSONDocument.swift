@@ -1,3 +1,4 @@
+import ExtrasJSON
 import Foundation
 import NIO
 
@@ -92,7 +93,7 @@ public struct BSONDocument {
         self = BSONDocument(fromUnsafeBSON: storage, keys: keys)
     }
 
-    private init(fromUnsafeBSON storage: BSONDocumentStorage, keys: Set<String>) {
+    internal init(fromUnsafeBSON storage: BSONDocumentStorage, keys: Set<String>) {
         self.storage = storage
         self.keySet = keys
     }
@@ -329,7 +330,7 @@ public struct BSONDocument {
 
     /// Storage management for BSONDocuments.
     /// A wrapper around a ByteBuffer providing various BSONDocument-specific utilities.
-    private struct BSONDocumentStorage {
+    internal struct BSONDocumentStorage {
         internal var buffer: ByteBuffer
 
         /// Create BSONDocumentStorage from ByteBuffer.
@@ -356,10 +357,45 @@ public struct BSONDocument {
         /// Appends element to underlying BSON bytes, returns the size of the element appended: type + key + value
         @discardableResult internal mutating func append(key: String, value: BSON) -> Int {
             let writer = self.buffer.writerIndex
-            self.buffer.writeInteger(value.bsonValue.bsonType.rawValue, as: UInt8.self)
-            self.buffer.writeCString(key)
+            self.appendElementHeader(key: key, bsonType: value.bsonValue.bsonType)
             value.bsonValue.write(to: &self.buffer)
             return self.buffer.writerIndex - writer
+        }
+
+        /// Append the header (key and BSONType) for a given element.
+        @discardableResult internal mutating func appendElementHeader(key: String, bsonType: BSONType) -> Int {
+            let writer = self.buffer.writerIndex
+            self.buffer.writeInteger(bsonType.rawValue, as: UInt8.self)
+            self.buffer.writeCString(key)
+            return self.buffer.writerIndex - writer
+        }
+
+        /// Build a document at the current position in the storage via the provided closure which appends
+        /// the elements of the document and returns how many bytes it wrote in total. This method will append the
+        /// required metadata surrounding the document as necessary (length, null byte).
+        ///
+        /// If this method is used to build a subdocument, the caller is responsible for updating
+        /// the length of the containing document based on this method's return value. If this method was invoked
+        /// recursively from `buildDocument`, such updating will happen automatically if the returned byte count
+        /// is propagated.
+        ///
+        /// This may be used to build up a fresh document or a subdocument.
+        internal mutating func buildDocument(_ appendElementsFunc: (inout Self) throws -> Int) rethrows -> Int {
+            var totalBytes = 0
+
+            // write placeholder length of document
+            let lengthIndex = self.buffer.writerIndex
+            totalBytes += self.buffer.writeInteger(0, endianness: .little, as: Int32.self)
+
+            // write contents
+            totalBytes += try appendElementsFunc(&self)
+
+            // write null byte
+            totalBytes += self.buffer.writeInteger(0, as: UInt8.self)
+
+            self.buffer.setInteger(Int32(totalBytes), at: lengthIndex, endianness: .little, as: Int32.self)
+
+            return totalBytes
         }
 
         @discardableResult
@@ -447,8 +483,11 @@ extension BSONDocument: Equatable {
 }
 
 extension BSONDocument: BSONValue {
+    internal static let extJSONTypeWrapperKeys: [String] = []
+
     /*
      * Initializes a `BSONDocument` from ExtendedJSON.
+     * This is not as performant as ExtendedJSONDecoder.decode, so it should only be used for small documents.
      *
      * Parameters:
      *   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for any `BSONDocument`.
@@ -463,12 +502,12 @@ extension BSONDocument: BSONValue {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard case let .object(obj) = json else {
+        guard case let .object(obj) = json.value else {
             return nil
         }
         var doc: [(String, BSON)] = []
         for (key, val) in obj {
-            let bsonValue = try BSON(fromExtJSON: val, keyPath: keyPath + [key])
+            let bsonValue = try BSON(fromExtJSON: JSON(val), keyPath: keyPath + [key])
             doc.append((key, bsonValue))
         }
         self = BSONDocument(keyValuePairs: doc)
@@ -476,20 +515,20 @@ extension BSONDocument: BSONValue {
 
     /// Converts this `BSONDocument` to a corresponding `JSON` in relaxed extendedJSON format.
     internal func toRelaxedExtendedJSON() -> JSON {
-        var obj: [String: JSON] = [:]
+        var obj: [String: JSONValue] = [:]
         for (key, value) in self {
-            obj[key] = value.toRelaxedExtendedJSON()
+            obj[key] = value.toRelaxedExtendedJSON().value
         }
-        return .object(obj)
+        return JSON(.object(obj))
     }
 
     /// Converts this `BSONDocument` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        var obj: [String: JSON] = [:]
+        var obj: [String: JSONValue] = [:]
         for (key, value) in self {
-            obj[key] = value.toCanonicalExtendedJSON()
+            obj[key] = value.toCanonicalExtendedJSON().value
         }
-        return .object(obj)
+        return JSON(.object(obj))
     }
 
     internal static var bsonType: BSONType { .document }
@@ -509,8 +548,7 @@ extension BSONDocument: BSONValue {
     }
 
     internal func write(to buffer: inout ByteBuffer) {
-        var doc = ByteBuffer(self.storage.buffer.readableBytesView)
-        buffer.writeBuffer(&doc)
+        buffer.writeBytes(self.storage.buffer.readableBytesView)
     }
 }
 

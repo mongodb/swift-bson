@@ -2,6 +2,8 @@ import NIO
 
 /// A struct to represent the BSON null type.
 internal struct BSONNull: BSONValue, Equatable {
+    internal static let extJSONTypeWrapperKeys: [String] = []
+
     /*
      * Initializes a `BSONNull` from ExtendedJSON.
      *
@@ -15,7 +17,7 @@ internal struct BSONNull: BSONValue, Equatable {
      *
      */
     internal init?(fromExtJSON json: JSON, keyPath _: [String]) {
-        switch json {
+        switch json.value {
         case .null:
             // canonical or relaxed extended JSON
             self = BSONNull()
@@ -31,7 +33,7 @@ internal struct BSONNull: BSONValue, Equatable {
 
     /// Converts this `BSONNull` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        .null
+        JSON(.null)
     }
 
     internal static var bsonType: BSONType { .null }
@@ -52,6 +54,8 @@ internal struct BSONNull: BSONValue, Equatable {
 
 /// A struct to represent the BSON undefined type.
 internal struct BSONUndefined: BSONValue, Equatable {
+    internal static let extJSONTypeWrapperKeys: [String] = ["$undefined"]
+
     /*
      * Initializes a `BSONUndefined` from ExtendedJSON.
      *
@@ -68,7 +72,7 @@ internal struct BSONUndefined: BSONValue, Equatable {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let value = try json.unwrapObject(withKey: "$undefined", keyPath: keyPath) else {
+        guard let value = try json.value.unwrapObject(withKey: "$undefined", keyPath: keyPath) else {
             return nil
         }
         guard value.boolValue == true else {
@@ -108,6 +112,8 @@ internal struct BSONUndefined: BSONValue, Equatable {
 
 /// A struct to represent the BSON MinKey type.
 internal struct BSONMinKey: BSONValue, Equatable {
+    internal static let extJSONTypeWrapperKeys: [String] = ["$minKey"]
+
     /*
      * Initializes a `BSONMinKey` from ExtendedJSON.
      *
@@ -124,7 +130,7 @@ internal struct BSONMinKey: BSONValue, Equatable {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let value = try json.unwrapObject(withKey: "$minKey", keyPath: keyPath) else {
+        guard let value = try json.value.unwrapObject(withKey: "$minKey", keyPath: keyPath) else {
             return nil
         }
         guard value.doubleValue == 1 else {
@@ -164,6 +170,8 @@ internal struct BSONMinKey: BSONValue, Equatable {
 
 /// A struct to represent the BSON MinKey type.
 internal struct BSONMaxKey: BSONValue, Equatable {
+    internal static let extJSONTypeWrapperKeys: [String] = ["$maxKey"]
+
     /*
      * Initializes a `BSONMaxKey` from ExtendedJSON.
      *
@@ -180,7 +188,7 @@ internal struct BSONMaxKey: BSONValue, Equatable {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let value = try json.unwrapObject(withKey: "$maxKey", keyPath: keyPath) else {
+        guard let value = try json.value.unwrapObject(withKey: "$maxKey", keyPath: keyPath) else {
             return nil
         }
         guard value.doubleValue == 1 else {

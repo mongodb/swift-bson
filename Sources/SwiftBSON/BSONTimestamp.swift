@@ -4,6 +4,7 @@ import NIO
 /// application development, you should use the BSON date type (represented in this library by `Date`.)
 /// - SeeAlso: https://docs.mongodb.com/manual/reference/bson-types/#timestamps
 public struct BSONTimestamp: BSONValue, Equatable, Hashable {
+    internal static let extJSONTypeWrapperKeys: [String] = ["$timestamp"]
     internal static var bsonType: BSONType { .timestamp }
     internal var bson: BSON { .timestamp(self) }
 
@@ -40,7 +41,7 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard let value = try json.unwrapObject(withKey: "$timestamp", keyPath: keyPath) else {
+        guard let value = try json.value.unwrapObject(withKey: "$timestamp", keyPath: keyPath) else {
             return nil
         }
         guard let timestampObj = value.objectValue else {
@@ -84,8 +85,8 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
     internal func toCanonicalExtendedJSON() -> JSON {
         [
             "$timestamp": [
-                "t": .number(Double(self.timestamp)),
-                "i": .number(Double(self.increment))
+                "t": JSON(.number(String(self.timestamp))),
+                "i": JSON(.number(String(self.increment)))
             ]
         ]
     }

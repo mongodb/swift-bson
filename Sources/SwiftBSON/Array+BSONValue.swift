@@ -2,6 +2,8 @@ import NIO
 
 /// An extension of `Array` to represent the BSON array type.
 extension Array: BSONValue where Element == BSON {
+    internal static let extJSONTypeWrapperKeys: [String] = []
+
     /*
      * Initializes an `Array` from ExtendedJSON.
      *
@@ -18,22 +20,22 @@ extension Array: BSONValue where Element == BSON {
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
         // canonical and relaxed extended JSON
-        guard case let .array(a) = json else {
+        guard case let .array(a) = json.value else {
             return nil
         }
         self = try a.enumerated().map { index, element in
-            try BSON(fromExtJSON: element, keyPath: keyPath + [String(index)])
+            try BSON(fromExtJSON: JSON(element), keyPath: keyPath + [String(index)])
         }
     }
 
     /// Converts this `BSONArray` to a corresponding `JSON` in relaxed extendedJSON format.
     internal func toRelaxedExtendedJSON() -> JSON {
-        .array(self.map { $0.toRelaxedExtendedJSON() })
+        JSON(.array(self.map { $0.toRelaxedExtendedJSON().value }))
     }
 
     /// Converts this `BSONArray` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        .array(self.map { $0.toCanonicalExtendedJSON() })
+        JSON(.array(self.map { $0.toCanonicalExtendedJSON().value }))
     }
 
     internal static var bsonType: BSONType { .array }

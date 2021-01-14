@@ -1,3 +1,4 @@
+import ExtrasJSON
 import Foundation
 
 /// Enum representing a BSON value.
@@ -77,7 +78,9 @@ public enum BSON {
         }
     }
 
-    /// Initialize a `BSON` from ExtendedJSON
+    /// Initialize a `BSON` from ExtendedJSON.
+    /// This is not as performant as decoding via ExtendedJSONDecoder and should only be used scalar values.
+    ///
     /// Parameters:
     ///   - `json`: a `JSON` representing the canonical or relaxed form of ExtendedJSON for any `BSONValue`.
     ///   - `keyPath`: an array of `Strings`s containing the enclosing JSON keys of the current json being passed in.

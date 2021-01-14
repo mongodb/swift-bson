@@ -160,7 +160,6 @@ final class BSONCorpusTests: BSONTestCase {
                     // BSONDocument -> Swift data type -> BSONDocument.
                     // At the end, the new BSONDocument should be identical to the original one.
                     // If not, our BSONDocument translation layer is lossy and/or buggy.
-                    // TODO(SWIFT-867): Enable these lines when you can do subscript assignment
                     let nativeFromDoc = docFromCB.toArray()
                     let docFromNative = BSONDocument(fromArray: nativeFromDoc)
                     expect(docFromNative.toByteString()).to(equal(cBData.toByteString()))

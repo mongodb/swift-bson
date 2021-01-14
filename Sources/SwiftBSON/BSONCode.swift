@@ -28,6 +28,8 @@ public struct BSONCodeWithScope: Equatable, Hashable {
 }
 
 extension BSONCode: BSONValue {
+    internal static let extJSONTypeWrapperKeys: [String] = ["$code"]
+
     /*
      * Initializes a `BSONCode` from ExtendedJSON.
      *
@@ -43,7 +45,7 @@ extension BSONCode: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
+        switch json.value {
         case let .object(obj):
             // canonical and relaxed extended JSON
             guard let value = obj["$code"] else {
@@ -78,7 +80,7 @@ extension BSONCode: BSONValue {
 
     /// Converts this `BSONCode` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        ["$code": .string(self.code)]
+        ["$code": JSON(.string(self.code))]
     }
 
     internal static var bsonType: BSONType { .code }
@@ -98,6 +100,8 @@ extension BSONCode: BSONValue {
 }
 
 extension BSONCodeWithScope: BSONValue {
+    internal static let extJSONTypeWrapperKeys: [String] = ["$code", "$scope"]
+
     /*
      * Initializes a `BSONCode` from ExtendedJSON.
      *
@@ -113,10 +117,10 @@ extension BSONCodeWithScope: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        switch json {
+        switch json.value {
         case .object:
             // canonical and relaxed extended JSON
-            guard let (code, scope) = try json.unwrapObject(withKeys: "$code", "$scope", keyPath: keyPath) else {
+            guard let (code, scope) = try json.value.unwrapObject(withKeys: "$code", "$scope", keyPath: keyPath) else {
                 return nil
             }
             guard let codeStr = code.stringValue else {
@@ -126,7 +130,7 @@ extension BSONCodeWithScope: BSONValue {
                         " input must be a string."
                 )
             }
-            guard let scopeDoc = try BSONDocument(fromExtJSON: scope, keyPath: keyPath + ["$scope"]) else {
+            guard let scopeDoc = try BSONDocument(fromExtJSON: JSON(scope), keyPath: keyPath + ["$scope"]) else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
                     debugDescription: "Could not parse scope from \"\(scope)\", input must be a Document."
@@ -140,12 +144,12 @@ extension BSONCodeWithScope: BSONValue {
 
     /// Converts this `BSONCodeWithScope` to a corresponding `JSON` in relaxed extendedJSON format.
     internal func toRelaxedExtendedJSON() -> JSON {
-        ["$code": .string(self.code), "$scope": self.scope.toRelaxedExtendedJSON()]
+        ["$code": JSON(.string(self.code)), "$scope": self.scope.toRelaxedExtendedJSON()]
     }
 
     /// Converts this `BSONCodeWithScope` to a corresponding `JSON` in canonical extendedJSON format.
     internal func toCanonicalExtendedJSON() -> JSON {
-        ["$code": .string(self.code), "$scope": self.scope.toCanonicalExtendedJSON()]
+        ["$code": JSON(.string(self.code)), "$scope": self.scope.toCanonicalExtendedJSON()]
     }
 
     internal static var bsonType: BSONType { .codeWithScope }

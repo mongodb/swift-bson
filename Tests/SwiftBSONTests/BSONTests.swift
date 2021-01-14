@@ -1,3 +1,4 @@
+import ExtrasJSON
 import Foundation
 import Nimble
 import NIO
@@ -51,7 +52,7 @@ public func retrieveSpecTestFiles<T: Decodable>(
             // TODO: update here to use BSONDecoder for more coverage
             let url = URL(fileURLWithPath: "\(path)/\(filename)")
             let data = try Data(contentsOf: url, options: .mappedIfSafe)
-            let jsonResult = try JSONDecoder().decode(T.self, from: data)
+            let jsonResult = try XJSONDecoder().decode(T.self, from: data)
             return (filename, jsonResult)
         }
 }
