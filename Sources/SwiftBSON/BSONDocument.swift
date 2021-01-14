@@ -125,7 +125,6 @@ public struct BSONDocument {
     /// On error, an empty string will be returned.
     public func toExtendedJSONString() -> String {
         let encoder = ExtendedJSONEncoder()
-        encoder.outputFormatting = [.prettyPrinted]
         guard let encoded = try? encoder.encode(self) else {
             return ""
         }
@@ -137,7 +136,6 @@ public struct BSONDocument {
     public func toCanonicalExtendedJSONString() -> String {
         let encoder = ExtendedJSONEncoder()
         encoder.mode = .canonical
-        encoder.outputFormatting = [.prettyPrinted]
         guard let encoded = try? encoder.encode(self) else {
             return ""
         }
@@ -145,7 +143,13 @@ public struct BSONDocument {
     }
 
     /// The keys in this `BSONDocument`.
-    public var keys: [String] { self.map { key, _ in key } }
+    public var keys: [String] {
+        do {
+            return try BSONDocumentIterator.getKeys(from: self.storage.buffer)
+        } catch {
+            fatalError("Failed to retrieve keys for document")
+        }
+    }
 
     /// The values in this `BSONDocument`.
     public var values: [BSON] { self.map { _, val in val } }
@@ -177,10 +181,11 @@ public struct BSONDocument {
      */
     public subscript(key: String) -> BSON? {
         get {
-            for (docKey, value) in self where docKey == key {
-                return value
+            do {
+                return try BSONDocumentIterator.find(key: key, in: self)?.value
+            } catch {
+                fatalError("Error looking up key \(key) in document: \(error)")
             }
-            return nil
         }
         set {
             // The only time this would crash is document too big error
@@ -281,9 +286,7 @@ public struct BSONDocument {
             return
         }
 
-        let iter = BSONDocumentIterator(over: self.storage.buffer)
-
-        guard let range = iter.findByteRange(for: key) else {
+        guard let range = try BSONDocumentIterator.findByteRange(for: key, in: self) else {
             throw BSONError.InternalError(message: "Cannot find \(key) to delete")
         }
 
@@ -541,10 +544,12 @@ extension BSONDocument: BSONValue {
             throw BSONError.InternalError(message: "Cannot read document byte length")
         }
         buffer.moveReaderIndex(to: reader)
-        guard let bytes = buffer.readBytes(length: Int(encodedLength)) else {
+        guard let bytes = buffer.readSlice(length: Int(encodedLength)) else {
             throw BSONError.InternalError(message: "Cannot read document contents")
         }
-        return .document(try BSONDocument(fromBSON: Data(bytes)))
+
+        let keys = try BSONDocumentIterator.getKeySet(from: bytes)
+        return .document(BSONDocument(fromUnsafeBSON: BSONDocument.BSONDocumentStorage(bytes), keys: keys))
     }
 
     internal func write(to buffer: inout ByteBuffer) {
