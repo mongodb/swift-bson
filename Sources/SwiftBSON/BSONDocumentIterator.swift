@@ -40,9 +40,9 @@ public class BSONDocumentIterator: IteratorProtocol {
             return nil
         }
         let key = try self.buffer.readCString()
-        // the map contains a value for every valid BSON type.
-        // swiftlint:disable:next force_unwrapping
-        let bson = try BSON.allBSONTypes[type]!.read(from: &self.buffer)
+        guard let bson = try BSON.allBSONTypes[type]?.read(from: &self.buffer) else {
+            throw BSONIterationError(message: "Encountered invalid BSON type: \(type)")
+        }
         return (key: key, value: bson)
     }
 
