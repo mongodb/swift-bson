@@ -117,7 +117,7 @@ public class BSONDocumentIterator: IteratorProtocol {
     internal func skipNextValue(type: BSONType) throws {
         switch type {
         case .invalid:
-            fatalError("Unexpectedly encountered invalid BSON type")
+            throw BSONIterationError(message: "encountered invalid BSON type")
 
         case .undefined, .null, .minKey, .maxKey:
             // no data stored, nothing to skip.
