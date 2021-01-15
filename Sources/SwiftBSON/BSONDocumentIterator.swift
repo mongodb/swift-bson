@@ -98,10 +98,7 @@ public class BSONDocumentIterator: IteratorProtocol {
     /// Finds an element with the specified key in the document. Returns nil if the key is not found.
     internal static func find(key: String, in document: BSONDocument) throws -> BSONDocument.KeyValuePair? {
         let iter = document.makeIterator()
-        while true {
-            guard let type = try iter.readNextType() else {
-                return nil
-            }
+        while let type = try iter.readNextType() {
             let foundKey = try iter.buffer.readCString()
             if foundKey == key {
                 // the map contains a value for every valid BSON type.
@@ -112,6 +109,7 @@ public class BSONDocumentIterator: IteratorProtocol {
 
             try iter.skipNextValue(type: type)
         }
+        return nil
     }
 
     /// Given the type of the encoded value starting at self.buffer.readerIndex, advances the reader index to the index
