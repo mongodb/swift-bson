@@ -22,6 +22,16 @@ extension BSONDocument: Sequence {
         BSONDocumentIterator(over: self.buffer)
     }
 
+    // We need to re-implement this using the default Sequence implementation since the default one from
+    // `Collection` (which `BSONDocument` also conforms to) relies on numeric indexes for iteration and is therefore
+    // very slow.
+    @inlinable
+    public func map<T>(
+        _ transform: (Element) throws -> T
+    ) rethrows -> [T] {
+        try AnySequence(self).map(transform)
+    }
+
     /**
      * Returns a new document containing the keys of this document with the values transformed by the given closure.
      *

@@ -265,16 +265,16 @@ extension BSONBinary: BSONValue {
             guard oldSize == (byteLength - 4) else {
                 throw BSONError.InternalError(message: "Invalid size for BSONBinary subtype: \(subtype)")
             }
-            guard let bytes = buffer.readBytes(length: Int(oldSize)) else {
+            guard let bytes = buffer.readSlice(length: Int(oldSize)) else {
                 throw BSONError.InternalError(message: "Cannot read \(oldSize) from buffer for BSONBinary")
             }
-            return .binary(try BSONBinary(bytes: bytes, subtype: subtype))
+            return .binary(try BSONBinary(buffer: bytes, subtype: subtype))
         }
 
-        guard let bytes = buffer.readBytes(length: Int(byteLength)) else {
+        guard let bytes = buffer.readSlice(length: Int(byteLength)) else {
             throw BSONError.InternalError(message: "Cannot read \(byteLength) from buffer for BSONBinary")
         }
-        return .binary(try BSONBinary(bytes: bytes, subtype: subtype))
+        return .binary(try BSONBinary(buffer: bytes, subtype: subtype))
     }
 
     internal func write(to buffer: inout ByteBuffer) {
