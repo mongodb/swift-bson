@@ -257,6 +257,16 @@ public struct BSONDocument {
         return document
     }
 
+    /// Appends the provided key value pair without checking to see if the key already exists.
+    /// Warning: appending two of the same key may result in errors or undefined behavior.
+    internal mutating func append(key: String, value: BSON) {
+        // setup to overwrite null terminator
+        self.storage.buffer.moveWriterIndex(to: self.storage.encodedLength - 1)
+        let size = self.storage.append(key: key, value: value)
+        self.storage.buffer.writeInteger(0, endianness: .little, as: UInt8.self) // add back in our null terminator
+        self.storage.encodedLength += size
+    }
+
     /**
      * Sets a BSON element with the corresponding key
      * if element.value is nil the element is deleted from the BSON
@@ -267,11 +277,7 @@ public struct BSONDocument {
                 // no-op: key does not exist and the value is nil
                 return
             }
-            // setup to overwrite null terminator
-            self.storage.buffer.moveWriterIndex(to: self.storage.encodedLength - 1)
-            let size = self.storage.append(key: key, value: value)
-            self.storage.buffer.writeInteger(0, endianness: .little, as: UInt8.self) // add back in our null terminator
-            self.storage.encodedLength += size
+            self.append(key: key, value: value)
             return
         }
 
