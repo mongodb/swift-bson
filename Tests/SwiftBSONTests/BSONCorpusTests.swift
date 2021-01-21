@@ -272,6 +272,13 @@ final class BSONCorpusTests: BSONTestCase {
                         return
                     }
                     expect(try BSONDocument(fromBSON: data)).to(throwError(), description: description)
+
+                    if let doc = try? BSONDocument(withoutValidatingElements: BSON_ALLOCATOR.buffer(bytes: data)) {
+                        // assert that iteration doesn't crash
+                        for (_, _) in doc {
+                            continue
+                        }
+                    }
                 }
             }
         }

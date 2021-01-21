@@ -79,6 +79,21 @@ public struct BSONDocument {
         self = BSONDocument(fromUnsafeBSON: storage)
     }
 
+    /**
+     * Initialize a new `BSONDocument` from the provided BSON data without validating the elements. The first four
+     * bytes must accurately contain the length, however.
+     *
+     * If invalid BSON data is provided, undefined behavior or server-side errors may occur when using the
+     * resultant `BSONDocument`.
+     *
+     * - Throws: `BSONError.InvalidArgumentError` if the provided BSON's length does not match the encoded length.
+     */
+    public init(withoutValidatingElements bson: ByteBuffer) throws {
+        let storage = BSONDocumentStorage(bson)
+        try storage.validateLength()
+        self.init(fromUnsafeBSON: storage)
+    }
+
     internal init(fromUnsafeBSON storage: BSONDocumentStorage) {
         self.storage = storage
     }
@@ -129,11 +144,7 @@ public struct BSONDocument {
 
     /// The keys in this `BSONDocument`.
     public var keys: [String] {
-        do {
-            return try BSONDocumentIterator.getKeys(from: self.storage.buffer)
-        } catch {
-            fatalError("Failed to retrieve keys for document")
-        }
+        BSONDocumentIterator.getKeys(from: self.storage.buffer)
     }
 
     /// The values in this `BSONDocument`.
@@ -141,11 +152,7 @@ public struct BSONDocument {
 
     /// The number of (key, value) pairs stored at the top level of this document.
     public var count: Int {
-        do {
-            return try BSONDocumentIterator.getKeys(from: self.storage.buffer).count
-        } catch {
-            return 0
-        }
+        BSONDocumentIterator.getKeys(from: self.storage.buffer).count
     }
 
     /// A copy of the `ByteBuffer` backing this document, containing raw BSON data. As `ByteBuffer`s implement
@@ -158,7 +165,7 @@ public struct BSONDocument {
 
     /// Returns a `Boolean` indicating whether this `BSONDocument` contains the provided key.
     public func hasKey(_ key: String) -> Bool {
-        (try? BSONDocumentIterator.find(key: key, in: self)) != nil
+        BSONDocumentIterator.find(key: key, in: self) != nil
     }
 
     /**
@@ -174,19 +181,10 @@ public struct BSONDocument {
      */
     public subscript(key: String) -> BSON? {
         get {
-            do {
-                return try BSONDocumentIterator.find(key: key, in: self)?.value
-            } catch {
-                fatalError("Error looking up key \(key) in document: \(error)")
-            }
+            BSONDocumentIterator.find(key: key, in: self)?.value
         }
         set {
-            // The only time this would crash is document too big error
-            do {
-                return try self.set(key: key, to: newValue)
-            } catch {
-                fatalError("Failed to set \(key) to \(String(describing: newValue)): \(error)")
-            }
+            self.set(key: key, to: newValue)
         }
     }
 
@@ -271,8 +269,8 @@ public struct BSONDocument {
      * Sets a BSON element with the corresponding key
      * if element.value is nil the element is deleted from the BSON
      */
-    internal mutating func set(key: String, to value: BSON?) throws {
-        guard let range = try BSONDocumentIterator.findByteRange(for: key, in: self) else {
+    internal mutating func set(key: String, to value: BSON?) {
+        guard let range = BSONDocumentIterator.findByteRange(for: key, in: self) else {
             guard let value = value else {
                 // no-op: key does not exist and the value is nil
                 return
@@ -285,18 +283,18 @@ public struct BSONDocument {
         let suffixLength = self.storage.encodedLength - range.endIndex
 
         guard
-            let prefix = self.storage.buffer.getBytes(at: 0, length: prefixLength),
+            var prefix = self.storage.buffer.getSlice(at: 0, length: prefixLength),
             let suffix = self.storage.buffer.getBytes(at: range.endIndex, length: suffixLength)
         else {
-            throw BSONError.InternalError(
-                message: "Cannot slice buffer from " +
+            fatalError(
+                "Cannot slice buffer from " +
                     "0 to len \(range.startIndex) and from \(range.endIndex) " +
                     "to len \(suffixLength) : \(self.storage.buffer)"
             )
         }
 
         var newStorage = BSONDocumentStorage()
-        newStorage.buffer.writeBytes(prefix)
+        newStorage.buffer.writeBuffer(&prefix)
 
         var newSize = self.storage.encodedLength - (range.endIndex - range.startIndex)
         if let value = value {
@@ -305,7 +303,7 @@ public struct BSONDocument {
             newSize += size
 
             guard newSize <= BSON_MAX_SIZE else {
-                throw BSONError.DocumentTooLargeError(value: value.bsonValue, forKey: key)
+                fatalError(BSONError.DocumentTooLargeError(value: value.bsonValue, forKey: key).message)
             }
         }
 
@@ -325,7 +323,7 @@ public struct BSONDocument {
         internal var buffer: ByteBuffer
 
         /// Create BSONDocumentStorage from ByteBuffer.
-        internal init(_ buffer: ByteBuffer) { self.buffer = buffer }
+        internal init(_ buffer: ByteBuffer) { self.buffer = buffer.slice() }
 
         /// Create BSONDocumentStorage with a 0 capacity buffer.
         internal init() { self.buffer = BSON_ALLOCATOR.buffer(capacity: 0) }
@@ -389,8 +387,12 @@ public struct BSONDocument {
             return totalBytes
         }
 
-        internal func validate() throws {
-            // Pull apart the underlying binary into [KeyValuePair], should reveal issues
+        /// Verify that the encoded length matches the actual length of the buffer and that the buffer is
+        /// isn't too small or too large.
+        ///
+        /// - Throws: `BSONError.InvalidArgumentError` if validation fails
+        ///
+        internal func validateLength() throws {
             guard let encodedLength = self.buffer.getInteger(at: 0, endianness: .little, as: Int32.self) else {
                 throw BSONError.InvalidArgumentError(message: "Validation Failed: Cannot read encoded length")
             }
@@ -403,11 +405,16 @@ public struct BSONDocument {
 
             guard encodedLength == self.buffer.readableBytes else {
                 throw BSONError.InvalidArgumentError(
-                    message: "BSONDocument's encoded byte length is \(encodedLength), however the" +
+                    message: "BSONDocument's encoded byte length is \(encodedLength), however the " +
                         "buffer has \(self.buffer.readableBytes) readable bytes"
                 )
             }
+        }
 
+        internal func validate() throws {
+            try self.validateLength()
+
+            // Pull apart the underlying binary into [KeyValuePair], should reveal issues
             var keySet = Set<String>()
             let iter = BSONDocumentIterator(over: self.buffer)
             do {
