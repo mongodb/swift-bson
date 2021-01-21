@@ -442,6 +442,13 @@ extension BSONDocument: ExpressibleByDictionaryLiteral {
      * - Returns: a new `BSONDocument`
      */
     public init(dictionaryLiteral keyValuePairs: (String, BSON)...) {
+        self.init(dictionaryLiteral: Array(keyValuePairs))
+    }
+
+    internal init(dictionaryLiteral keyValuePairs: [(String, BSON)]) {
+        guard Set(keyValuePairs.map { $0.0 }).count == keyValuePairs.count else {
+            fatalError("Dictionary \(keyValuePairs) contains duplicate keys")
+        }
         self.init(keyValuePairs: keyValuePairs)
     }
 }

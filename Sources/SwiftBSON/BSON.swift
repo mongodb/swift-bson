@@ -446,7 +446,7 @@ extension BSON: ExpressibleByBooleanLiteral {
 
 extension BSON: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (String, BSON)...) {
-        self = .document(BSONDocument(keyValuePairs: elements))
+        self = .document(BSONDocument(dictionaryLiteral: elements))
     }
 }
 
