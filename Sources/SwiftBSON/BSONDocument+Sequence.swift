@@ -15,7 +15,7 @@ extension BSONDocument: Sequence {
     public typealias SubSequence = BSONDocument
 
     /// Returns a `Bool` indicating whether the document is empty.
-    public var isEmpty: Bool { self.keySet.isEmpty }
+    public var isEmpty: Bool { self.storage.encodedLength == BSON_MIN_SIZE }
 
     /// Returns a `DocumentIterator` over the values in this `Document`.
     public func makeIterator() -> BSONDocumentIterator {
@@ -29,7 +29,11 @@ extension BSONDocument: Sequence {
     public func map<T>(
         _ transform: (Element) throws -> T
     ) rethrows -> [T] {
-        try AnySequence(self).map(transform)
+        var values: [T] = []
+        for (k, v) in self {
+            values.append(try transform((key: k, value: v)))
+        }
+        return values
     }
 
     /**

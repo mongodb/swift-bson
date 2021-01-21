@@ -511,7 +511,7 @@ private struct _BSONKeyedDecodingContainer<K: CodingKey>: KeyedDecodingContainer
     /// A reference to the decoder we're reading from.
     private let decoder: _BSONDecoder
 
-    /// A reference to the container we're reading from.
+    /// An unordered copy of the container we're reading from.
     fileprivate let container: [String: BSON]
 
     /// The path of coding keys taken to get to this point in decoding.
