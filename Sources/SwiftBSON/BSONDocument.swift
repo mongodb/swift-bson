@@ -15,27 +15,14 @@ public struct BSONDocument {
     /// The element type of a document: a tuple containing an individual key-value pair.
     public typealias KeyValuePair = (key: String, value: BSON)
 
-    private var storage: BSONDocumentStorage
-
-    /// An unordered set containing the keys in this document.
-    internal private(set) var keySet: Set<String>
+    internal var storage: BSONDocumentStorage
 
     internal init(_ elements: [BSON]) {
         self = BSONDocument(keyValuePairs: elements.enumerated().map { i, element in (String(i), element) })
     }
 
     internal init(keyValuePairs: [(String, BSON)]) {
-        self.keySet = Set(keyValuePairs.map { $0.0 })
-        guard self.keySet.count == keyValuePairs.count else {
-            fatalError("Dictionary \(keyValuePairs) contains duplicate keys")
-        }
-
         self.storage = BSONDocumentStorage()
-
-        guard !self.keySet.isEmpty else {
-            self = BSONDocument()
-            return
-        }
 
         let start = self.storage.buffer.writerIndex
 
@@ -58,7 +45,6 @@ public struct BSONDocument {
 
     /// Initializes a new, empty `BSONDocument`.
     public init() {
-        self.keySet = Set()
         self.storage = BSONDocumentStorage()
         self.storage.buffer.writeInteger(5, endianness: .little, as: Int32.self)
         self.storage.buffer.writeBytes([0])
@@ -89,13 +75,12 @@ public struct BSONDocument {
      */
     public init(fromBSON bson: ByteBuffer) throws {
         let storage = BSONDocumentStorage(bson)
-        let keys = try storage.validateAndRetrieveKeys()
-        self = BSONDocument(fromUnsafeBSON: storage, keys: keys)
+        try storage.validate()
+        self = BSONDocument(fromUnsafeBSON: storage)
     }
 
-    internal init(fromUnsafeBSON storage: BSONDocumentStorage, keys: Set<String>) {
+    internal init(fromUnsafeBSON storage: BSONDocumentStorage) {
         self.storage = storage
-        self.keySet = keys
     }
 
     /**
@@ -155,7 +140,13 @@ public struct BSONDocument {
     public var values: [BSON] { self.map { _, val in val } }
 
     /// The number of (key, value) pairs stored at the top level of this document.
-    public var count: Int { self.keySet.count }
+    public var count: Int {
+        do {
+            return try BSONDocumentIterator.getKeys(from: self.storage.buffer).count
+        } catch {
+            return 0
+        }
+    }
 
     /// A copy of the `ByteBuffer` backing this document, containing raw BSON data. As `ByteBuffer`s implement
     /// copy-on-write, this copy will share byte storage with this document until either the document or the returned
@@ -166,7 +157,9 @@ public struct BSONDocument {
     public func toData() -> Data { Data(self.storage.buffer.readableBytesView) }
 
     /// Returns a `Boolean` indicating whether this `BSONDocument` contains the provided key.
-    public func hasKey(_ key: String) -> Bool { self.keySet.contains(key) }
+    public func hasKey(_ key: String) -> Bool {
+        (try? BSONDocumentIterator.find(key: key, in: self)) != nil
+    }
 
     /**
      * Allows getting and setting values on the document via subscript syntax.
@@ -236,7 +229,7 @@ public struct BSONDocument {
      * - SeeAlso: https://docs.mongodb.com/manual/core/document/#the-id-field
      */
     public func withID() throws -> BSONDocument {
-        guard !self.keySet.contains("_id") else {
+        guard !self.hasKey("_id") else {
             return self
         }
 
@@ -259,11 +252,19 @@ public struct BSONDocument {
         }
         newStorage.buffer.writeBytes(suffix)
 
-        var newKeys = self.keySet
-        newKeys.insert("_id")
-        var document = BSONDocument(fromUnsafeBSON: newStorage, keys: newKeys)
+        var document = BSONDocument(fromUnsafeBSON: newStorage)
         document.storage.encodedLength = newSize
         return document
+    }
+
+    /// Appends the provided key value pair without checking to see if the key already exists.
+    /// Warning: appending two of the same key may result in errors or undefined behavior.
+    internal mutating func append(key: String, value: BSON) {
+        // setup to overwrite null terminator
+        self.storage.buffer.moveWriterIndex(to: self.storage.encodedLength - 1)
+        let size = self.storage.append(key: key, value: value)
+        self.storage.buffer.writeInteger(0, endianness: .little, as: UInt8.self) // add back in our null terminator
+        self.storage.encodedLength += size
     }
 
     /**
@@ -271,23 +272,13 @@ public struct BSONDocument {
      * if element.value is nil the element is deleted from the BSON
      */
     internal mutating func set(key: String, to value: BSON?) throws {
-        if !self.keySet.contains(key) {
+        guard let range = try BSONDocumentIterator.findByteRange(for: key, in: self) else {
             guard let value = value else {
                 // no-op: key does not exist and the value is nil
                 return
             }
-            // appending new key
-            self.keySet.insert(key)
-            // setup to overwrite null terminator
-            self.storage.buffer.moveWriterIndex(to: self.storage.encodedLength - 1)
-            let size = self.storage.append(key: key, value: value)
-            self.storage.buffer.writeInteger(0, endianness: .little, as: UInt8.self) // add back in our null terminator
-            self.storage.encodedLength += size
+            self.append(key: key, value: value)
             return
-        }
-
-        guard let range = try BSONDocumentIterator.findByteRange(for: key, in: self) else {
-            throw BSONError.InternalError(message: "Cannot find \(key) to delete")
         }
 
         let prefixLength = range.startIndex
@@ -316,9 +307,6 @@ public struct BSONDocument {
             guard newSize <= BSON_MAX_SIZE else {
                 throw BSONError.DocumentTooLargeError(value: value.bsonValue, forKey: key)
             }
-        } else {
-            // Deleting
-            self.keySet.remove(key)
         }
 
         newStorage.buffer.writeBytes(suffix)
@@ -401,8 +389,7 @@ public struct BSONDocument {
             return totalBytes
         }
 
-        @discardableResult
-        internal func validateAndRetrieveKeys() throws -> Set<String> {
+        internal func validate() throws {
             // Pull apart the underlying binary into [KeyValuePair], should reveal issues
             guard let encodedLength = self.buffer.getInteger(at: 0, endianness: .little, as: Int32.self) else {
                 throw BSONError.InvalidArgumentError(message: "Validation Failed: Cannot read encoded length")
@@ -423,7 +410,6 @@ public struct BSONDocument {
 
             var keySet = Set<String>()
             let iter = BSONDocumentIterator(over: self.buffer)
-            // Implicitly validate with iterator
             do {
                 while let (key, value) = try iter.nextThrowing() {
                     let (inserted, _) = keySet.insert(key)
@@ -432,26 +418,13 @@ public struct BSONDocument {
                             message: "Validation Failed: BSON contains multiple values for key \(key)"
                         )
                     }
-                    switch value {
-                    case let .document(doc):
-                        try doc.storage.validateAndRetrieveKeys()
-                    case let .array(array):
-                        for item in array {
-                            if let doc = item.documentValue {
-                                try doc.storage.validateAndRetrieveKeys()
-                            }
-                        }
-                    default:
-                        continue
-                    }
+                    try value.bsonValue.validate()
                 }
             } catch let error as BSONError.InternalError {
                 throw BSONError.InvalidArgumentError(
                     message: "Validation Failed: \(error.message)"
                 )
             }
-
-            return keySet
         }
     }
 }
@@ -469,6 +442,13 @@ extension BSONDocument: ExpressibleByDictionaryLiteral {
      * - Returns: a new `BSONDocument`
      */
     public init(dictionaryLiteral keyValuePairs: (String, BSON)...) {
+        self.init(dictionaryLiteral: Array(keyValuePairs))
+    }
+
+    internal init(dictionaryLiteral keyValuePairs: [(String, BSON)]) {
+        guard Set(keyValuePairs.map { $0.0 }).count == keyValuePairs.count else {
+            fatalError("Dictionary \(keyValuePairs) contains duplicate keys")
+        }
         self.init(keyValuePairs: keyValuePairs)
     }
 }
@@ -548,12 +528,15 @@ extension BSONDocument: BSONValue {
             throw BSONError.InternalError(message: "Cannot read document contents")
         }
 
-        let keys = try BSONDocumentIterator.getKeySet(from: bytes)
-        return .document(BSONDocument(fromUnsafeBSON: BSONDocument.BSONDocumentStorage(bytes), keys: keys))
+        return .document(BSONDocument(fromUnsafeBSON: BSONDocument.BSONDocumentStorage(bytes)))
     }
 
     internal func write(to buffer: inout ByteBuffer) {
         buffer.writeBytes(self.storage.buffer.readableBytesView)
+    }
+
+    internal func validate() throws {
+        try self.storage.validate()
     }
 }
 
@@ -575,7 +558,7 @@ extension BSONDocument {
      * - Returns: a `Bool` indicating whether the two documents are equal.
      */
     public func equalsIgnoreKeyOrder(_ other: BSONDocument) -> Bool {
-        guard self.count == other.count else {
+        guard self.storage.encodedLength == other.storage.encodedLength else {
             return false
         }
 

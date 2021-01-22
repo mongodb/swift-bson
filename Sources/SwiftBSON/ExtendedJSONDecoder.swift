@@ -78,7 +78,7 @@ public class ExtendedJSONDecoder {
         case let .encodedObject(obj):
             var storage = BSONDocument.BSONDocumentStorage()
             _ = try self.appendObject(obj, to: &storage, keyPath: keyPath)
-            return .document(BSONDocument(fromUnsafeBSON: storage, keys: Set(obj.keys)))
+            return .document(BSONDocument(fromUnsafeBSON: storage))
         }
     }
 

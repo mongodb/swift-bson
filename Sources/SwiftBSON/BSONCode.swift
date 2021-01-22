@@ -186,6 +186,10 @@ extension BSONCodeWithScope: BSONValue {
         return .codeWithScope(BSONCodeWithScope(code: code, scope: scope))
     }
 
+    internal func validate() throws {
+        try self.scope.validate()
+    }
+
     internal func write(to buffer: inout ByteBuffer) {
         let writer = buffer.writerIndex
         buffer.writeInteger(0, endianness: .little, as: Int32.self) // reserve space

@@ -27,6 +27,10 @@ internal protocol BSONValue: Codable {
 
     /// Converts this `BSONValue` to a corresponding `JSON` in canonical extendedJSON format.
     func toCanonicalExtendedJSON() -> JSON
+
+    /// Determines if this `BSONValue` was constructed from valid BSON, throwing if it was not.
+    /// For most `BSONValue`s, this is a no-op.
+    func validate() throws
 }
 
 /// Convenience extension to get static bsonType from an instance
@@ -50,6 +54,8 @@ extension BSONValue {
     public func encode(to encoder: Encoder) throws {
         throw bsonEncodingUnsupportedError(value: self, at: encoder.codingPath)
     }
+
+    internal func validate() throws {}
 }
 
 /// The possible types of BSON values and their corresponding integer values.

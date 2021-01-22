@@ -46,7 +46,12 @@ extension Array: BSONValue where Element == BSON {
         guard let doc = try BSONDocument.read(from: &buffer).documentValue else {
             throw BSONError.InternalError(message: "BSON Array cannot be read, failed to get documentValue")
         }
-        return .array(doc.values)
+        var values: [BSON] = []
+        let it = doc.makeIterator()
+        while let (_, val) = try it.nextThrowing() {
+            values.append(val)
+        }
+        return .array(values)
     }
 
     internal func write(to buffer: inout ByteBuffer) {
@@ -55,5 +60,11 @@ extension Array: BSONValue where Element == BSON {
             array[String(index)] = value
         }
         array.write(to: &buffer)
+    }
+
+    internal func validate() throws {
+        for v in self {
+            try v.bsonValue.validate()
+        }
     }
 }

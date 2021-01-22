@@ -215,12 +215,6 @@ public class BSONEncoder {
                     )
                 )
             }
-            if let mutableDict = boxedValue as? MutableDictionary {
-                return .document(try mutableDict.toDocument())
-            }
-            if let mutableArray = boxedValue as? MutableArray {
-                return .array(try mutableArray.toBSONArray())
-            }
             return boxedValue.bson
         } catch let error as BSONErrorProtocol {
             throw EncodingError.invalidValue(
@@ -756,7 +750,9 @@ private class MutableArray: BSONValue {
     fileprivate static var bsonType: BSONType { .array }
     internal static let extJSONTypeWrapperKeys: [String] = []
 
-    fileprivate var bson: BSON { fatalError("MutableArray: BSONValue.bson should be unused") }
+    fileprivate var bson: BSON {
+        .array(self.array.map { $0.bson })
+    }
 
     fileprivate var array = [BSONValue]()
 
@@ -801,18 +797,6 @@ private class MutableArray: BSONValue {
     required convenience init(from _: Decoder) throws {
         fatalError("MutableArray is not meant to be initialized from a Decoder")
     }
-
-    internal func toBSONArray() throws -> [BSON] {
-        try self.array.map {
-            if let item = $0 as? MutableDictionary {
-                return try item.toDocument().bson
-            }
-            if let item = $0 as? MutableArray {
-                return try item.toBSONArray().bson
-            }
-            return $0.bson
-        }
-    }
 }
 
 /// A private class wrapping a Swift dictionary so we can pass it by reference
@@ -822,47 +806,47 @@ private class MutableDictionary: BSONValue {
     internal static let extJSONTypeWrapperKeys: [String] = []
     fileprivate static var bsonType: BSONType { .document }
 
-    fileprivate var bson: BSON { fatalError("MutableDictionary: BSONValue.bson should be unused") }
+    fileprivate var bson: BSON {
+        .document(self.toDocument())
+    }
 
     // rather than using a dictionary, do this so we preserve key orders
     fileprivate var keys = [String]()
     fileprivate var values = [BSONValue]()
+    fileprivate var latestKeyIndexes = [String: Int]()
 
     fileprivate subscript(key: String) -> BSONValue? {
         get {
-            guard let index = keys.firstIndex(of: key) else {
+            guard let index = self.latestKeyIndexes[key] else {
                 return nil
             }
             return self.values[index]
         }
         set(newValue) {
             if let newValue = newValue {
+                if let index = self.latestKeyIndexes[key] {
+                    self.keys.remove(at: index)
+                    self.values.remove(at: index)
+                }
                 self.keys.append(key)
                 self.values.append(newValue)
+                self.latestKeyIndexes[key] = self.values.endIndex - 1
             } else {
-                guard let index = keys.firstIndex(of: key) else {
+                guard let index = self.latestKeyIndexes[key] else {
                     return
                 }
-                self.values.remove(at: index)
                 self.keys.remove(at: index)
+                self.values.remove(at: index)
             }
         }
     }
 
     /// Converts self to a `BSONDocument` with equivalent key-value pairs.
-    fileprivate func toDocument() throws -> BSONDocument {
+    fileprivate func toDocument() -> BSONDocument {
         var doc = BSONDocument()
         for i in 0..<self.keys.count {
             let value = self.values[i]
-            switch value {
-            case let val as MutableDictionary:
-                try doc.set(key: self.keys[i], to: val.toDocument().bson)
-            case let val as MutableArray:
-                let array = try val.toBSONArray()
-                try doc.set(key: self.keys[i], to: array.bson)
-            default:
-                try doc.set(key: self.keys[i], to: value.bson)
-            }
+            doc.append(key: self.keys[i], value: value.bson)
         }
         return doc
     }
