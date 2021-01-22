@@ -112,14 +112,9 @@ public class BSONDocumentIterator: IteratorProtocol {
                 for (i, byte) in buffer.enumerated() {
                     // first byte is type of element
                     guard i != 0 else {
-                        guard let typeByte = buffer.first else {
-                            return (0, nil)
-                        }
-
-                        guard let type = BSONType(rawValue: typeByte), type != .invalid else {
+                        guard let type = BSONType(rawValue: byte), type != .invalid else {
                             return (1, nil)
                         }
-
                         bsonType = type
                         continue
                     }
@@ -174,6 +169,10 @@ public class BSONDocumentIterator: IteratorProtocol {
         return (key: key, value: bson)
     }
 
+    /// Move the reader index for the underlying buffer forward by the provided amount if possible.
+    /// Returns true if the index was moved successfully and false otherwise.
+    ///
+    /// This will only fail if the underlying buffer contains invalid BSON.
     private func moveReaderIndexSafely(forwardBy amount: Int) -> Bool {
         guard amount > 0 && self.buffer.readerIndex + amount <= self.buffer.writerIndex else {
             return false
