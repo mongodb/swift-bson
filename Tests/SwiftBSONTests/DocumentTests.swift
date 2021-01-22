@@ -884,12 +884,12 @@ final class DocumentTests: BSONTestCase {
     }
 
     func testNoElementValidation() throws {
-        let tooMany = "2300000000"
-        expect(try BSONDocument(withoutValidatingElements: BSON_ALLOCATOR.buffer(bytes: Data(hexString: tooMany)!)))
-            .to(throwError( errorType: BSONError.InvalidArgumentError.self))
+        let tooMany = BSON_ALLOCATOR.buffer(bytes: Data(hexString: "2300000000")!)
+        expect(try BSONDocument(fromBSONWithoutValidatingElements: tooMany))
+            .to(throwError(errorType: BSONError.InvalidArgumentError.self))
 
-        let tooFew = "0B0000001069000100000000"
-        expect(try BSONDocument(withoutValidatingElements: BSON_ALLOCATOR.buffer(bytes: Data(hexString: tooFew)!)))
-            .to(throwError( errorType: BSONError.InvalidArgumentError.self))
+        let tooFew = BSON_ALLOCATOR.buffer(bytes: Data(hexString: "0B0000001069000100000000")!)
+        expect(try BSONDocument(fromBSONWithoutValidatingElements: tooFew))
+            .to(throwError(errorType: BSONError.InvalidArgumentError.self))
     }
 }

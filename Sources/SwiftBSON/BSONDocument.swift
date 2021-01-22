@@ -74,27 +74,27 @@ public struct BSONDocument {
      * - SeeAlso: http://bsonspec.org/
      */
     public init(fromBSON bson: ByteBuffer) throws {
-        let storage = BSONDocumentStorage(bson)
+        let storage = BSONDocumentStorage(bson.slice())
         try storage.validate()
-        self = BSONDocument(fromUnsafeBSON: storage)
+        self.storage = storage
     }
 
     /**
      * Initialize a new `BSONDocument` from the provided BSON data without validating the elements. The first four
-     * bytes must accurately contain the length, however.
+     * bytes must accurately reflect the length of the buffer, however.
      *
      * If invalid BSON data is provided, undefined behavior or server-side errors may occur when using the
      * resultant `BSONDocument`.
      *
      * - Throws: `BSONError.InvalidArgumentError` if the provided BSON's length does not match the encoded length.
      */
-    public init(withoutValidatingElements bson: ByteBuffer) throws {
+    public init(fromBSONWithoutValidatingElements bson: ByteBuffer) throws {
         let storage = BSONDocumentStorage(bson)
-        try storage.validateLength()
-        self.init(fromUnsafeBSON: storage)
+        try self.init(fromBSONWithoutValidatingElements: storage)
     }
 
-    internal init(fromUnsafeBSON storage: BSONDocumentStorage) {
+    internal init(fromBSONWithoutValidatingElements storage: BSONDocumentStorage) throws {
+        try storage.validateLength()
         self.storage = storage
     }
 
@@ -165,7 +165,8 @@ public struct BSONDocument {
 
     /// Returns a `Boolean` indicating whether this `BSONDocument` contains the provided key.
     public func hasKey(_ key: String) -> Bool {
-        BSONDocumentIterator.find(key: key, in: self) != nil
+        let it = self.makeIterator()
+        return it.findValue(forKey: key) != nil
     }
 
     /**
@@ -249,10 +250,9 @@ public struct BSONDocument {
             )
         }
         newStorage.buffer.writeBytes(suffix)
+        newStorage.encodedLength = newSize
 
-        var document = BSONDocument(fromUnsafeBSON: newStorage)
-        document.storage.encodedLength = newSize
-        return document
+        return try BSONDocument(fromBSONWithoutValidatingElements: newStorage)
     }
 
     /// Appends the provided key value pair without checking to see if the key already exists.
@@ -323,7 +323,7 @@ public struct BSONDocument {
         internal var buffer: ByteBuffer
 
         /// Create BSONDocumentStorage from ByteBuffer.
-        internal init(_ buffer: ByteBuffer) { self.buffer = buffer.slice() }
+        internal init(_ buffer: ByteBuffer) { self.buffer = buffer }
 
         /// Create BSONDocumentStorage with a 0 capacity buffer.
         internal init() { self.buffer = BSON_ALLOCATOR.buffer(capacity: 0) }
@@ -535,7 +535,7 @@ extension BSONDocument: BSONValue {
             throw BSONError.InternalError(message: "Cannot read document contents")
         }
 
-        return .document(BSONDocument(fromUnsafeBSON: BSONDocument.BSONDocumentStorage(bytes)))
+        return .document(try BSONDocument(fromBSONWithoutValidatingElements: BSONDocument.BSONDocumentStorage(bytes)))
     }
 
     internal func write(to buffer: inout ByteBuffer) {
