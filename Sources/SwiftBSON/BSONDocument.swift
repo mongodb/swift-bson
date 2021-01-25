@@ -269,7 +269,7 @@ public struct BSONDocument {
      * Sets a BSON element with the corresponding key
      * if element.value is nil the element is deleted from the BSON
      */
-    internal mutating func set(key: String, to value: BSON?) {
+    private mutating func set(key: String, to value: BSON?) {
         guard let range = BSONDocumentIterator.findByteRange(for: key, in: self) else {
             guard let value = value else {
                 // no-op: key does not exist and the value is nil
