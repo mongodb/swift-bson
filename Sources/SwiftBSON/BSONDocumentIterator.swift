@@ -21,6 +21,7 @@ public class BSONDocumentIterator: IteratorProtocol {
     }
 
     /// Advances to the next element and returns it, or nil if no next element exists.
+    /// Returns nil if invalid BSON is encountered.
     public func next() -> BSONDocument.KeyValuePair? {
         // soft fail on read error by returning nil.
         // this should only be possible if invalid BSON bytes were provided via
@@ -47,6 +48,7 @@ public class BSONDocumentIterator: IteratorProtocol {
     /// Get the next key in the iterator, if there is one.
     /// This method should only be used for iterating through the keys. It advances to the beginning of the next
     /// element, meaning the element associated with the last returned key cannot be accessed via this iterator.
+    /// Returns nil if invalid BSON is encountered.
     private func nextKey() -> String? {
         guard let type = try? self.readNextType(), let key = try? self.buffer.readCString() else {
             return nil
@@ -96,6 +98,7 @@ public class BSONDocumentIterator: IteratorProtocol {
 
     /// Search for the value associated with the given key, returning its type if found and nil otherwise.
     /// This moves the iterator right up to the first byte of the value.
+    /// Returns nil if invalid BSON is encountered.
     internal func findValue(forKey key: String) -> BSONType? {
         guard !self.exhausted else {
             return nil
@@ -155,6 +158,7 @@ public class BSONDocumentIterator: IteratorProtocol {
     }
 
     /// Finds an element with the specified key in the document. Returns nil if the key is not found.
+    /// Returns nil if invalid BSON is encountered when trying to find the key or read the value.
     internal static func find(key: String, in document: BSONDocument) -> BSONDocument.KeyValuePair? {
         let iter = document.makeIterator()
 
@@ -249,6 +253,7 @@ public class BSONDocumentIterator: IteratorProtocol {
 
     /// Finds the key in the underlying buffer, and returns the [startIndex, endIndex) containing the corresponding
     /// element.
+    /// Returns nil if invalid BSON is encountered.
     internal static func findByteRange(for searchKey: String, in document: BSONDocument) -> Range<Int>? {
         let iter = document.makeIterator()
 
@@ -270,6 +275,7 @@ public class BSONDocumentIterator: IteratorProtocol {
     }
 
     /// Retrieves an ordered list of the keys in the provided document buffer.
+    /// If invalid BSON is encountered while retrieving the keys, any valid keys seen up to that point are returned.
     internal static func getKeys(from buffer: ByteBuffer) -> [String] {
         let iter = BSONDocumentIterator(over: buffer)
         var keys = [String]()
@@ -282,6 +288,9 @@ public class BSONDocumentIterator: IteratorProtocol {
     // uses an iterator to copy (key, value) pairs of the provided document from range [startIndex, endIndex) into a new
     // document. starts at the startIndex-th pair and ends at the end of the document or the (endIndex-1)th index,
     // whichever comes first.
+    // If invalid BSON is encountered before getting to the ith element, a new, empty document will be returned.
+    // If invalid BSON is encountered while iterating over elements included in the subsequence, a document containing
+    // the elements in the subsequence that came before the invalid BSON will be returned.
     internal static func subsequence(
         of doc: BSONDocument,
         startIndex: Int = 0,
