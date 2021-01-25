@@ -257,21 +257,17 @@ public class BSONDocumentIterator: IteratorProtocol {
     internal static func findByteRange(for searchKey: String, in document: BSONDocument) -> Range<Int>? {
         let iter = document.makeIterator()
 
-        while true {
-            let startIndex = iter.buffer.readerIndex
-            guard let type = try? iter.readNextType(), let foundKey = try? iter.buffer.readCString() else {
-                return nil
-            }
-
-            guard iter.skipNextValue(type: type) else {
-                return nil
-            }
-
-            if foundKey == searchKey {
-                let endIndex = iter.buffer.readerIndex
-                return startIndex..<endIndex
-            }
+        guard let type = iter.findValue(forKey: searchKey) else {
+            return nil
         }
+
+        // move back 1 for type byte, 1 for each byte in key, and 1 for null byte
+        let startIndex = iter.buffer.readerIndex - 1 - (searchKey.utf8.count + 1)
+        guard iter.skipNextValue(type: type) else {
+            return nil
+        }
+        let endIndex = iter.buffer.readerIndex
+        return startIndex..<endIndex
     }
 
     /// Retrieves an ordered list of the keys in the provided document buffer.
