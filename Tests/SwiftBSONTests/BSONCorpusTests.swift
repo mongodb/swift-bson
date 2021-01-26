@@ -272,6 +272,19 @@ final class BSONCorpusTests: BSONTestCase {
                         return
                     }
                     expect(try BSONDocument(fromBSON: data)).to(throwError(), description: description)
+
+                    let buffer = BSON_ALLOCATOR.buffer(bytes: data)
+                    if var doc = try? BSONDocument(fromBSONWithoutValidatingElements: buffer) {
+                        // assert that iteration doesn't crash
+                        for (_, _) in doc {
+                            continue
+                        }
+                        // assert that appending a value doesn't crash
+                        doc["foo"] = true
+
+                        // assert that counting the elements doesn't crash
+                        _ = doc.count
+                    }
                 }
             }
         }

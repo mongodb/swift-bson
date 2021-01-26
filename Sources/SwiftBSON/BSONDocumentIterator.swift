@@ -21,13 +21,12 @@ public class BSONDocumentIterator: IteratorProtocol {
     }
 
     /// Advances to the next element and returns it, or nil if no next element exists.
+    /// Returns nil if invalid BSON is encountered.
     public func next() -> BSONDocument.KeyValuePair? {
-        // The only time this would crash is when the document is incorrectly formatted
-        do {
-            return try self.nextThrowing()
-        } catch {
-            fatalError("Failed to iterate to next: \(error)")
-        }
+        // soft fail on read error by returning nil.
+        // this should only be possible if invalid BSON bytes were provided via
+        // BSONDocument.init(fromBSONWithoutValidatingElements:)
+        try? self.nextThrowing()
     }
 
     /**
@@ -49,12 +48,14 @@ public class BSONDocumentIterator: IteratorProtocol {
     /// Get the next key in the iterator, if there is one.
     /// This method should only be used for iterating through the keys. It advances to the beginning of the next
     /// element, meaning the element associated with the last returned key cannot be accessed via this iterator.
-    private func nextKey() throws -> String? {
-        guard let type = try self.readNextType() else {
+    /// Returns nil if invalid BSON is encountered.
+    private func nextKey() -> String? {
+        guard let type = try? self.readNextType(), let key = try? self.buffer.readCString() else {
             return nil
         }
-        let key = try self.buffer.readCString()
-        try self.skipNextValue(type: type)
+        guard self.skipNextValue(type: type) else {
+            return nil
+        }
         return key
     }
 
@@ -95,126 +96,197 @@ public class BSONDocumentIterator: IteratorProtocol {
         return bsonType
     }
 
-    /// Finds an element with the specified key in the document. Returns nil if the key is not found.
-    internal static func find(key: String, in document: BSONDocument) throws -> BSONDocument.KeyValuePair? {
-        let iter = document.makeIterator()
-        while let type = try iter.readNextType() {
-            let foundKey = try iter.buffer.readCString()
-            if foundKey == key {
-                // the map contains a value for every valid BSON type.
-                // swiftlint:disable:next force_unwrapping
-                let bson = try BSON.allBSONTypes[type]!.read(from: &iter.buffer)
-                return (key: key, value: bson)
+    /// Search for the value associated with the given key, returning its type if found and nil otherwise.
+    /// This moves the iterator right up to the first byte of the value.
+    /// Returns nil if invalid BSON is encountered.
+    internal func findValue(forKey key: String) -> BSONType? {
+        guard !self.exhausted else {
+            return nil
+        }
+
+        let keyUTF8 = key.utf8
+
+        while true {
+            var bsonType = BSONType.invalid
+            let matchResult = self.buffer.readWithUnsafeReadableBytes { buffer -> (Int, Bool?) in
+                var matched = true
+
+                var keyIter = keyUTF8.makeIterator()
+                for (i, byte) in buffer.enumerated() {
+                    // first byte is type of element
+                    guard i != 0 else {
+                        guard let type = BSONType(rawValue: byte), type != .invalid else {
+                            return (1, nil)
+                        }
+                        bsonType = type
+                        continue
+                    }
+
+                    guard byte != 0 else {
+                        // hit the null terminator
+                        return (i + 1, matched && keyIter.next() == nil)
+                    }
+
+                    // if matched the key so far, check the next character
+                    if matched {
+                        guard let keyByte = keyIter.next() else {
+                            matched = false
+                            continue
+                        }
+                        matched = byte == keyByte
+                    }
+                }
+
+                // unterminated C string, so we read the whole buffer
+                return (buffer.count, nil)
             }
 
-            try iter.skipNextValue(type: type)
+            guard let matched = matchResult else {
+                // encountered invalid BSON, just return nil
+                return nil
+            }
+
+            guard matched else {
+                guard self.skipNextValue(type: bsonType) else {
+                    return nil
+                }
+                continue
+            }
+
+            return bsonType
         }
-        return nil
+    }
+
+    /// Finds an element with the specified key in the document. Returns nil if the key is not found.
+    /// Returns nil if invalid BSON is encountered when trying to find the key or read the value.
+    internal static func find(key: String, in document: BSONDocument) -> BSONDocument.KeyValuePair? {
+        let iter = document.makeIterator()
+
+        guard let bsonType = iter.findValue(forKey: key) else {
+            return nil
+        }
+        // the map contains a value for every valid BSON type.
+        // swiftlint:disable:next force_unwrapping
+        guard let bson = try? BSON.allBSONTypes[bsonType]!.read(from: &iter.buffer) else {
+            return nil
+        }
+        return (key: key, value: bson)
+    }
+
+    /// Move the reader index for the underlying buffer forward by the provided amount if possible.
+    /// Returns true if the index was moved successfully and false otherwise.
+    ///
+    /// This will only fail if the underlying buffer contains invalid BSON.
+    private func moveReaderIndexSafely(forwardBy amount: Int) -> Bool {
+        guard amount > 0 && self.buffer.readerIndex + amount <= self.buffer.writerIndex else {
+            return false
+        }
+        self.buffer.moveReaderIndex(forwardBy: amount)
+        return true
     }
 
     /// Given the type of the encoded value starting at self.buffer.readerIndex, advances the reader index to the index
     /// after the end of the element.
-    internal func skipNextValue(type: BSONType) throws {
+    ///
+    /// Returns false if invalid BSON is encountered while trying to skip, returns true otherwise.
+    internal func skipNextValue(type: BSONType) -> Bool {
         switch type {
         case .invalid:
-            throw BSONIterationError(message: "encountered invalid BSON type")
+            return false
 
         case .undefined, .null, .minKey, .maxKey:
             // no data stored, nothing to skip.
-            return
+            break
 
         case .bool:
-            self.buffer.moveReaderIndex(forwardBy: 1)
+            return self.moveReaderIndexSafely(forwardBy: 1)
 
         case .double, .int64, .timestamp, .datetime:
-            self.buffer.moveReaderIndex(forwardBy: 8)
+            return self.moveReaderIndexSafely(forwardBy: 8)
 
         case .objectID:
-            self.buffer.moveReaderIndex(forwardBy: 12)
+            return self.moveReaderIndexSafely(forwardBy: 12)
 
         case .int32:
-            self.buffer.moveReaderIndex(forwardBy: 4)
+            return self.moveReaderIndexSafely(forwardBy: 4)
 
         case .string, .code, .symbol:
             guard let strLength = buffer.readInteger(endianness: .little, as: Int32.self) else {
-                throw BSONError.InternalError(message: "Failed to read encoded string length")
+                return false
             }
-            self.buffer.moveReaderIndex(forwardBy: Int(strLength))
+            return self.moveReaderIndexSafely(forwardBy: Int(strLength))
 
         case .regex:
-            _ = try self.buffer.readCString()
-            _ = try self.buffer.readCString()
+            do {
+                _ = try self.buffer.readCString()
+                _ = try self.buffer.readCString()
+            } catch {
+                return false
+            }
 
         case .binary:
             guard let dataLength = buffer.readInteger(endianness: .little, as: Int32.self) else {
-                throw BSONError.InternalError(message: "Failed to read encoded binary data length")
+                return false
             }
-            self.buffer.moveReaderIndex(forwardBy: Int(dataLength) + 1) // +1 for the binary subtype.
+            return self.moveReaderIndexSafely(forwardBy: Int(dataLength) + 1) // +1 for the binary subtype.
 
         case .document, .array, .codeWithScope:
             guard let embeddedDocLength = buffer.readInteger(endianness: .little, as: Int32.self) else {
-                throw BSONError.InternalError(message: "Failed to read encoded document length")
+                return false
             }
             // -4 because the encoded length includes the bytes necessary to store the length itself.
-            self.buffer.moveReaderIndex(forwardBy: Int(embeddedDocLength) - 4)
+            return self.moveReaderIndexSafely(forwardBy: Int(embeddedDocLength) - 4)
 
         case .dbPointer:
             // initial string
             guard let strLength = buffer.readInteger(endianness: .little, as: Int32.self) else {
-                throw BSONError.InternalError(message: "Failed to read encoded string length")
+                return false
             }
-            self.buffer.moveReaderIndex(forwardBy: Int(strLength))
-            // 12 bytes of data
-            self.buffer.moveReaderIndex(forwardBy: 12)
+            return self.moveReaderIndexSafely(forwardBy: Int(strLength) + 12)
 
         case .decimal128:
-            self.buffer.moveReaderIndex(forwardBy: 16)
+            return self.moveReaderIndexSafely(forwardBy: 16)
         }
+
+        return true
     }
 
     /// Finds the key in the underlying buffer, and returns the [startIndex, endIndex) containing the corresponding
     /// element.
-    internal static func findByteRange(for searchKey: String, in document: BSONDocument) throws -> Range<Int>? {
+    /// Returns nil if invalid BSON is encountered.
+    internal static func findByteRange(for searchKey: String, in document: BSONDocument) -> Range<Int>? {
         let iter = document.makeIterator()
 
-        while true {
-            let startIndex = iter.buffer.readerIndex
-            guard let type = try iter.readNextType() else {
-                return nil
-            }
-            let foundKey = try iter.buffer.readCString()
-            try iter.skipNextValue(type: type)
-
-            if foundKey == searchKey {
-                let endIndex = iter.buffer.readerIndex
-                return startIndex..<endIndex
-            }
+        guard let type = iter.findValue(forKey: searchKey) else {
+            return nil
         }
+
+        // move back 1 for type byte, 1 for each byte in key, and 1 for null byte
+        let startIndex = iter.buffer.readerIndex - 1 - (searchKey.utf8.count + 1)
+        guard iter.skipNextValue(type: type) else {
+            return nil
+        }
+        let endIndex = iter.buffer.readerIndex
+        return startIndex..<endIndex
     }
 
     /// Retrieves an ordered list of the keys in the provided document buffer.
-    internal static func getKeys(from buffer: ByteBuffer) throws -> [String] {
+    /// If invalid BSON is encountered while retrieving the keys, any valid keys seen up to that point are returned.
+    internal static func getKeys(from buffer: ByteBuffer) -> [String] {
         let iter = BSONDocumentIterator(over: buffer)
         var keys = [String]()
-        while let key = try iter.nextKey() {
+        while let key = iter.nextKey() {
             keys.append(key)
         }
         return keys
     }
 
-    /// Retrieves an unordered list of the keys in the provided document buffer.
-    internal static func getKeySet(from buffer: ByteBuffer) throws -> Set<String> {
-        let iter = BSONDocumentIterator(over: buffer)
-        var keySet: Set<String> = []
-        while let key = try iter.nextKey() {
-            keySet.insert(key)
-        }
-        return keySet
-    }
-
     // uses an iterator to copy (key, value) pairs of the provided document from range [startIndex, endIndex) into a new
     // document. starts at the startIndex-th pair and ends at the end of the document or the (endIndex-1)th index,
     // whichever comes first.
+    // If invalid BSON is encountered before getting to the ith element, a new, empty document will be returned.
+    // If invalid BSON is encountered while iterating over elements included in the subsequence, a document containing
+    // the elements in the subsequence that came before the invalid BSON will be returned.
     internal static func subsequence(
         of doc: BSONDocument,
         startIndex: Int = 0,
@@ -234,23 +306,26 @@ public class BSONDocumentIterator: IteratorProtocol {
                     break
                 }
                 _ = try iter.buffer.readCString()
-                try iter.skipNextValue(type: type)
-            }
-
-            var newDoc = BSONDocument()
-
-            for _ in startIndex..<endIndex {
-                guard let next = try iter.nextThrowing() else {
-                    // we ran out of values
+                guard iter.skipNextValue(type: type) else {
                     break
                 }
-                newDoc[next.key] = next.value
             }
-
-            return newDoc
         } catch {
-            fatalError("Failed to retrieve document subsequence: \(error)")
+            // if encountered invalid BSON before reaching the desired portion of the document, just
+            // return an empty document
+            return BSONDocument()
         }
+
+        var newDoc = BSONDocument()
+        for _ in startIndex..<endIndex {
+            guard let next = iter.next() else {
+                // we ran out of values
+                break
+            }
+            newDoc.append(key: next.key, value: next.value)
+        }
+
+        return newDoc
     }
 }
 
