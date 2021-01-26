@@ -56,7 +56,7 @@ extension JSON: ExpressibleByBooleanLiteral {
 
 extension JSON: ExpressibleByArrayLiteral {
     internal init(arrayLiteral elements: JSON...) {
-        self.value = .array(elements.map(\.value))
+        self.value = .array(elements.map { $0.value })
     }
 }
 
