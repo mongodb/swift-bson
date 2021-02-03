@@ -570,14 +570,7 @@ extension BSONDocument {
         }
 
         for (k, v) in self {
-            let otherValue = other[k]
-            if case let (.document(docA), .document(docB)?) = (v, otherValue) {
-                guard docA.equalsIgnoreKeyOrder(docB) else {
-                    return false
-                }
-                continue
-            }
-            guard v == otherValue else {
+            guard let otherValue = other[k], v.equalsIgnoreKeyOrder(otherValue) else {
                 return false
             }
         }

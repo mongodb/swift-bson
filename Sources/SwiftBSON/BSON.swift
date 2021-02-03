@@ -494,3 +494,21 @@ extension BSON: Codable {
         try self.bsonValue.encode(to: encoder)
     }
 }
+
+extension BSON {
+    internal func equalsIgnoreKeyOrder(_ other: BSON) -> Bool {
+        switch (self, other) {
+        case let (.document(selfDoc), .document(otherDoc)):
+            return selfDoc.equalsIgnoreKeyOrder(otherDoc)
+        case let (.array(selfArr), .array(otherArr)):
+            return selfArr.elementsEqual(otherArr) {
+                $0.equalsIgnoreKeyOrder($1)
+            }
+        case let (.codeWithScope(selfCodeWithScope), .codeWithScope(otherCodeWithScope)):
+            return selfCodeWithScope.code == otherCodeWithScope.code
+                && selfCodeWithScope.scope.equalsIgnoreKeyOrder(otherCodeWithScope.scope)
+        default:
+            return self == other
+        }
+    }
+}
