@@ -268,8 +268,8 @@ final class DocumentTests: BSONTestCase {
             "array2": ["string1", "string2"],
             "null": .null,
             "code": .code(BSONCode(code: "console.log('hi');")),
-            "nestedarray": [[1, 2], [.int32(3), .int32(4)]],
-            "codewscope": .codeWithScope(BSONCodeWithScope(code: "console.log(x);", scope: ["x": 2]))
+            "nestedarray": [[1, 2], [.int32(3), .int32(4)], ["x": 1, "y": 2]],
+            "codewscope": .codeWithScope(BSONCodeWithScope(code: "console.log(x);", scope: ["y": 1, "x": 2]))
         ]
 
         let b: BSONDocument = [
@@ -283,8 +283,8 @@ final class DocumentTests: BSONTestCase {
             "minkey": .minKey,
             "date": .datetime(Date(timeIntervalSince1970: 500.004)),
             "timestamp": .timestamp(BSONTimestamp(timestamp: 5, inc: 10)),
-            "nestedarray": [[1, 2], [.int32(3), .int32(4)]],
-            "codewscope": .codeWithScope(BSONCodeWithScope(code: "console.log(x);", scope: ["x": 2])),
+            "nestedarray": [[1, 2], [.int32(3), .int32(4)], ["y": 2, "x": 1]],
+            "codewscope": .codeWithScope(BSONCodeWithScope(code: "console.log(x);", scope: ["x": 2, "y": 1])),
             "nesteddoc": ["b": 2, "a": 1, "d": [3, 4], "c": false],
             "oid": .objectID(try! BSONObjectID("507f1f77bcf86cd799439011")),
             "false": false,
