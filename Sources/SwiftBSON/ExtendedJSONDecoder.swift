@@ -1,5 +1,6 @@
 import ExtrasJSON
 import Foundation
+import NIO
 
 /// `ExtendedJSONDecoder` facilitates the decoding of ExtendedJSON into `Decodable` values.
 public class ExtendedJSONDecoder {
@@ -42,6 +43,23 @@ public class ExtendedJSONDecoder {
     /// Initialize an `ExtendedJSONDecoder`.
     public init() {}
 
+    private func decodeBytes<T: Decodable, C: Collection>(_: T.Type, from bytes: C) throws -> T
+        where C.Element == UInt8
+    {
+        // Data --> JSONValue --> BSON --> T
+        // Takes in JSON as `Data` encoded with `.utf8` and runs it through ExtrasJSON's parser to get an
+        // instance of the `JSONValue` enum.
+        let json = try JSONParser().parse(bytes: bytes)
+
+        // Then a `BSON` enum instance is decoded from the `JSONValue`.
+        let bson = try self.decodeBSONFromJSON(json, keyPath: [])
+
+        // The `BSON` is then passed through a `BSONDecoder` where it is outputted as a `T`
+        let bsonDecoder = BSONDecoder()
+        bsonDecoder.userInfo = self.userInfo
+        return try bsonDecoder.decode(T.self, fromBSON: bson)
+    }
+
     /// Decodes an instance of the requested type `T` from the provided extended JSON data.
     /// - SeeAlso: https://docs.mongodb.com/manual/reference/mongodb-extended-json/
     ///
@@ -51,18 +69,27 @@ public class ExtendedJSONDecoder {
     /// - Returns: Decoded representation of the JSON input as an instance of `T`.
     /// - Throws: `DecodingError` if the JSON data is corrupt or if any value throws an error during decoding.
     public func decode<T: Decodable>(_: T.Type, from data: Data) throws -> T {
-        // Data --> JSONValue --> BSON --> T
-        // Takes in JSON as `Data` encoded with `.utf8` and runs it through ExtrasJSON's parser to get an
-        // instance of the `JSONValue` enum.
-        let json = try JSONParser().parse(bytes: data)
+        try self.decodeBytes(T.self, from: data)
+    }
 
-        // Then a `BSON` enum instance is decoded from the `JSONValue`.
-        let bson = try self.decodeBSONFromJSON(json, keyPath: [])
+    /// Decodes an instance of the requested type `T` from the provided extended JSON data.
+    /// - SeeAlso: https://docs.mongodb.com/manual/reference/mongodb-extended-json/
+    ///
+    /// - Parameters:
+    ///   - type: Codable type to decode the input into.
+    ///   - buffer: `ByteBuffer` which contains the JSON data that will be decoded.
+    /// - Returns: Decoded representation of the JSON input as an instance of `T`.
+    /// - Throws: `DecodingError` if the JSON data is corrupt or if any value throws an error during decoding.
+    public func decode<T: Decodable>(_: T.Type, from buffer: ByteBuffer) throws -> T {
+        guard buffer.readableBytes > 0 else {
+            throw DecodingError._extendedJSONError(keyPath: [], debugDescription: "empty buffer provided to decode")
+        }
 
-        // The `BSON` is then passed through a `BSONDecoder` where it is outputted as a `T`
-        let bsonDecoder = BSONDecoder()
-        bsonDecoder.userInfo = self.userInfo
-        return try bsonDecoder.decode(T.self, fromBSON: bson)
+        var buffer = buffer
+        // readBytes never returns nil here because we checked that the buffer wasn't empty and only read
+        // readable bytes out from it.
+        // swiftlint:disable:next force_unwrapping
+        return try self.decodeBytes(T.self, from: buffer.readBytes(length: buffer.readableBytes)!)
     }
 
     /// Decode a `BSON` from the given extended JSON.
