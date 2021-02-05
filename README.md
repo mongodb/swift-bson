@@ -86,7 +86,7 @@ Note that `BSONDocument` conforms to `Collection`, so useful methods from [`Sequ
 
 ## Development Instructions
 
-See our [development guide](https://github.com/mongodb/mongo-swift-driver/blob/master/Guides/Development.md) for the MongoDB driver to get started.
+See our [development guide](https://github.com/mongodb/mongo-swift-driver/blob/main/Guides/Development.md) for the MongoDB driver to get started.
 To run the tests for the BSON library you can make use of the Makefile and run: `make test-pretty` (uses `xcpretty` to change the output format) or just `make test` (for environments without ruby).
 
 ## Note
