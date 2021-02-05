@@ -1,0 +1,1843 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>BSON Enumeration Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset="utf-8">
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+
+    <a name="//apple_ref/swift/Enum/BSON" class="dashAnchor"></a>
+
+    <a title="BSON Enumeration Reference"></a>
+
+    <header class="header">
+      <p class="header-col header-col--primary">
+        <a class="header-link" href="../index.html">
+          SwiftBSON 3.0.0 Docs
+        </a>
+         (99% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="../search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
+      </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="https://github.com/mongodb/swift-bson">
+            <img class="header-icon" src="../img/gh.png"/>
+            View on GitHub
+          </a>
+        </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="dash-feed://https%3A%2F%2Fmongodb.github.io%2Fswift-bson%2Fdocs%2FSwiftBSON%2Fdocsets%2FSwiftBSON.xml">
+            <img class="header-icon" src="../img/dash.png"/>
+            Install in Dash
+          </a>
+        </p>
+    </header>
+
+    <p class="breadcrumbs">
+      <a class="breadcrumb" href="../index.html">SwiftBSON Reference</a>
+      <img class="carat" src="../img/carat.png" />
+      BSON Enumeration Reference
+    </p>
+
+    <div class="content-wrapper">
+      <nav class="navigation">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../General%20Guides.html">General Guides</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../bson-guide.html">BSON-Guide</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../json-interop.html">JSON-Interop</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../BSON%20Types.html">BSON Types</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSON.html">BSON</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONType.html">BSONType</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONBinary.html">BSONBinary</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONBinary/Subtype.html">– Subtype</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONCode.html">BSONCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONCodeWithScope.html">BSONCodeWithScope</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONDBPointer.html">BSONDBPointer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONDecimal128.html">BSONDecimal128</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONDocument.html">BSONDocument</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONObjectID.html">BSONObjectID</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONRegularExpression.html">BSONRegularExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONSymbol.html">BSONSymbol</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONTimestamp.html">BSONTimestamp</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Encoding%20and%20Decoding%20BSON.html">Encoding and Decoding BSON</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONEncoder.html">BSONEncoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONEncoder/DateEncodingStrategy.html">– DateEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONEncoder/UUIDEncodingStrategy.html">– UUIDEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONEncoder/DataEncodingStrategy.html">– DataEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONDecoder.html">BSONDecoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONDecoder/DateDecodingStrategy.html">– DateDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONDecoder/UUIDDecodingStrategy.html">– UUIDDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONDecoder/DataDecodingStrategy.html">– DataDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/DataCodingStrategy.html">DataCodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/DateCodingStrategy.html">DateCodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/UUIDCodingStrategy.html">UUIDCodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/CodingStrategyProvider.html">CodingStrategyProvider</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONCoderOptions.html">BSONCoderOptions</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Encoding%20and%20Decoding%20Extended%20JSON.html">Encoding and Decoding Extended JSON</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/ExtendedJSONEncoder.html">ExtendedJSONEncoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/ExtendedJSONEncoder/Mode.html">– Mode</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/ExtendedJSONDecoder.html">ExtendedJSONDecoder</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Errors.html">Errors</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONError.html">BSONError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONError/InvalidArgumentError.html">– InvalidArgumentError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONError/InternalError.html">– InternalError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONError/LogicError.html">– LogicError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONError/DocumentTooLargeError.html">– DocumentTooLargeError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Errors.html#/s:9SwiftBSON17BSONErrorProtocolP">BSONErrorProtocol</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+
+        <section class="section">
+          <div class="section-content top-matter">
+            <h1>BSON</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">BSON</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BSON</span><span class="p">:</span> <span class="kt">ExpressibleByIntegerLiteral</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BSON</span><span class="p">:</span> <span class="kt">ExpressibleByFloatLiteral</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BSON</span><span class="p">:</span> <span class="kt">ExpressibleByBooleanLiteral</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BSON</span><span class="p">:</span> <span class="kt">ExpressibleByDictionaryLiteral</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BSON</span><span class="p">:</span> <span class="kt">ExpressibleByStringLiteral</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BSON</span><span class="p">:</span> <span class="kt">ExpressibleByArrayLiteral</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BSON</span><span class="p">:</span> <span class="kt">Equatable</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BSON</span><span class="p">:</span> <span class="kt">Hashable</span></code></pre>
+<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">BSON</span><span class="p">:</span> <span class="kt">Codable</span></code></pre>
+
+                </div>
+              </div>
+            <p>Enum representing a BSON value.</p>
+<div class="aside aside-see-also">
+    <p class="aside-title">See also</p>
+    bsonspec.org
+
+</div>
+
+              <div class="slightly-smaller">
+                <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L6-L131">Show on GitHub</a>
+              </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-content">
+            <div class="task-group">
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O8documentyAcA12BSONDocumentVcACmF"></a>
+                    <a name="//apple_ref/swift/Element/document(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O8documentyAcA12BSONDocumentVcACmF">document(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON document.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">document</span><span class="p">(</span><span class="kt"><a href="../Structs/BSONDocument.html">BSONDocument</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L8">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O5int32yACs5Int32VcACmF"></a>
+                    <a name="//apple_ref/swift/Element/int32(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O5int32yACs5Int32VcACmF">int32(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON int32.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">int32</span><span class="p">(</span><span class="kt">Int32</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L11">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O5int64yACs5Int64VcACmF"></a>
+                    <a name="//apple_ref/swift/Element/int64(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O5int64yACs5Int64VcACmF">int64(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON int64.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">int64</span><span class="p">(</span><span class="kt">Int64</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L14">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O10decimal128yAcA14BSONDecimal128VcACmF"></a>
+                    <a name="//apple_ref/swift/Element/decimal128(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O10decimal128yAcA14BSONDecimal128VcACmF">decimal128(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON Decimal128</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">decimal128</span><span class="p">(</span><span class="kt"><a href="../Structs/BSONDecimal128.html">BSONDecimal128</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L17">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O5arrayyACSayACGcACmF"></a>
+                    <a name="//apple_ref/swift/Element/array(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O5arrayyACSayACGcACmF">array(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON Array</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">indirect</span> <span class="k">case</span> <span class="nf">array</span><span class="p">([</span><span class="kt">BSON</span><span class="p">])</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L20">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O4boolyACSbcACmF"></a>
+                    <a name="//apple_ref/swift/Element/bool(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O4boolyACSbcACmF">bool(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON Boolean</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">bool</span><span class="p">(</span><span class="kt">Bool</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L23">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O8datetimeyAC10Foundation4DateVcACmF"></a>
+                    <a name="//apple_ref/swift/Element/datetime(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O8datetimeyAC10Foundation4DateVcACmF">datetime(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON UTC datetime.</p>
+<div class="aside aside-see-also">
+    <p class="aside-title">See also</p>
+    <a href="https://docs.mongodb.com/manual/reference/bson-types/#date">https://docs.mongodb.com/manual/reference/bson-types/#date</a>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">datetime</span><span class="p">(</span><span class="kt">Date</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L27">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O6doubleyACSdcACmF"></a>
+                    <a name="//apple_ref/swift/Element/double(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O6doubleyACSdcACmF">double(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON double.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">double</span><span class="p">(</span><span class="kt">Double</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L30">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O6stringyACSScACmF"></a>
+                    <a name="//apple_ref/swift/Element/string(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O6stringyACSScACmF">string(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON string.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">string</span><span class="p">(</span><span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L33">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O6symbolyAcA10BSONSymbolVcACmF"></a>
+                    <a name="//apple_ref/swift/Element/symbol(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O6symbolyAcA10BSONSymbolVcACmF">symbol(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON Symbol</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">symbol</span><span class="p">(</span><span class="kt"><a href="../Structs/BSONSymbol.html">BSONSymbol</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L36">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O9timestampyAcA13BSONTimestampVcACmF"></a>
+                    <a name="//apple_ref/swift/Element/timestamp(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O9timestampyAcA13BSONTimestampVcACmF">timestamp(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON Timestamp</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">timestamp</span><span class="p">(</span><span class="kt"><a href="../Structs/BSONTimestamp.html">BSONTimestamp</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L39">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O6binaryyAcA10BSONBinaryVcACmF"></a>
+                    <a name="//apple_ref/swift/Element/binary(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O6binaryyAcA10BSONBinaryVcACmF">binary(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON Binary</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">binary</span><span class="p">(</span><span class="kt"><a href="../Structs/BSONBinary.html">BSONBinary</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L42">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O5regexyAcA21BSONRegularExpressionVcACmF"></a>
+                    <a name="//apple_ref/swift/Element/regex(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O5regexyAcA21BSONRegularExpressionVcACmF">regex(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON Regex</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">regex</span><span class="p">(</span><span class="kt"><a href="../Structs/BSONRegularExpression.html">BSONRegularExpression</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L45">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O8objectIDyAcA010BSONObjectD0VcACmF"></a>
+                    <a name="//apple_ref/swift/Element/objectID(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O8objectIDyAcA010BSONObjectD0VcACmF">objectID(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON ObjectID</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">objectID</span><span class="p">(</span><span class="nv">_</span><span class="p">:</span> <span class="kt"><a href="../Structs/BSONObjectID.html">BSONObjectID</a></span> <span class="o">=</span> <span class="kt"><a href="../Structs/BSONObjectID.html">BSONObjectID</a></span><span class="p">())</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L48">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O9dbPointeryAcA13BSONDBPointerVcACmF"></a>
+                    <a name="//apple_ref/swift/Element/dbPointer(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O9dbPointeryAcA13BSONDBPointerVcACmF">dbPointer(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON DBPointer</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">dbPointer</span><span class="p">(</span><span class="kt"><a href="../Structs/BSONDBPointer.html">BSONDBPointer</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L51">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O4codeyAcA8BSONCodeVcACmF"></a>
+                    <a name="//apple_ref/swift/Element/code(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O4codeyAcA8BSONCodeVcACmF">code(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON Code</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">code</span><span class="p">(</span><span class="kt"><a href="../Structs/BSONCode.html">BSONCode</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L54">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O13codeWithScopeyAcA08BSONCodedE0VcACmF"></a>
+                    <a name="//apple_ref/swift/Element/codeWithScope(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O13codeWithScopeyAcA08BSONCodedE0VcACmF">codeWithScope(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON Code with Scope</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="nf">codeWithScope</span><span class="p">(</span><span class="kt"><a href="../Structs/BSONCodeWithScope.html">BSONCodeWithScope</a></span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L57">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O4nullyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/null" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O4nullyA2CmF">null</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON Null</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">null</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L60">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O9undefinedyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/undefined" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O9undefinedyA2CmF">undefined</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON Undefined</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">undefined</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L63">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O6minKeyyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/minKey" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O6minKeyyA2CmF">minKey</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON MinKey</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">minKey</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L66">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O6maxKeyyA2CmF"></a>
+                    <a name="//apple_ref/swift/Element/maxKey" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O6maxKeyyA2CmF">maxKey</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A BSON MaxKey</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="k">case</span> <span class="n">maxKey</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L69">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0OyACSicfc"></a>
+                    <a name="//apple_ref/swift/Method/init(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0OyACSicfc">init(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initialize a <code>BSON</code> from an integer. On 64-bit systems, this will result in an <code>.int64</code>. On 32-bit systems,
+this will result in an <code>.int32</code>.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="n">_</span> <span class="nv">int</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L73-L79">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O4typeAA8BSONTypeOvp"></a>
+                    <a name="//apple_ref/swift/Property/type" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O4typeAA8BSONTypeOvp">type</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Get the <code><a href="../Enums/BSONType.html">BSONType</a></code> of this <code>BSON</code>.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">type</span><span class="p">:</span> <span class="kt"><a href="../Enums/BSONType.html">BSONType</a></span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L128-L130">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O10int32Values5Int32VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/int32Value" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O10int32Values5Int32VSgvp">int32Value</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is an <code>.int32</code>, return it as an <code>Int32</code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">int32Value</span><span class="p">:</span> <span class="kt">Int32</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L136-L141">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O10int64Values5Int64VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/int64Value" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O10int64Values5Int64VSgvp">int64Value</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is an <code>.int64</code>, return it as an <code>Int64</code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">int64Value</span><span class="p">:</span> <span class="kt">Int64</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L144-L149">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O15decimal128ValueAA14BSONDecimal128VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/decimal128Value" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O15decimal128ValueAA14BSONDecimal128VSgvp">decimal128Value</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is an <code>.decimal128</code>, return it as an <code><a href="../Structs/BSONDecimal128.html">BSONDecimal128</a></code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">decimal128Value</span><span class="p">:</span> <span class="kt"><a href="../Structs/BSONDecimal128.html">BSONDecimal128</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L152-L157">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O13documentValueAA12BSONDocumentVSgvp"></a>
+                    <a name="//apple_ref/swift/Property/documentValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O13documentValueAA12BSONDocumentVSgvp">documentValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.document</code>, return it as a <code><a href="../Structs/BSONDocument.html">BSONDocument</a></code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">documentValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/BSONDocument.html">BSONDocument</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L160-L165">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O10arrayValueSayACGSgvp"></a>
+                    <a name="//apple_ref/swift/Property/arrayValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O10arrayValueSayACGSgvp">arrayValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.array</code>, return it as a <code>[BSON]</code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">arrayValue</span><span class="p">:</span> <span class="p">[</span><span class="kt">BSON</span><span class="p">]?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L168-L173">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O9boolValueSbSgvp"></a>
+                    <a name="//apple_ref/swift/Property/boolValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O9boolValueSbSgvp">boolValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.bool</code>, return it as a <code>Bool</code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">boolValue</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L176-L181">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O9dateValue10Foundation4DateVSgvp"></a>
+                    <a name="//apple_ref/swift/Property/dateValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O9dateValue10Foundation4DateVSgvp">dateValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.date</code>, return it as a <code>Date</code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">dateValue</span><span class="p">:</span> <span class="kt">Date</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L184-L189">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O11doubleValueSdSgvp"></a>
+                    <a name="//apple_ref/swift/Property/doubleValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O11doubleValueSdSgvp">doubleValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.double</code>, return it as a <code>Double</code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">doubleValue</span><span class="p">:</span> <span class="kt">Double</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L192-L197">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O11stringValueSSSgvp"></a>
+                    <a name="//apple_ref/swift/Property/stringValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O11stringValueSSSgvp">stringValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.string</code>, return it as a <code>String</code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">stringValue</span><span class="p">:</span> <span class="kt">String</span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L200-L205">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O11symbolValueAA10BSONSymbolVSgvp"></a>
+                    <a name="//apple_ref/swift/Property/symbolValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O11symbolValueAA10BSONSymbolVSgvp">symbolValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.symbol</code>, return it as a <code><a href="../Structs/BSONSymbol.html">BSONSymbol</a></code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">symbolValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/BSONSymbol.html">BSONSymbol</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L208-L213">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O14timestampValueAA13BSONTimestampVSgvp"></a>
+                    <a name="//apple_ref/swift/Property/timestampValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O14timestampValueAA13BSONTimestampVSgvp">timestampValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.timestamp</code>, return it as a <code><a href="../Structs/BSONTimestamp.html">BSONTimestamp</a></code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">timestampValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/BSONTimestamp.html">BSONTimestamp</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L216-L221">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O11binaryValueAA10BSONBinaryVSgvp"></a>
+                    <a name="//apple_ref/swift/Property/binaryValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O11binaryValueAA10BSONBinaryVSgvp">binaryValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.binary</code>, return it as a <code><a href="../Structs/BSONBinary.html">BSONBinary</a></code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">binaryValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/BSONBinary.html">BSONBinary</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L224-L229">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O10regexValueAA21BSONRegularExpressionVSgvp"></a>
+                    <a name="//apple_ref/swift/Property/regexValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O10regexValueAA21BSONRegularExpressionVSgvp">regexValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.regex</code>, return it as a <code><a href="../Structs/BSONRegularExpression.html">BSONRegularExpression</a></code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">regexValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/BSONRegularExpression.html">BSONRegularExpression</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L232-L237">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O13objectIDValueAA12BSONObjectIDVSgvp"></a>
+                    <a name="//apple_ref/swift/Property/objectIDValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O13objectIDValueAA12BSONObjectIDVSgvp">objectIDValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.objectID</code>, return it as a <code><a href="../Structs/BSONObjectID.html">BSONObjectID</a></code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">objectIDValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/BSONObjectID.html">BSONObjectID</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L240-L245">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O14dbPointerValueAA13BSONDBPointerVSgvp"></a>
+                    <a name="//apple_ref/swift/Property/dbPointerValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O14dbPointerValueAA13BSONDBPointerVSgvp">dbPointerValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.dbPointer</code>, return it as a <code><a href="../Structs/BSONDBPointer.html">BSONDBPointer</a></code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">dbPointerValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/BSONDBPointer.html">BSONDBPointer</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L248-L253">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O9codeValueAA8BSONCodeVSgvp"></a>
+                    <a name="//apple_ref/swift/Property/codeValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O9codeValueAA8BSONCodeVSgvp">codeValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.code</code>, return it as a <code><a href="../Structs/BSONCode.html">BSONCode</a></code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">codeValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/BSONCode.html">BSONCode</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L256-L261">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O18codeWithScopeValueAA08BSONCodedE0VSgvp"></a>
+                    <a name="//apple_ref/swift/Property/codeWithScopeValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O18codeWithScopeValueAA08BSONCodedE0VSgvp">codeWithScopeValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>If this <code>BSON</code> is a <code>.codeWithScope</code>, return it as a <code><a href="../Structs/BSONCodeWithScope.html">BSONCodeWithScope</a></code>. Otherwise, return nil.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">codeWithScopeValue</span><span class="p">:</span> <span class="kt"><a href="../Structs/BSONCodeWithScope.html">BSONCodeWithScope</a></span><span class="p">?</span> <span class="p">{</span> <span class="k">get</span> <span class="p">}</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L264-L269">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O5toIntSiSgyF"></a>
+                    <a name="//apple_ref/swift/Method/toInt()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O5toIntSiSgyF">toInt()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Return this BSON as an <code>Int</code> if possible.
+This will coerce non-integer numeric cases (e.g. <code>.double</code>) into an <code>Int</code> if such coercion would be lossless.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">toInt</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Int</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L276-L287">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O7toInt32s0D0VSgyF"></a>
+                    <a name="//apple_ref/swift/Method/toInt32()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O7toInt32s0D0VSgyF">toInt32()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Return this BSON as an <code>Int32</code> if possible.
+This will coerce numeric cases (e.g. <code>.double</code>) into an <code>Int32</code> if such coercion would be lossless.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">toInt32</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Int32</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L291-L302">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O7toInt64s0D0VSgyF"></a>
+                    <a name="//apple_ref/swift/Method/toInt64()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O7toInt64s0D0VSgyF">toInt64()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Return this BSON as an <code>Int64</code> if possible.
+This will coerce numeric cases (e.g. <code>.double</code>) into an <code>Int64</code> if such coercion would be lossless.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">toInt64</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Int64</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L306-L317">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O8toDoubleSdSgyF"></a>
+                    <a name="//apple_ref/swift/Method/toDouble()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O8toDoubleSdSgyF">toDouble()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Return this BSON as a <code>Double</code> if possible.
+This will coerce numeric cases (e.g. <code>.int32</code>) into a <code>Double</code> if such coercion would be lossless.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">toDouble</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt">Double</span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L321-L331">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O12toDecimal128AA14BSONDecimal128VSgyF"></a>
+                    <a name="//apple_ref/swift/Method/toDecimal128()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O12toDecimal128AA14BSONDecimal128VSgyF">toDecimal128()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Return this BSON as a <code><a href="../Structs/BSONDecimal128.html">BSONDecimal128</a></code> if possible.
+This will coerce numeric cases (e.g. <code>.double</code>) into a <code><a href="../Structs/BSONDecimal128.html">BSONDecimal128</a></code> if such coercion would be lossless.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">toDecimal128</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kt"><a href="../Structs/BSONDecimal128.html">BSONDecimal128</a></span><span class="p">?</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L335-L348">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON0B0O14integerLiteralACSi_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(integerLiteral:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON0B0O14integerLiteralACSi_tcfc">init(integerLiteral:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initialize a <code>BSON</code> from an integer. On 64-bit systems, this will result in an <code>.int64</code>. On 32-bit systems,
+this will result in an <code>.int32</code>.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="n">integerLiteral</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L430-L432">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:s25ExpressibleByFloatLiteralP05floatD0x0cD4TypeQz_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(floatLiteral:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:s25ExpressibleByFloatLiteralP05floatD0x0cD4TypeQz_tcfc">init(floatLiteral:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="n">floatLiteral</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">Double</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L436-L438">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:s27ExpressibleByBooleanLiteralP07booleanD0x0cD4TypeQz_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(booleanLiteral:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:s27ExpressibleByBooleanLiteralP07booleanD0x0cD4TypeQz_tcfc">init(booleanLiteral:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="n">booleanLiteral</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">Bool</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L442-L444">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:s30ExpressibleByDictionaryLiteralP010dictionaryD0x3KeyQz_5ValueQztd_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(dictionaryLiteral:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:s30ExpressibleByDictionaryLiteralP010dictionaryD0x3KeyQz_5ValueQztd_tcfc">init(dictionaryLiteral:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="n">dictionaryLiteral</span> <span class="nv">elements</span><span class="p">:</span> <span class="p">(</span><span class="kt">String</span><span class="p">,</span> <span class="kt">BSON</span><span class="p">)</span><span class="o">...</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L448-L450">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:s26ExpressibleByStringLiteralP06stringD0x0cD4TypeQz_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(stringLiteral:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:s26ExpressibleByStringLiteralP06stringD0x0cD4TypeQz_tcfc">init(stringLiteral:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="n">stringLiteral</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">String</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L454-L456">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:s25ExpressibleByArrayLiteralP05arrayD0x0cD7ElementQzd_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(arrayLiteral:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:s25ExpressibleByArrayLiteralP05arrayD0x0cD7ElementQzd_tcfc">init(arrayLiteral:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="n">arrayLiteral</span> <span class="nv">elements</span><span class="p">:</span> <span class="kt">BSON</span><span class="o">...</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L460-L462">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:Se4fromxs7Decoder_p_tKcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(from:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:Se4fromxs7Decoder_p_tKcfc">init(from:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">(</span><span class="n">from</span> <span class="nv">decoder</span><span class="p">:</span> <span class="kt">Decoder</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L469-L490">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:SE6encode2toys7Encoder_p_tKF"></a>
+                    <a name="//apple_ref/swift/Method/encode(to:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:SE6encode2toys7Encoder_p_tKF">encode(to:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="nf">encode</span><span class="p">(</span><span class="n">to</span> <span class="nv">encoder</span><span class="p">:</span> <span class="kt">Encoder</span><span class="p">)</span> <span class="k">throws</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSON.swift#L492-L495">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </article>
+    </div>
+    <section class="footer">
+      <p>&copy; 2021 <a class="link" href="https://github.com/mongodb/swift-bson" target="_blank" rel="external">Neal Beeken, Nellie Spektor, Patrick Freed, and Kaitlin Mahar</a>. All rights reserved. (Last updated: 2021-02-05)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+    </section>
+  </body>
+</div>
+</html>

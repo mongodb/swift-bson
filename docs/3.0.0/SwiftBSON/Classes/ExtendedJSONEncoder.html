@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>ExtendedJSONEncoder Class Reference</title>
+    <link rel="stylesheet" type="text/css" href="../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../css/highlight.css" />
+    <meta charset="utf-8">
+    <script src="../js/jquery.min.js" defer></script>
+    <script src="../js/jazzy.js" defer></script>
+    
+    <script src="../js/lunr.min.js" defer></script>
+    <script src="../js/typeahead.jquery.js" defer></script>
+    <script src="../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+
+    <a name="//apple_ref/swift/Class/ExtendedJSONEncoder" class="dashAnchor"></a>
+
+    <a title="ExtendedJSONEncoder Class Reference"></a>
+
+    <header class="header">
+      <p class="header-col header-col--primary">
+        <a class="header-link" href="../index.html">
+          SwiftBSON 3.0.0 Docs
+        </a>
+         (99% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="../search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
+      </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="https://github.com/mongodb/swift-bson">
+            <img class="header-icon" src="../img/gh.png"/>
+            View on GitHub
+          </a>
+        </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="dash-feed://https%3A%2F%2Fmongodb.github.io%2Fswift-bson%2Fdocs%2FSwiftBSON%2Fdocsets%2FSwiftBSON.xml">
+            <img class="header-icon" src="../img/dash.png"/>
+            Install in Dash
+          </a>
+        </p>
+    </header>
+
+    <p class="breadcrumbs">
+      <a class="breadcrumb" href="../index.html">SwiftBSON Reference</a>
+      <img class="carat" src="../img/carat.png" />
+      ExtendedJSONEncoder Class Reference
+    </p>
+
+    <div class="content-wrapper">
+      <nav class="navigation">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../General%20Guides.html">General Guides</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../bson-guide.html">BSON-Guide</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../json-interop.html">JSON-Interop</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../BSON%20Types.html">BSON Types</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSON.html">BSON</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONType.html">BSONType</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONBinary.html">BSONBinary</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONBinary/Subtype.html">– Subtype</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONCode.html">BSONCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONCodeWithScope.html">BSONCodeWithScope</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONDBPointer.html">BSONDBPointer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONDecimal128.html">BSONDecimal128</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONDocument.html">BSONDocument</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONObjectID.html">BSONObjectID</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONRegularExpression.html">BSONRegularExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONSymbol.html">BSONSymbol</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONTimestamp.html">BSONTimestamp</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Encoding%20and%20Decoding%20BSON.html">Encoding and Decoding BSON</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONEncoder.html">BSONEncoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONEncoder/DateEncodingStrategy.html">– DateEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONEncoder/UUIDEncodingStrategy.html">– UUIDEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONEncoder/DataEncodingStrategy.html">– DataEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONDecoder.html">BSONDecoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONDecoder/DateDecodingStrategy.html">– DateDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONDecoder/UUIDDecodingStrategy.html">– UUIDDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/BSONDecoder/DataDecodingStrategy.html">– DataDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/DataCodingStrategy.html">DataCodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/DateCodingStrategy.html">DateCodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/UUIDCodingStrategy.html">UUIDCodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Protocols/CodingStrategyProvider.html">CodingStrategyProvider</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Structs/BSONCoderOptions.html">BSONCoderOptions</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Encoding%20and%20Decoding%20Extended%20JSON.html">Encoding and Decoding Extended JSON</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/ExtendedJSONEncoder.html">ExtendedJSONEncoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/ExtendedJSONEncoder/Mode.html">– Mode</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Classes/ExtendedJSONDecoder.html">ExtendedJSONDecoder</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../Errors.html">Errors</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONError.html">BSONError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONError/InvalidArgumentError.html">– InvalidArgumentError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONError/InternalError.html">– InternalError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONError/LogicError.html">– LogicError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Enums/BSONError/DocumentTooLargeError.html">– DocumentTooLargeError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../Errors.html#/s:9SwiftBSON17BSONErrorProtocolP">BSONErrorProtocol</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+
+        <section class="section">
+          <div class="section-content top-matter">
+            <h1>ExtendedJSONEncoder</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">class</span> <span class="kt">ExtendedJSONEncoder</span></code></pre>
+
+                </div>
+              </div>
+            <p>Facilitates the encoding of <code>Encodable</code> values into ExtendedJSON.</p>
+
+              <div class="slightly-smaller">
+                <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/ExtendedJSONEncoder.swift#L6-L77">Show on GitHub</a>
+              </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-content">
+            <div class="task-group">
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON19ExtendedJSONEncoderC4ModeO"></a>
+                    <a name="//apple_ref/swift/Enum/Mode" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON19ExtendedJSONEncoderC4ModeO">Mode</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>An enum representing one of the two supported string formats based on the JSON standard
+that describe how to represent BSON documents in JSON using standard JSON types and/or type wrapper objects.</p>
+
+                        <a href="../Classes/ExtendedJSONEncoder/Mode.html" class="slightly-smaller">See more</a>
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">enum</span> <span class="kt">Mode</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/ExtendedJSONEncoder.swift#L9-L17">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON19ExtendedJSONEncoderC4modeAC4ModeOvp"></a>
+                    <a name="//apple_ref/swift/Property/mode" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON19ExtendedJSONEncoderC4modeAC4ModeOvp">mode</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Determines whether to encode to canonical or relaxed extended JSON. Default is relaxed.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">mode</span><span class="p">:</span> <span class="kt"><a href="../Classes/ExtendedJSONEncoder/Mode.html">Mode</a></span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/ExtendedJSONEncoder.swift#L20">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON19ExtendedJSONEncoderC8userInfoSDys010CodingUserF3KeyVypGvp"></a>
+                    <a name="//apple_ref/swift/Property/userInfo" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON19ExtendedJSONEncoderC8userInfoSDys010CodingUserF3KeyVypGvp">userInfo</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Contextual user-provided information for use during encoding.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">var</span> <span class="nv">userInfo</span><span class="p">:</span> <span class="p">[</span><span class="kt">CodingUserInfoKey</span> <span class="p">:</span> <span class="kt">Any</span><span class="p">]</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/ExtendedJSONEncoder.swift#L23">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON19ExtendedJSONEncoderCACycfc"></a>
+                    <a name="//apple_ref/swift/Method/init()" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON19ExtendedJSONEncoderCACycfc">init()</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initialize an <code>ExtendedJSONEncoder</code>.</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">()</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/ExtendedJSONEncoder.swift#L26">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON19ExtendedJSONEncoderC6encodey10Foundation4DataVxKSERzlF"></a>
+                    <a name="//apple_ref/swift/Method/encode(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON19ExtendedJSONEncoderC6encodey10Foundation4DataVxKSERzlF">encode(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Encodes an instance of the Encodable Type <code>T</code> into Data representing canonical or relaxed extended JSON.
+The value of <code>self.mode</code> will determine which format is used. If it is not set explicitly, relaxed will be used.</p>
+<div class="aside aside-see-also">
+    <p class="aside-title">See also</p>
+    <p><a href="https://docs.mongodb.com/manual/reference/mongodb-extended-json/">https://docs.mongodb.com/manual/reference/mongodb-extended-json/</a></p>
+
+</div><div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    <p><code>EncodingError</code> if the value is corrupt or cannot be converted to valid ExtendedJSON.</p>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="n">encode</span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">T</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">Data</span> <span class="k">where</span> <span class="kt">T</span> <span class="p">:</span> <span class="kt">Encodable</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>value</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>instance of Encodable type <code>T</code> which will be encoded.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Encoded representation of the <code>T</code> input as an instance of <code>Data</code> representing ExtendedJSON.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/ExtendedJSONEncoder.swift#L60-L62">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON19ExtendedJSONEncoderC12encodeBuffery3NIO04ByteF0VxKSERzlF"></a>
+                    <a name="//apple_ref/swift/Method/encodeBuffer(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON19ExtendedJSONEncoderC12encodeBuffery3NIO04ByteF0VxKSERzlF">encodeBuffer(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Encodes an instance of the Encodable Type <code>T</code> into a <code>ByteBuffer</code> representing canonical or relaxed extended
+JSON. The value of <code>self.mode</code> will determine which format is used. If it is not set explicitly, relaxed will
+be used.</p>
+<div class="aside aside-see-also">
+    <p class="aside-title">See also</p>
+    <p><a href="https://docs.mongodb.com/manual/reference/mongodb-extended-json/">https://docs.mongodb.com/manual/reference/mongodb-extended-json/</a></p>
+
+</div><div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    <p><code>EncodingError</code> if the value is corrupt or cannot be converted to valid ExtendedJSON.</p>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">func</span> <span class="n">encodeBuffer</span><span class="o">&lt;</span><span class="kt">T</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">T</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">ByteBuffer</span> <span class="k">where</span> <span class="kt">T</span> <span class="p">:</span> <span class="kt">Encodable</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div>
+                        <h4>Parameters</h4>
+                        <table class="graybox">
+                          <tbody>
+                            <tr>
+                              <td>
+                                <code>
+                                <em>value</em>
+                                </code>
+                              </td>
+                              <td>
+                                <div>
+                                  <p>instance of Encodable type <code>T</code> which will be encoded.</p>
+                                </div>
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                      <div>
+                        <h4>Return Value</h4>
+                        <p>Encoded representation of the <code>T</code> input as an instance of <code>ByteBuffer</code> representing ExtendedJSON.</p>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/ExtendedJSONEncoder.swift#L74-L76">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </article>
+    </div>
+    <section class="footer">
+      <p>&copy; 2021 <a class="link" href="https://github.com/mongodb/swift-bson" target="_blank" rel="external">Neal Beeken, Nellie Spektor, Patrick Freed, and Kaitlin Mahar</a>. All rights reserved. (Last updated: 2021-02-05)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+    </section>
+  </body>
+</div>
+</html>

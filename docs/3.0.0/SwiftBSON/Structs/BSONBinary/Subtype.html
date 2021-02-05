@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Subtype Structure Reference</title>
+    <link rel="stylesheet" type="text/css" href="../../css/jazzy.css" />
+    <link rel="stylesheet" type="text/css" href="../../css/highlight.css" />
+    <meta charset="utf-8">
+    <script src="../../js/jquery.min.js" defer></script>
+    <script src="../../js/jazzy.js" defer></script>
+    
+    <script src="../../js/lunr.min.js" defer></script>
+    <script src="../../js/typeahead.jquery.js" defer></script>
+    <script src="../../js/jazzy.search.js" defer></script>
+  </head>
+  <body>
+
+    <a name="//apple_ref/swift/Struct/Subtype" class="dashAnchor"></a>
+
+    <a title="Subtype Structure Reference"></a>
+
+    <header class="header">
+      <p class="header-col header-col--primary">
+        <a class="header-link" href="../../index.html">
+          SwiftBSON 3.0.0 Docs
+        </a>
+         (99% documented)
+      </p>
+    
+      <p class="header-col--secondary">
+        <form role="search" action="../../search.json">
+          <input type="text" placeholder="Search documentation" data-typeahead>
+        </form>
+      </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="https://github.com/mongodb/swift-bson">
+            <img class="header-icon" src="../../img/gh.png"/>
+            View on GitHub
+          </a>
+        </p>
+    
+        <p class="header-col header-col--secondary">
+          <a class="header-link" href="dash-feed://https%3A%2F%2Fmongodb.github.io%2Fswift-bson%2Fdocs%2FSwiftBSON%2Fdocsets%2FSwiftBSON.xml">
+            <img class="header-icon" src="../../img/dash.png"/>
+            Install in Dash
+          </a>
+        </p>
+    </header>
+
+    <p class="breadcrumbs">
+      <a class="breadcrumb" href="../../index.html">SwiftBSON Reference</a>
+      <img class="carat" src="../../img/carat.png" />
+      Subtype Structure Reference
+    </p>
+
+    <div class="content-wrapper">
+      <nav class="navigation">
+        <ul class="nav-groups">
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../../General%20Guides.html">General Guides</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../bson-guide.html">BSON-Guide</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../json-interop.html">JSON-Interop</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../../BSON%20Types.html">BSON Types</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Enums/BSON.html">BSON</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Enums/BSONType.html">BSONType</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONBinary.html">BSONBinary</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONBinary/Subtype.html">– Subtype</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONCode.html">BSONCode</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONCodeWithScope.html">BSONCodeWithScope</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONDBPointer.html">BSONDBPointer</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONDecimal128.html">BSONDecimal128</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONDocument.html">BSONDocument</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONObjectID.html">BSONObjectID</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONRegularExpression.html">BSONRegularExpression</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONSymbol.html">BSONSymbol</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONTimestamp.html">BSONTimestamp</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../../Encoding%20and%20Decoding%20BSON.html">Encoding and Decoding BSON</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Classes/BSONEncoder.html">BSONEncoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Classes/BSONEncoder/DateEncodingStrategy.html">– DateEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Classes/BSONEncoder/UUIDEncodingStrategy.html">– UUIDEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Classes/BSONEncoder/DataEncodingStrategy.html">– DataEncodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Classes/BSONDecoder.html">BSONDecoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Classes/BSONDecoder/DateDecodingStrategy.html">– DateDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Classes/BSONDecoder/UUIDDecodingStrategy.html">– UUIDDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Classes/BSONDecoder/DataDecodingStrategy.html">– DataDecodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Enums/DataCodingStrategy.html">DataCodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Enums/DateCodingStrategy.html">DateCodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Enums/UUIDCodingStrategy.html">UUIDCodingStrategy</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Protocols/CodingStrategyProvider.html">CodingStrategyProvider</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Structs/BSONCoderOptions.html">BSONCoderOptions</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../../Encoding%20and%20Decoding%20Extended%20JSON.html">Encoding and Decoding Extended JSON</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Classes/ExtendedJSONEncoder.html">ExtendedJSONEncoder</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Classes/ExtendedJSONEncoder/Mode.html">– Mode</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Classes/ExtendedJSONDecoder.html">ExtendedJSONDecoder</a>
+              </li>
+            </ul>
+          </li>
+          <li class="nav-group-name">
+            <a class="nav-group-name-link" href="../../Errors.html">Errors</a>
+            <ul class="nav-group-tasks">
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Enums/BSONError.html">BSONError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Enums/BSONError/InvalidArgumentError.html">– InvalidArgumentError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Enums/BSONError/InternalError.html">– InternalError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Enums/BSONError/LogicError.html">– LogicError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Enums/BSONError/DocumentTooLargeError.html">– DocumentTooLargeError</a>
+              </li>
+              <li class="nav-group-task">
+                <a class="nav-group-task-link" href="../../Errors.html#/s:9SwiftBSON17BSONErrorProtocolP">BSONErrorProtocol</a>
+              </li>
+            </ul>
+          </li>
+        </ul>
+      </nav>
+      <article class="main-content">
+
+        <section class="section">
+          <div class="section-content top-matter">
+            <h1>Subtype</h1>
+              <div class="declaration">
+                <div class="language">
+                  
+                  <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">struct</span> <span class="kt">Subtype</span> <span class="p">:</span> <span class="kt">Equatable</span><span class="p">,</span> <span class="kt">Hashable</span><span class="p">,</span> <span class="kt">RawRepresentable</span><span class="p">,</span> <span class="kt">Codable</span></code></pre>
+
+                </div>
+              </div>
+            <p>Subtypes for BSON Binary values.</p>
+
+              <div class="slightly-smaller">
+                <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSONBinary.swift#L14-L61">Show on GitHub</a>
+              </div>
+          </div>
+        </section>
+
+        <section class="section">
+          <div class="section-content">
+            <div class="task-group">
+              <ul class="item-container">
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON10BSONBinaryV7SubtypeV7genericAEvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/generic" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON10BSONBinaryV7SubtypeV7genericAEvpZ">generic</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Generic binary subtype</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">generic</span><span class="p">:</span> <span class="kt"><a href="../../Structs/BSONBinary.html">BSONBinary</a></span><span class="o">.</span><span class="kt">Subtype</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSONBinary.swift#L17">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON10BSONBinaryV7SubtypeV8functionAEvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/function" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON10BSONBinaryV7SubtypeV8functionAEvpZ">function</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>A function</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">function</span><span class="p">:</span> <span class="kt"><a href="../../Structs/BSONBinary.html">BSONBinary</a></span><span class="o">.</span><span class="kt">Subtype</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSONBinary.swift#L19">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON10BSONBinaryV7SubtypeV16binaryDeprecatedAEvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/binaryDeprecated" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON10BSONBinaryV7SubtypeV16binaryDeprecatedAEvpZ">binaryDeprecated</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Binary (old)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">binaryDeprecated</span><span class="p">:</span> <span class="kt"><a href="../../Structs/BSONBinary.html">BSONBinary</a></span><span class="o">.</span><span class="kt">Subtype</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSONBinary.swift#L21">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON10BSONBinaryV7SubtypeV14uuidDeprecatedAEvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/uuidDeprecated" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON10BSONBinaryV7SubtypeV14uuidDeprecatedAEvpZ">uuidDeprecated</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>UUID (old)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">uuidDeprecated</span><span class="p">:</span> <span class="kt"><a href="../../Structs/BSONBinary.html">BSONBinary</a></span><span class="o">.</span><span class="kt">Subtype</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSONBinary.swift#L23">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON10BSONBinaryV7SubtypeV4uuidAEvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/uuid" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON10BSONBinaryV7SubtypeV4uuidAEvpZ">uuid</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>UUID (RFC 4122)</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">uuid</span><span class="p">:</span> <span class="kt"><a href="../../Structs/BSONBinary.html">BSONBinary</a></span><span class="o">.</span><span class="kt">Subtype</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSONBinary.swift#L25">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON10BSONBinaryV7SubtypeV3md5AEvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/md5" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON10BSONBinaryV7SubtypeV3md5AEvpZ">md5</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>MD5</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">md5</span><span class="p">:</span> <span class="kt"><a href="../../Structs/BSONBinary.html">BSONBinary</a></span><span class="o">.</span><span class="kt">Subtype</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSONBinary.swift#L27">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON10BSONBinaryV7SubtypeV14encryptedValueAEvpZ"></a>
+                    <a name="//apple_ref/swift/Variable/encryptedValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON10BSONBinaryV7SubtypeV14encryptedValueAEvpZ">encryptedValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Encrypted BSON value</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="k">let</span> <span class="nv">encryptedValue</span><span class="p">:</span> <span class="kt"><a href="../../Structs/BSONBinary.html">BSONBinary</a></span><span class="o">.</span><span class="kt">Subtype</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSONBinary.swift#L29">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON10BSONBinaryV7SubtypeV8rawValues5UInt8Vvp"></a>
+                    <a name="//apple_ref/swift/Property/rawValue" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON10BSONBinaryV7SubtypeV8rawValues5UInt8Vvp">rawValue</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Subtype indicator value</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="k">let</span> <span class="nv">rawValue</span><span class="p">:</span> <span class="kt">UInt8</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSONBinary.swift#L33">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON10BSONBinaryV7SubtypeV8rawValueAESgs5UInt8V_tcfc"></a>
+                    <a name="//apple_ref/swift/Method/init(rawValue:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON10BSONBinaryV7SubtypeV8rawValueAESgs5UInt8V_tcfc">init(rawValue:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initializes a <code>Subtype</code> with a custom value.
+Returns nil if rawValue within reserved range [0x07, 0x80).</p>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="nf">init</span><span class="p">?(</span><span class="nv">rawValue</span><span class="p">:</span> <span class="kt">UInt8</span><span class="p">)</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSONBinary.swift#L37-L42">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+                <li class="item">
+                  <div>
+                    <code>
+                    <a name="/s:9SwiftBSON10BSONBinaryV7SubtypeV11userDefinedyAESiKFZ"></a>
+                    <a name="//apple_ref/swift/Method/userDefined(_:)" class="dashAnchor"></a>
+                    <a class="token" href="#/s:9SwiftBSON10BSONBinaryV7SubtypeV11userDefinedyAESiKFZ">userDefined(_:<wbr>)</a>
+                    </code>
+                  </div>
+                  <div class="height-container">
+                    <div class="pointer-container"></div>
+                    <section class="section">
+                      <div class="pointer"></div>
+                      <div class="abstract">
+                        <p>Initializes a <code>Subtype</code> with a custom value. This value must be in the range 0x80-0xFF.</p>
+<div class="aside aside-throws">
+    <p class="aside-title">Throws</p>
+    <ul>
+<li><code><a href="../../Enums/BSONError/InvalidArgumentError.html">BSONError.InvalidArgumentError</a></code> if value passed is outside of the range 0x80-0xFF</li>
+</ul>
+
+</div>
+
+                      </div>
+                      <div class="declaration">
+                        <h4>Declaration</h4>
+                        <div class="language">
+                          <p class="aside-title">Swift</p>
+                          <pre class="highlight swift"><code><span class="kd">public</span> <span class="kd">static</span> <span class="kd">func</span> <span class="nf">userDefined</span><span class="p">(</span><span class="n">_</span> <span class="nv">value</span><span class="p">:</span> <span class="kt">Int</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">Subtype</span></code></pre>
+
+                        </div>
+                      </div>
+                      <div class="slightly-smaller">
+                        <a href="https://github.com/mongodb/swift-bson/tree/v3.0.0/Sources/SwiftBSON/BSONBinary.swift#L47-L60">Show on GitHub</a>
+                      </div>
+                    </section>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+      </article>
+    </div>
+    <section class="footer">
+      <p>&copy; 2021 <a class="link" href="https://github.com/mongodb/swift-bson" target="_blank" rel="external">Neal Beeken, Nellie Spektor, Patrick Freed, and Kaitlin Mahar</a>. All rights reserved. (Last updated: 2021-02-05)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+    </section>
+  </body>
+</div>
+</html>
