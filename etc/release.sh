@@ -5,8 +5,8 @@
 # exit if any command fails
 set -e
 
-# ensure we are on master before releasing
-git checkout master
+# ensure we are on main before releasing
+git checkout main
 
 version=${1}
 # Ensure version is non-empty

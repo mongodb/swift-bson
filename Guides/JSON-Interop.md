@@ -115,8 +115,8 @@ extension ExtendedJSONDecoder: ContentDecoder {
  ```
 
 To see some example Vapor apps using the driver, check out
-[Examples/VaporExample](https://github.com/mongodb/mongo-swift-driver/tree/master/Examples/VaporExample) or 
-[Examples/ComplexVaporExample](https://github.com/mongodb/mongo-swift-driver/tree/master/Examples/ComplexVaporExample).
+[Examples/VaporExample](https://github.com/mongodb/mongo-swift-driver/tree/main/Examples/VaporExample) or
+[Examples/ComplexVaporExample](https://github.com/mongodb/mongo-swift-driver/tree/main/Examples/ComplexVaporExample).
 
 ## Using `JSONEncoder` and `JSONDecoder` with BSON Types
 
