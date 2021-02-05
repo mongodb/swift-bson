@@ -20,6 +20,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         let regexStr = "{\"$regularExpression\":{\"pattern\":\"p\",\"options\":\"i\"}}"
         let canonicalExtJSON = "{\"x\":true,\"y\":{\"$numberInt\":\"5\"},\"z\":\(regexStr)}"
         let data = canonicalExtJSON.data(using: .utf8)!
+        let buffer = BSON_ALLOCATOR.buffer(bytes: data)
         let regexObj = BSONRegularExpression(pattern: "p", options: "i")
         let test = Test(x: true, y: 5, z: regexObj)
 
@@ -28,17 +29,23 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         encoder.mode = .canonical
         let encoded: Data = try encoder.encode(test)
         expect(encoded).to(cleanEqual(canonicalExtJSON))
+        let encodedBuffer = try encoder.encodeBuffer(test)
+        expect(Data(encodedBuffer.readableBytesView)).to(cleanEqual(canonicalExtJSON))
 
         // Test relaxed encoder
         encoder.mode = .relaxed
         let relaxedEncoded: Data = try encoder.encode(test)
         let relaxedExtJSON = "{\"x\":true,\"y\":5,\"z\":\(regexStr)}"
         expect(relaxedEncoded).to(cleanEqual(relaxedExtJSON))
+        let relaxedEncodedBuffer = try encoder.encodeBuffer(test)
+        expect(Data(relaxedEncodedBuffer.readableBytesView)).to(cleanEqual(relaxedExtJSON))
 
         // Test decoder
         let decoder = ExtendedJSONDecoder()
         let decoded = try decoder.decode(Test.self, from: data)
         expect(decoded).to(equal(test))
+        let bufferDecoded = try decoder.decode(Test.self, from: buffer)
+        expect(bufferDecoded).to(equal(test))
     }
 
     func testExtendedJSONDecoderErrorKeyPath() throws {
