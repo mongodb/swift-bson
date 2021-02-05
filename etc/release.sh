@@ -15,6 +15,23 @@ version=${1}
 # regenerate documentation with new version string
 ./etc/generate-docs.sh ${version}
 
+# switch to docs branch to commit and push
+git checkout gh-pages
+
+rm -r docs/current
+cp -r docs-temp docs/current
+mv docs-temp docs/${version}
+
+# build up documentation index
+python3 ./_scripts/update-index.py
+
+git add docs/
+git commit -m "${version} docs"
+git push
+
+# go back to wherever we started
+git checkout -
+
 # tag release and push tag
 git tag "v${version}"
 git push --tags

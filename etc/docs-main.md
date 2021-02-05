@@ -4,4 +4,6 @@ This is the documentation for the official MongoDB Swift BSON library, [swift-bs
 
 You can view the README for this project, including installation instructions, [here](https://github.com/mongodb/swift-bson/blob/master/README.md).
 
-The documentation for the official MongoDB Swift driver, which depends on this BSON library, can be found [here](https://mongodb.github.io/mongo-swift-driver/MongoSwift/index.html).
+Documentation for other versions of `swift-bson` can be found [here](https://mongodb.github.io/swift-bson/docs).
+
+The documentation for the official MongoDB Swift driver, which depends on `swift-bson`, can be found [here](https://mongodb.github.io/mongo-swift-driver/MongoSwift/index.html).
