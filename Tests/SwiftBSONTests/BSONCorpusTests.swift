@@ -166,12 +166,12 @@ final class BSONCorpusTests: BSONTestCase {
 
                     // native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ
                     let canonicalEncoder = ExtendedJSONEncoder()
-                    canonicalEncoder.mode = .canonical
+                    canonicalEncoder.format = .canonical
                     expect(try canonicalEncoder.encode(docFromCB))
                         .to(cleanEqual(test.canonicalExtJSON), description: test.description)
 
                     // native_to_relaxed_extended_json( bson_to_native(cB) ) = rEJ (if rEJ exists)
-                    let relaxedEncoder = ExtendedJSONEncoder() // default mode is .relaxed
+                    let relaxedEncoder = ExtendedJSONEncoder() // default format is .relaxed
                     if let rEJ = test.relaxedExtJSON {
                         expect(try relaxedEncoder.encode(docFromCB))
                             .to(cleanEqual(rEJ), description: test.description)

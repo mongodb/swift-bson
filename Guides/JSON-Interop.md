@@ -57,7 +57,7 @@ The `ExtendedJSONEncoder` produces relaxed Extended JSON by default, but can be 
 ```swift
 let bob = Person(name: "Bob", age: 25)
 let encoder = ExtendedJSONEncoder()
-encoder.mode = .canonical
+encoder.format = .canonical
 let canonicalEncoded = try encoder.encode(bob) // "{\"name\":\"Bob\",\"age\":{\"$numberInt\":\"25\"}}"
 ```
 The `ExtendedJSONDecoder` accepts either format, or a mix of both:

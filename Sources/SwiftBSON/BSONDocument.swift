@@ -135,7 +135,7 @@ public struct BSONDocument {
     /// On error, an empty string will be returned.
     public func toCanonicalExtendedJSONString() -> String {
         let encoder = ExtendedJSONEncoder()
-        encoder.mode = .canonical
+        encoder.format = .canonical
         guard let encoded = try? encoder.encode(self) else {
             return ""
         }
