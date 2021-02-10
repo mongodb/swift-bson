@@ -4,20 +4,31 @@ import NIO
 
 /// Facilitates the encoding of `Encodable` values into ExtendedJSON.
 public class ExtendedJSONEncoder {
-    /// An enum representing one of the two supported string formats based on the JSON standard
-    /// that describe how to represent BSON documents in JSON using standard JSON types and/or type wrapper objects.
-    public enum Mode {
+    /// A struct representing the supported string formats based on the JSON standard that describe how to represent
+    /// BSON documents in JSON using standard JSON types and/or type wrapper objects.
+    public struct Format {
         /// Canonical Extended JSON Format: Emphasizes type preservation
         /// at the expense of readability and interoperability.
-        case canonical
+        public static let canonical = Format(.canonical)
 
         /// Relaxed Extended JSON Format: Emphasizes readability and interoperability
         /// at the expense of type preservation.
-        case relaxed
+        public static let relaxed = Format(.relaxed)
+
+        /// Internal representation of extJSON format.
+        fileprivate enum _Format {
+            case canonical, relaxed
+        }
+
+        fileprivate var _format: _Format
+
+        private init(_ _format: _Format) {
+            self._format = _format
+        }
     }
 
     /// Determines whether to encode to canonical or relaxed extended JSON. Default is relaxed.
-    public var mode: Mode = .relaxed
+    public var format: Format = .relaxed
 
     /// Contextual user-provided information for use during encoding.
     public var userInfo: [CodingUserInfoKey: Any] = [:]
@@ -29,14 +40,14 @@ public class ExtendedJSONEncoder {
         // T --> BSON --> JSONValue --> Data
         // Takes in any encodable type `T`, converts it to an instance of the `BSON` enum via the `BSONDecoder`.
         // The `BSON` is converted to an instance of the `JSON` enum via the `toRelaxedExtendedJSON`
-        // or `toCanonicalExtendedJSON` methods on `BSONValue`s (depending on the `mode`).
+        // or `toCanonicalExtendedJSON` methods on `BSONValue`s (depending on the `format`).
         // The `JSON` is then passed through a `JSONEncoder` and outputted as `Data`.
         let encoder = BSONEncoder()
         encoder.userInfo = self.userInfo
         let bson: BSON = try encoder.encodeFragment(value)
 
         let json: JSON
-        switch self.mode {
+        switch self.format._format {
         case .canonical:
             json = bson.bsonValue.toCanonicalExtendedJSON()
         case .relaxed:

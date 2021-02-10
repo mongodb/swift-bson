@@ -26,14 +26,14 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
 
         // Test canonical encoder
         let encoder = ExtendedJSONEncoder()
-        encoder.mode = .canonical
+        encoder.format = .canonical
         let encoded: Data = try encoder.encode(test)
         expect(encoded).to(cleanEqual(canonicalExtJSON))
         let encodedBuffer = try encoder.encodeBuffer(test)
         expect(Data(encodedBuffer.readableBytesView)).to(cleanEqual(canonicalExtJSON))
 
         // Test relaxed encoder
-        encoder.mode = .relaxed
+        encoder.format = .relaxed
         let relaxedEncoded: Data = try encoder.encode(test)
         let relaxedExtJSON = "{\"x\":true,\"y\":5,\"z\":\(regexStr)}"
         expect(relaxedEncoded).to(cleanEqual(relaxedExtJSON))
