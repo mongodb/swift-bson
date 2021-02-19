@@ -90,34 +90,11 @@ ContentConfiguration.global.use(decoder: decoder, for: .json)
 ```
  in your `configure.swift`.
  
- In order for this to work, you will also have to include extensions that ensure conformance to Vapor's 
- `ContentEncoder` and `ContentDecoder` protocols. The snippets below should be sufficient for doing that.
- ```swift
-extension ExtendedJSONEncoder: ContentEncoder {
-    public func encode<E>(_ encodable: E, to body: inout ByteBuffer, headers: inout HTTPHeaders) throws 
-        where E: Encodable
-    {
-        headers.contentType = .json
-        try body.writeBytes(self.encode(encodable))
-    }
-}
- ```
+Note that in order for this to work, `ExtendedJSONEncoder` must conform to Vapor's `ContentEncoder` protocol, and `ExtendedJSONDecoder` must conform to Vapor's `ContentDecoder` protocol.
 
-```swift
-extension ExtendedJSONDecoder: ContentDecoder {
-   public func decode<D>(_ decodable: D.Type, from body: ByteBuffer, headers: HTTPHeaders) throws -> D
-       where D: Decodable
-    {
-        let data = body.getData(at: body.readerIndex, length: body.readableBytes) ?? Data()
-        return try self.decode(D.self, from: data)
-    }
-}
- ```
+We've added these conformances in our Vapor integration library [MongoDBVapor](https://github.com/mongodb/mongodb-vapor), which we highly recommend using if you want to use the driver with Vapor.
 
-To see some example Vapor apps using the driver, check out
-[Examples/VaporExample](https://github.com/mongodb/mongo-swift-driver/tree/main/Examples/VaporExample) or
-[Examples/ComplexVaporExample](https://github.com/mongodb/mongo-swift-driver/tree/main/Examples/ComplexVaporExample).
-
+To see an example Vapor app using the driver via the integration library, check out [Examples/VaporExample](https://github.com/mongodb/mongo-swift-driver/tree/main/Examples/VaporExample).
 ## Using `JSONEncoder` and `JSONDecoder` with BSON Types
 
 Currently, some BSON types (e.g. `BSONBinary`) do not support working with encoders and decoders other than those introduced in `swift-bson`, meaning Foundation's `JSONEncoder` and `JSONDecoder` will throw errors when encoding or decoding such types. There are plans to add general `Codable` support for all BSON types in the future, though. For now, only `BSONObjectID` and any BSON types defined in Foundation or the standard library (e.g. `Date` or `Int32`) will work with other encoder/decoder pairs. If type information is not required in the output JSON and only types that include a general `Codable` conformance are included in your data, you can use `JSONEncoder` and `JSONDecoder` to produce and ingest JSON data.
