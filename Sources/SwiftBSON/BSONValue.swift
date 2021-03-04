@@ -11,6 +11,11 @@ internal protocol BSONValue: Codable {
     /// for this `BSONValue`. (e.g. for Int32, this value is ["$numberInt"]).
     static var extJSONTypeWrapperKeys: [String] { get }
 
+    /// The `$`-prefixed keys that indicate an object may be a legacy extended JSON object wrapper.
+    /// Because these keys can conflict with query operators (e.g. "$regex"), they are not always part of
+    /// and object wrapper, and may sometimes be parsed as normal BSON.
+    static var extJSONLegacyTypeWrapperKeys: [String] { get }
+
     /// Initializes a corresponding `BSON` from the provided `ByteBuffer`,
     /// moving the buffer's readerIndex forward to the byte beyond the end
     /// of this value.
@@ -35,6 +40,8 @@ internal protocol BSONValue: Codable {
 
 /// Convenience extension to get static bsonType from an instance
 extension BSONValue {
+    internal static var extJSONLegacyTypeWrapperKeys: [String] { [] }
+
     internal var bsonType: BSONType {
         Self.bsonType
     }

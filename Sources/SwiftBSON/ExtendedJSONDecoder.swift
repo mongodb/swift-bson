@@ -17,8 +17,15 @@ public class ExtendedJSONDecoder {
     }()
 
     /// A set of all the possible extendedJSON wrapper keys.
+    /// This does not include the legacy extended JSON wrapper keys.
     private static var wrapperKeySet: Set<String> = {
-        Set(ExtendedJSONDecoder.wrapperKeyMap.keys)
+        var keys: Set<String> = []
+        for t in BSON.allBSONTypes.values {
+            for k in t.extJSONTypeWrapperKeys {
+                keys.insert(k)
+            }
+        }
+        return keys
     }()
 
     /// A map from extended JSON wrapper keys (e.g. "$numberLong") to the BSON type(s) that they correspond to.
@@ -31,6 +38,9 @@ public class ExtendedJSONDecoder {
         var map: [String: [BSONValue.Type]] = [:]
         for t in BSON.allBSONTypes.values {
             for k in t.extJSONTypeWrapperKeys {
+                map[k, default: []].append(t.self)
+            }
+            for k in t.extJSONLegacyTypeWrapperKeys {
                 map[k, default: []].append(t.self)
             }
         }

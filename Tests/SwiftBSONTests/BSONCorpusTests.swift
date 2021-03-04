@@ -121,7 +121,9 @@ final class BSONCorpusTests: BSONTestCase {
                 ],
             "Top-level document validity": [
                 "Bad DBRef (ref is number, not string)",
-                "Bad DBRef (db is number, not string)"
+                "Bad DBRef (db is number, not string)",
+                // SWIFT-1138: legacy extended JSON $date syntax uses numbers
+                "Bad $date (number, not string or hash)"
             ]
         ]
 
@@ -177,6 +179,7 @@ final class BSONCorpusTests: BSONTestCase {
                             .to(cleanEqual(rEJ), description: test.description)
                     }
 
+                    print(test.description)
                     // for cEJ input:
                     // native_to_canonical_extended_json( json_to_native(cEJ) ) = cEJ
                     expect(try canonicalEncoder.encode(try decoder.decode(BSONDocument.self, from: cEJData)))

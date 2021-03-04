@@ -48,6 +48,14 @@ extension Date: BSONValue {
                 )
             }
             self = date
+        case let .number(ms):
+            // legacy extended JSON
+            guard let msInt64 = Int64(ms) else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Expected \(ms) to be valid Int64 representing milliseconds since epoch")
+            }
+            self = Date(msSinceEpoch: msInt64)
         default:
             throw DecodingError._extendedJSONError(
                 keyPath: keyPath,
@@ -86,8 +94,22 @@ extension Date: BSONValue {
 
     internal var bson: BSON { .datetime(self) }
 
+    private static var MAX_INT64 = Double(Int64.max)
+
     /// The number of milliseconds after the Unix epoch that this `Date` occurs.
-    internal var msSinceEpoch: Int64 { Int64((self.timeIntervalSince1970 * 1000.0).rounded()) }
+    /// If the date is further in the future than Int64.max milliseconds from the epoch,
+    /// Int64.max is returned to prevent a crash.
+    internal var msSinceEpoch: Int64 {
+        let ms = (self.timeIntervalSince1970 * 1000.0).rounded()
+
+        // to prevent the application from crashing, we simply clamp the date to the date
+        // furthest in the future as possible.
+        guard ms < Date.MAX_INT64 else {
+            return Int64.max
+        }
+        
+        return Int64(ms)
+    }
 
     /// Initializes a new `Date` representing the instance `msSinceEpoch` milliseconds
     /// since the Unix epoch.

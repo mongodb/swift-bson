@@ -457,9 +457,6 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         let date3 = Date(msSinceEpoch: 1_356_351_330_501)
         expect(try Date(fromExtJSON: ["$date": "2012-12-24T12:15:30.501Z"], keyPath: []))
             .to(equal(date3))
-
-        expect(try Date(fromExtJSON: ["$date": 42], keyPath: []))
-            .to(throwError(errorType: DecodingError.self))
     }
 
     func testMinKey() throws {
@@ -541,5 +538,180 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         // Nil cases
         expect(BSONNull(fromExtJSON: 5.5, keyPath: [])).to(beNil())
         expect(BSONNull(fromExtJSON: ["bad": "5.5"], keyPath: [])).to(beNil())
+    }
+
+    enum Expectation<T: BSONValue> {
+        case success(T)
+        case error
+
+        /// Hack to avoid needing to type inference on error
+        static func error() -> Expectation<BSONNull> {
+            .error
+        }
+    }
+
+    /// Attempt to decode a `BSONDocument` from the provided extended JSON and verify the result
+    /// matches the provided expectation.
+    /// For tests verifying successful behavior, the value of the "val" field in the resultant document
+    /// is compared with the expectation.
+    func jsonTest<T: BSONValue>(json: JSON, expectation: Expectation<T>) {
+        do {
+            let doc = try BSONDocument(fromJSON: json.toString())
+            guard case let .success(expected) = expectation else {
+                XCTFail("should have failed to parse \(json) but got \(doc) instead")
+                return
+            }
+            expect(doc["val"]).to(sortedEqual(expected.bson))
+        } catch {
+            guard case .error = expectation else {
+                XCTFail("expected to get \(expectation) from \(json), failed with \(error) instead")
+                return
+            }
+        }
+    }
+
+    func testLegacyExtendedJSONBinary() throws {
+        let base64 = "CjJecTUqS7y4e3X8Cz4ZcQ=="
+        let binary = try BSONBinary(base64: base64, subtype: .uuid)
+        jsonTest(
+            json: [
+                "val": [
+                    "$binary": JSON(.string(base64)),
+                    "$type": 4
+                ],
+            ],
+            expectation: .success(binary)
+        )
+
+        jsonTest(
+            json: [
+                "val": [
+                    "$binary": JSON(.string(base64)),
+                    "$type": "4"
+                ]
+            ],
+            expectation: .success(binary) 
+        )
+
+        jsonTest(
+            json: [
+                "val": [
+                    "$type": "4",
+                ]
+            ],
+            expectation: .success(["$type": "4"] as BSONDocument)
+        )
+
+        jsonTest(
+            json: [
+                "val": [
+                    "$binary": JSON(.string(base64)),
+                    "$type": "4",
+                    "extra": true
+                ]
+            ],
+            expectation: .error()
+        )
+
+        jsonTest(
+            json: [
+                "val": [
+                    "$binary": JSON(.string(base64)),
+                    "$type": 1235
+                ]
+            ],
+            expectation: .error()
+        )
+
+        jsonTest(
+            json: [
+                "val": [
+                    "$binary": JSON(.string(base64)),
+                    "$type": -123
+                ]
+            ],
+            expectation: .error()
+        )
+
+        jsonTest(
+            json: [
+                "val": [
+                    "$binary": JSON(.string(base64)),
+                    "$type": true
+                ]
+            ],
+            expectation: .error()
+        )
+
+        let invalidStringSubtype: JSON = [
+            "$binary": JSON(.string(base64)),
+            "$type": "hello"
+        ]
+        jsonTest(json: invalidStringSubtype, expectation: .error())
+
+        let invalidStringNumberSubtype: JSON = [
+            "$binary": JSON(.string(base64)),
+            "$type": "12345"
+        ]
+        jsonTest(json: invalidStringNumberSubtype, expectation: .error())
+    }
+
+    func testLegacyExtendedJSONDate() throws {
+        jsonTest(json: ["val": ["$date": 0]], expectation: .success(Date(timeIntervalSince1970: 0)))
+        jsonTest(
+            json: [ "val": ["$date": 1356351330500]],
+            expectation: .success(Date(msSinceEpoch: 1356351330500))
+        )
+        jsonTest(
+            json: ["val": ["$date": -62135593139000]],
+            expectation: .success(Date(msSinceEpoch: -62135593139000))
+        )
+        jsonTest(
+            json: ["val": ["$date": JSON(.number(String(Int64.max)))]],
+            expectation: .success(Date(msSinceEpoch: Int64.max))
+        )
+        jsonTest(
+            json: ["val": ["$date": JSON(.number(String(Int64.min)))]],
+            expectation: .success(Date(msSinceEpoch: Int64.min))
+        )
+        // Int64.max + 1
+        jsonTest(
+            json: ["val": ["$date": JSON(.number("9223372036854775808"))]],
+            expectation: .error()
+        )
+        // Int64.min - 1
+        jsonTest(
+            json: ["val": ["$date": JSON(.number("-9223372036854775809"))]],
+            expectation: .error()
+        )
+        jsonTest(
+            json: ["val": ["$date": JSON(.number("10000000000000000000"))]],
+            expectation: .error()
+        )
+        jsonTest(
+            json: ["val": ["$date": JSON(.number("-10000000000000000000"))]],
+            expectation: .error()
+        )
+    }
+
+    func testLegacyExtendedJSONRegex() throws {
+        jsonTest(
+            json: ["val": ["$regex": "abc", "$options": "ix"]],
+            expectation: .success(BSONRegularExpression(pattern: "abc", options: "ix"))
+        )
+
+        // // don't invalidate a "$regex" query operator stored in JSON
+        jsonTest(
+            json: ["val": ["$regex": "abc"]],
+            expectation: .success(["$regex": "abc"] as BSONDocument)
+        )
+        jsonTest(
+            json: ["val": ["$options": "abc"]],
+            expectation: .success(["$options": "abc"] as BSONDocument)
+        )
+        jsonTest(
+            json: ["val": ["$regex": "abc", "$options": "ix", "extra": true]],
+            expectation: .success(["$regex": "abc", "$options": "ix", "extra": true] as BSONDocument)
+        )
     }
 }

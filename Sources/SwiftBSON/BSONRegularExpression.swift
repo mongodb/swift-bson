@@ -65,6 +65,7 @@ public struct BSONRegularExpression: Equatable, Hashable {
 
 extension BSONRegularExpression: BSONValue {
     internal static let extJSONTypeWrapperKeys: [String] = ["$regularExpression"]
+    internal static let extJSONLegacyTypeWrapperKeys: [String] = ["$regex", "$options"]
 
     /*
      * Initializes a `BSONRegularExpression` from ExtendedJSON.
@@ -81,22 +82,34 @@ extension BSONRegularExpression: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
-        // canonical and relaxed extended JSON
-        guard let value = try json.value.unwrapObject(withKey: "$regularExpression", keyPath: keyPath) else {
-            return nil
+        if let regex = try json.value.unwrapObject(withKey: "$regularExpression", keyPath: keyPath) {
+            guard
+                let (pattern, options) = try regex.unwrapObject(withKeys: "pattern", "options", keyPath: keyPath),
+                let patternStr = pattern.stringValue,
+                let optionsStr = options.stringValue
+            else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse `BSONRegularExpression` from \"\(regex)\", " +
+                        "\"pattern\" and \"options\" must be strings"
+                )
+            }
+            self = BSONRegularExpression(pattern: patternStr, options: optionsStr)
+            return
+        } else {
+            guard
+                let (pattern, options) = try? json.value.unwrapObject(withKeys: "$regex", "$options", keyPath: keyPath),
+                let patternStr = pattern.stringValue,
+                let optionsStr = options.stringValue
+            else {
+                // instead of a throwing an error here or as part of unwrapObject, we just return nil to avoid erroring
+                // on a $regex aggregation state with $options. See the "Regular expression as value of $regex query
+                // operator with $options" corpus test.
+                return nil
+            }
+            self = BSONRegularExpression(pattern: patternStr, options: optionsStr)
+            return
         }
-        guard
-            let (pattern, options) = try value.unwrapObject(withKeys: "pattern", "options", keyPath: keyPath),
-            let patternStr = pattern.stringValue,
-            let optionsStr = options.stringValue
-        else {
-            throw DecodingError._extendedJSONError(
-                keyPath: keyPath,
-                debugDescription: "Could not parse `BSONRegularExpression` from \"\(value)\", " +
-                    "\"pattern\" and \"options\" must be strings"
-            )
-        }
-        self = BSONRegularExpression(pattern: patternStr, options: optionsStr)
     }
 
     /// Converts this `BSONRegularExpression` to a corresponding `JSON` in relaxed extendedJSON format.
