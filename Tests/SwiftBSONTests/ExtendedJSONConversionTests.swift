@@ -695,9 +695,11 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
     }
 
     func testLegacyExtendedJSONRegex() throws {
+        let regex = BSONRegularExpression(pattern: "abc", options: "ix")
+
         Self.jsonTest(
             json: ["val": ["$regex": "abc", "$options": "ix"]],
-            expectation: .success(BSONRegularExpression(pattern: "abc", options: "ix"))
+            expectation: .success(regex)
         )
 
         // // don't invalidate a "$regex" query operator stored in JSON
@@ -712,6 +714,10 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
         Self.jsonTest(
             json: ["val": ["$regex": "abc", "$options": "ix", "extra": true]],
             expectation: .success(["$regex": "abc", "$options": "ix", "extra": true] as BSONDocument)
+        )
+        Self.jsonTest(
+            json: ["val": ["$regex": ["$regularExpression": ["pattern": "abc", "options": "ix"]]]],
+            expectation: .success(["$regex": .regex(regex)] as BSONDocument)
         )
     }
 }

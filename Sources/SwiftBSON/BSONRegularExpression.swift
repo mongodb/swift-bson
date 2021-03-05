@@ -82,6 +82,7 @@ extension BSONRegularExpression: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        // canonical and relaxed extended JSON v2
         if let regex = try json.value.unwrapObject(withKey: "$regularExpression", keyPath: keyPath) {
             guard
                 let (pattern, options) = try regex.unwrapObject(withKeys: "pattern", "options", keyPath: keyPath),
@@ -97,14 +98,15 @@ extension BSONRegularExpression: BSONValue {
             self = BSONRegularExpression(pattern: patternStr, options: optionsStr)
             return
         } else {
+            // legacy / v1 extended JSON
             guard
                 let (pattern, options) = try? json.value.unwrapObject(withKeys: "$regex", "$options", keyPath: keyPath),
                 let patternStr = pattern.stringValue,
                 let optionsStr = options.stringValue
             else {
                 // instead of a throwing an error here or as part of unwrapObject, we just return nil to avoid erroring
-                // on a $regex aggregation state with $options. See the "Regular expression as value of $regex query
-                // operator with $options" corpus test.
+                // when a $regex query operator is being parsed from extended JSON. See the
+                // "Regular expression as value of $regex query operator with $options" corpus test.
                 return nil
             }
             self = BSONRegularExpression(pattern: patternStr, options: optionsStr)
