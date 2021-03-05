@@ -4,6 +4,9 @@ import NIO
 extension Date: BSONValue {
     internal static let extJSONTypeWrapperKeys: [String] = ["$date"]
 
+    /// The range of datetimes that can be represented in BSON.
+    private static let VALID_BSON_DATES: Range<Date> = Date(msSinceEpoch: Int64.min)..<Date(msSinceEpoch: Int64.max)
+
     /*
      * Initializes a `Date` from ExtendedJSON.
      *
@@ -94,21 +97,20 @@ extension Date: BSONValue {
 
     internal var bson: BSON { .datetime(self) }
 
-    private static var MAX_INT64 = Double(Int64.max)
-
     /// The number of milliseconds after the Unix epoch that this `Date` occurs.
     /// If the date is further in the future than Int64.max milliseconds from the epoch,
     /// Int64.max is returned to prevent a crash.
     internal var msSinceEpoch: Int64 {
-        let ms = (self.timeIntervalSince1970 * 1000.0).rounded()
-
-        // to prevent the application from crashing, we simply clamp the date to the date
-        // furthest in the future as possible.
-        guard ms < Date.MAX_INT64 else {
+        // to prevent the application from crashing, we simply clamp the date to the range representable
+        // by an Int64 ms since epoch
+        guard self > Self.VALID_BSON_DATES.lowerBound else {
+            return Int64.min
+        }
+        guard self < Self.VALID_BSON_DATES.upperBound else {
             return Int64.max
         }
-        
-        return Int64(ms)
+
+        return Int64((self.timeIntervalSince1970 * 1000.0).rounded())
     }
 
     /// Initializes a new `Date` representing the instance `msSinceEpoch` milliseconds
@@ -126,5 +128,9 @@ extension Date: BSONValue {
 
     internal func write(to buffer: inout ByteBuffer) {
         buffer.writeInteger(self.msSinceEpoch, endianness: .little, as: Int64.self)
+    }
+
+    internal func isValidBSONDate() -> Bool {
+        Self.VALID_BSON_DATES.contains(self)
     }
 }
