@@ -179,7 +179,6 @@ final class BSONCorpusTests: BSONTestCase {
                             .to(cleanEqual(rEJ), description: test.description)
                     }
 
-                    print(test.description)
                     // for cEJ input:
                     // native_to_canonical_extended_json( json_to_native(cEJ) ) = cEJ
                     expect(try canonicalEncoder.encode(try decoder.decode(BSONDocument.self, from: cEJData)))

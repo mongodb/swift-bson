@@ -59,34 +59,6 @@ public struct BSONBinary: Equatable, Hashable {
             }
             return subtype
         }
-
-        fileprivate init(fromJSONValue json: JSONValue, keyPath: [String]) throws {
-            let subtypeInput: String
-            let errorMsg: String
-            switch json {
-            case let .string(s):
-                errorMsg = "subtype must be a BSON binary type as a one- or two-character hex string"
-                subtypeInput = s
-            case let .number(n):
-                errorMsg = "subtype must be a BSON binary type as an integer"
-                subtypeInput = n
-            default:
-                throw Swift.DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "subtype must be a BSON binary type, got \(json) instead"
-                )
-            }
-            guard
-                let subTypeInt = UInt8(subtypeInput, radix: 16),
-                let subType = Subtype(rawValue: subTypeInt)
-            else {
-                throw Swift.DecodingError._extendedJSONError(
-                    keyPath: keyPath,
-                    debugDescription: "Could not parse `SubType` from \"\(json)\", \(errorMsg)"
-                )
-            }
-            self = subType
-        }
     }
 
     /// Initializes a `BSONBinary` instance from a `UUID`.
@@ -304,7 +276,7 @@ extension BSONBinary: BSONValue {
                         + "type as a one-or-two character hex string or a number"
                 )
             }
-            
+
             base64Str = base64
             subtype = s
         default:

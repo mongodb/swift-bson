@@ -7,12 +7,6 @@ internal struct JSON {
     internal init(_ value: JSONValue) {
         self.value = value
     }
-
-    internal func toString() -> String {
-        var bytes: [UInt8] = []
-        self.value.appendBytes(to: &bytes)
-        return String(data: Data(bytes), encoding: .utf8)!
-    }
 }
 
 extension JSON: Encodable {

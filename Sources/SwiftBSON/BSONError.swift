@@ -65,7 +65,8 @@ extension DecodingError {
 
         return Self._extendedJSONError(
             keyPath: keyPath,
-            debugDescription: "Expected only the following keys, \(Array(expectedKeys)), instead got extra key(s): \(extra)"
+            debugDescription: "Expected only the following keys, \(Array(expectedKeys)), instead got extra " +
+                "key(s): \(extra)"
         )
     }
 }

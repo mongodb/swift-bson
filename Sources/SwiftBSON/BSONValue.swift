@@ -13,7 +13,7 @@ internal protocol BSONValue: Codable {
 
     /// The `$`-prefixed keys that indicate an object may be a legacy extended JSON object wrapper.
     /// Because these keys can conflict with query operators (e.g. "$regex"), they are not always part of
-    /// and object wrapper, and may sometimes be parsed as normal BSON.
+    /// an object wrapper and may sometimes be parsed as normal BSON.
     static var extJSONLegacyTypeWrapperKeys: [String] { get }
 
     /// Initializes a corresponding `BSON` from the provided `ByteBuffer`,

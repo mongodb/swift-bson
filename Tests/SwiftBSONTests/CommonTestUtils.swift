@@ -106,3 +106,11 @@ public func rearrangeDoc(_ input: BSONDocument, toLookLike standard: BSONDocumen
     }
     return output
 }
+
+extension JSON {
+    internal func toString() -> String {
+        var bytes: [UInt8] = []
+        self.value.appendBytes(to: &bytes)
+        return String(data: Data(bytes), encoding: .utf8)!
+    }
+}

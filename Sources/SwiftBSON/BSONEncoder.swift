@@ -449,7 +449,8 @@ extension _BSONEncoder {
                     date,
                     EncodingError.Context(
                         codingPath: self.codingPath,
-                        debugDescription: "Date must be representable as an Int64 number of milliseconds since epoch")
+                        debugDescription: "Date must be representable as an Int64 number of milliseconds since epoch"
+                    )
                 )
             }
         }

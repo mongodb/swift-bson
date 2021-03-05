@@ -554,7 +554,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
     /// matches the provided expectation.
     /// For tests verifying successful behavior, the value of the "val" field in the resultant document
     /// is compared with the expectation.
-    func jsonTest<T: BSONValue>(json: JSON, expectation: Expectation<T>) {
+    static func jsonTest<T: BSONValue>(json: JSON, expectation: Expectation<T>) {
         do {
             let doc = try BSONDocument(fromJSON: json.toString())
             guard case let .success(expected) = expectation else {
@@ -573,36 +573,36 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
     func testLegacyExtendedJSONBinary() throws {
         let base64 = "CjJecTUqS7y4e3X8Cz4ZcQ=="
         let binary = try BSONBinary(base64: base64, subtype: .uuid)
-        jsonTest(
+        Self.jsonTest(
             json: [
                 "val": [
                     "$binary": JSON(.string(base64)),
                     "$type": 4
-                ],
+                ]
             ],
             expectation: .success(binary)
         )
 
-        jsonTest(
+        Self.jsonTest(
             json: [
                 "val": [
                     "$binary": JSON(.string(base64)),
                     "$type": "4"
                 ]
             ],
-            expectation: .success(binary) 
+            expectation: .success(binary)
         )
 
-        jsonTest(
+        Self.jsonTest(
             json: [
                 "val": [
-                    "$type": "4",
+                    "$type": "4"
                 ]
             ],
             expectation: .success(["$type": "4"] as BSONDocument)
         )
 
-        jsonTest(
+        Self.jsonTest(
             json: [
                 "val": [
                     "$binary": JSON(.string(base64)),
@@ -613,7 +613,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             expectation: .error()
         )
 
-        jsonTest(
+        Self.jsonTest(
             json: [
                 "val": [
                     "$binary": JSON(.string(base64)),
@@ -623,7 +623,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             expectation: .error()
         )
 
-        jsonTest(
+        Self.jsonTest(
             json: [
                 "val": [
                     "$binary": JSON(.string(base64)),
@@ -633,7 +633,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             expectation: .error()
         )
 
-        jsonTest(
+        Self.jsonTest(
             json: [
                 "val": [
                     "$binary": JSON(.string(base64)),
@@ -647,69 +647,69 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             "$binary": JSON(.string(base64)),
             "$type": "hello"
         ]
-        jsonTest(json: invalidStringSubtype, expectation: .error())
+        Self.jsonTest(json: invalidStringSubtype, expectation: .error())
 
         let invalidStringNumberSubtype: JSON = [
             "$binary": JSON(.string(base64)),
             "$type": "12345"
         ]
-        jsonTest(json: invalidStringNumberSubtype, expectation: .error())
+        Self.jsonTest(json: invalidStringNumberSubtype, expectation: .error())
     }
 
     func testLegacyExtendedJSONDate() throws {
-        jsonTest(json: ["val": ["$date": 0]], expectation: .success(Date(timeIntervalSince1970: 0)))
-        jsonTest(
-            json: [ "val": ["$date": 1356351330500]],
-            expectation: .success(Date(msSinceEpoch: 1356351330500))
+        Self.jsonTest(json: ["val": ["$date": 0]], expectation: .success(Date(timeIntervalSince1970: 0)))
+        Self.jsonTest(
+            json: ["val": ["$date": 1_356_351_330_500]],
+            expectation: .success(Date(msSinceEpoch: 1_356_351_330_500))
         )
-        jsonTest(
-            json: ["val": ["$date": -62135593139000]],
-            expectation: .success(Date(msSinceEpoch: -62135593139000))
+        Self.jsonTest(
+            json: ["val": ["$date": -62_135_593_139_000]],
+            expectation: .success(Date(msSinceEpoch: -62_135_593_139_000))
         )
-        jsonTest(
+        Self.jsonTest(
             json: ["val": ["$date": JSON(.number(String(Int64.max)))]],
             expectation: .success(Date(msSinceEpoch: Int64.max))
         )
-        jsonTest(
+        Self.jsonTest(
             json: ["val": ["$date": JSON(.number(String(Int64.min)))]],
             expectation: .success(Date(msSinceEpoch: Int64.min))
         )
         // Int64.max + 1
-        jsonTest(
+        Self.jsonTest(
             json: ["val": ["$date": JSON(.number("9223372036854775808"))]],
             expectation: .error()
         )
         // Int64.min - 1
-        jsonTest(
+        Self.jsonTest(
             json: ["val": ["$date": JSON(.number("-9223372036854775809"))]],
             expectation: .error()
         )
-        jsonTest(
+        Self.jsonTest(
             json: ["val": ["$date": JSON(.number("10000000000000000000"))]],
             expectation: .error()
         )
-        jsonTest(
+        Self.jsonTest(
             json: ["val": ["$date": JSON(.number("-10000000000000000000"))]],
             expectation: .error()
         )
     }
 
     func testLegacyExtendedJSONRegex() throws {
-        jsonTest(
+        Self.jsonTest(
             json: ["val": ["$regex": "abc", "$options": "ix"]],
             expectation: .success(BSONRegularExpression(pattern: "abc", options: "ix"))
         )
 
         // // don't invalidate a "$regex" query operator stored in JSON
-        jsonTest(
+        Self.jsonTest(
             json: ["val": ["$regex": "abc"]],
             expectation: .success(["$regex": "abc"] as BSONDocument)
         )
-        jsonTest(
+        Self.jsonTest(
             json: ["val": ["$options": "abc"]],
             expectation: .success(["$options": "abc"] as BSONDocument)
         )
-        jsonTest(
+        Self.jsonTest(
             json: ["val": ["$regex": "abc", "$options": "ix", "extra": true]],
             expectation: .success(["$regex": "abc", "$options": "ix", "extra": true] as BSONDocument)
         )

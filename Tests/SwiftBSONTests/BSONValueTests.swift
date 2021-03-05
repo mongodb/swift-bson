@@ -187,7 +187,7 @@ final class BSONValueTests: BSONTestCase {
         // Since we can't throw here, expect the date to be clamped to the max date.
         // Note: since Swift represents datetimes using floating point numbers, this won't be an exact comparison,
         // since many large numbers can't be represented exactly by Swift Doubles
-        let doc: BSONDocument = ["x": .datetime(bigDate) ]
+        let doc: BSONDocument = ["x": .datetime(bigDate)]
         expect(doc["x"]).to(equal(.datetime(Date(msSinceEpoch: Int64.max))))
         let smallDoc: BSONDocument = ["x": .datetime(smallDate)]
         expect(smallDoc["x"]).to(equal(.datetime(Date(msSinceEpoch: Int64.min))))
@@ -196,7 +196,7 @@ final class BSONValueTests: BSONTestCase {
         struct D: Codable {
             let date: Date
         }
-        var encoder = try BSONEncoder()
+        let encoder = BSONEncoder()
         expect(try encoder.encode(D(date: bigDate))).to(throwError(errorType: EncodingError.self))
         expect(try encoder.encode(D(date: smallDate))).to(throwError(errorType: EncodingError.self))
 

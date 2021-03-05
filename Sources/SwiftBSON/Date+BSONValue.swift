@@ -56,7 +56,8 @@ extension Date: BSONValue {
             guard let msInt64 = Int64(ms) else {
                 throw DecodingError._extendedJSONError(
                     keyPath: keyPath,
-                    debugDescription: "Expected \(ms) to be valid Int64 representing milliseconds since epoch")
+                    debugDescription: "Expected \(ms) to be valid Int64 representing milliseconds since epoch"
+                )
             }
             self = Date(msSinceEpoch: msInt64)
         default:
