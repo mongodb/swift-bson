@@ -56,7 +56,7 @@ extension DecodingError {
         ))
     }
 
-    internal static func extraKeysError(
+    internal static func _extraKeysError(
         keyPath: [String],
         expectedKeys: Set<String>,
         allKeys: Set<String>

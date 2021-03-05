@@ -201,7 +201,7 @@ extension BSONBinary: BSONValue {
         // extended JSON v2
         case .object:
             guard obj.count == 1 else {
-                throw Swift.DecodingError.extraKeysError(
+                throw Swift.DecodingError._extraKeysError(
                     keyPath: keyPath,
                     expectedKeys: ["$binary"],
                     allKeys: Set(obj.keys)
@@ -239,7 +239,7 @@ extension BSONBinary: BSONValue {
             subtype = s
         case let .string(base64):
             guard obj.count == 2 else {
-                throw Swift.DecodingError.extraKeysError(
+                throw Swift.DecodingError._extraKeysError(
                     keyPath: keyPath,
                     expectedKeys: ["$binary"],
                     allKeys: Set(obj.keys)

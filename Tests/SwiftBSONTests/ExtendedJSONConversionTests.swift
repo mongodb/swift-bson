@@ -702,7 +702,7 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             expectation: .success(regex)
         )
 
-        // // don't invalidate a "$regex" query operator stored in JSON
+        // don't invalidate a "$regex" query operator stored in JSON
         Self.jsonTest(
             json: ["val": ["$regex": "abc"]],
             expectation: .success(["$regex": "abc"] as BSONDocument)
