@@ -23,6 +23,10 @@ public enum BSON {
     case bool(Bool)
 
     /// A BSON UTC datetime.
+    /// When serialized to actual BSON bytes, the `Date` must be representable by a 64-bit signed integer
+    /// of milliseconds since the epoch. If the `Date` cannot be represented in that manner (i.e. it is too far in the
+    /// future or too far in the past), it will be serialized as either the minimum or maximum possible `Date`,
+    /// whichever is closer.
     /// - SeeAlso: https://docs.mongodb.com/manual/reference/bson-types/#date
     case datetime(Date)
 

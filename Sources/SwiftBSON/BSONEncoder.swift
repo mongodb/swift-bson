@@ -16,9 +16,12 @@ public class BSONEncoder {
         case deferredToDate
 
         /// Encode the `Date` as a BSON datetime object (default).
+        /// Throws an `EncodingError` if the `Date` is further away from January 1, 1970 than can be represented
+        /// by a 64-bit signed integer of milliseconds.
         case bsonDateTime
 
         /// Encode the `Date` as a 64-bit integer counting the number of milliseconds since January 1, 1970.
+        /// Throws an `EncodingError` if the `Date` is too far away from then to be represented this way.
         case millisecondsSince1970
 
         /// Encode the `Date` as a BSON double counting the number of seconds since January 1, 1970.
@@ -440,13 +443,27 @@ extension _BSONEncoder {
 
     /// Returns the date as a `BSONValue`, or nil if no values were encoded by the custom encoder strategy.
     fileprivate func boxDate(_ date: Date) throws -> BSONValue? {
+        func validateDate() throws {
+            guard date.isValidBSONDate() else {
+                throw EncodingError.invalidValue(
+                    date,
+                    EncodingError.Context(
+                        codingPath: self.codingPath,
+                        debugDescription: "Date must be representable as an Int64 number of milliseconds since epoch"
+                    )
+                )
+            }
+        }
+
         switch self.options.dateEncodingStrategy {
         case .bsonDateTime:
+            try validateDate()
             return date
         case .deferredToDate:
             try date.encode(to: self)
             return self.storage.popContainer()
         case .millisecondsSince1970:
+            try validateDate()
             return date.msSinceEpoch
         case .secondsSince1970:
             return date.timeIntervalSince1970

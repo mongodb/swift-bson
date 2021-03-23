@@ -175,4 +175,33 @@ final class BSONValueTests: BSONTestCase {
 
         cases.forEach { $0.run() }
     }
+
+    func testBigDate() throws {
+        // Verify big dates (bigger than fit in BSON) don't crash.
+
+        // These are in _seconds_ since epoch, which is way bigger than can be encoded in BSON, which
+        // is milliseconds.
+        let bigDate = Date(timeIntervalSince1970: TimeInterval(Int64.max))
+        let smallDate = Date(timeIntervalSince1970: TimeInterval(Int64.min))
+
+        // Since we can't throw here, expect the date to be clamped to the max date.
+        // Note: since Swift represents datetimes using floating point numbers, this won't be an exact comparison,
+        // since many large numbers can't be represented exactly by Swift Doubles
+        let doc: BSONDocument = ["x": .datetime(bigDate)]
+        expect(doc["x"]).to(equal(.datetime(Date(msSinceEpoch: Int64.max))))
+        let smallDoc: BSONDocument = ["x": .datetime(smallDate)]
+        expect(smallDoc["x"]).to(equal(.datetime(Date(msSinceEpoch: Int64.min))))
+
+        // When encoding, throw for date that can't be represented.
+        struct D: Codable {
+            let date: Date
+        }
+        let encoder = BSONEncoder()
+        expect(try encoder.encode(D(date: bigDate))).to(throwError(errorType: EncodingError.self))
+        expect(try encoder.encode(D(date: smallDate))).to(throwError(errorType: EncodingError.self))
+
+        encoder.dateEncodingStrategy = .millisecondsSince1970
+        expect(try encoder.encode(D(date: smallDate))).to(throwError(errorType: EncodingError.self))
+        expect(try encoder.encode(D(date: smallDate))).to(throwError(errorType: EncodingError.self))
+    }
 }

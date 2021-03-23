@@ -121,7 +121,9 @@ final class BSONCorpusTests: BSONTestCase {
                 ],
             "Top-level document validity": [
                 "Bad DBRef (ref is number, not string)",
-                "Bad DBRef (db is number, not string)"
+                "Bad DBRef (db is number, not string)",
+                // SWIFT-1138: legacy extended JSON $date syntax uses numbers
+                "Bad $date (number, not string or hash)"
             ]
         ]
 

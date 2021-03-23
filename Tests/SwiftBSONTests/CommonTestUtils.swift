@@ -62,6 +62,25 @@ public func sortedEqual(_ expectedValue: BSONDocument?) -> Predicate<BSONDocumen
     }
 }
 
+public func sortedEqual(_ expectedValue: BSON?) -> Predicate<BSON> {
+    Predicate.define("sortedEqual <\(stringify(expectedValue))>") { actualExpression, msg in
+        let actualValue = try actualExpression.evaluate()
+
+        guard let expected = expectedValue, let actual = actualValue else {
+            if expectedValue == nil && actualValue != nil {
+                return PredicateResult(
+                    status: .fail,
+                    message: msg.appendedBeNilHint()
+                )
+            }
+            return PredicateResult(status: .fail, message: msg)
+        }
+
+        let matches = expected.equalsIgnoreKeyOrder(actual)
+        return PredicateResult(status: PredicateStatus(bool: matches), message: msg)
+    }
+}
+
 /// Given two documents, returns a copy of the input document with all keys that *don't*
 /// exist in `standard` removed, and with all matching keys put in the same order they
 /// appear in `standard`.
@@ -86,4 +105,12 @@ public func rearrangeDoc(_ input: BSONDocument, toLookLike standard: BSONDocumen
         }
     }
     return output
+}
+
+extension JSON {
+    internal func toString() -> String {
+        var bytes: [UInt8] = []
+        self.value.appendBytes(to: &bytes)
+        return String(data: Data(bytes), encoding: .utf8)!
+    }
 }

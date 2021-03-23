@@ -1,4 +1,5 @@
 import ExtrasBase64
+import ExtrasJSON
 import Foundation
 import NIO
 
@@ -146,6 +147,7 @@ public struct BSONBinary: Equatable, Hashable {
 
 extension BSONBinary: BSONValue {
     internal static let extJSONTypeWrapperKeys: [String] = ["$binary", "$uuid"]
+    internal static let extJSONLegacyTypeWrapperKeys: [String] = ["$type"]
 
     /*
      * Initializes a `Binary` from ExtendedJSON.
@@ -188,38 +190,104 @@ extension BSONBinary: BSONValue {
             }
         }
 
-        // canonical and relaxed extended JSON
-        guard let binary = try json.value.unwrapObject(withKey: "$binary", keyPath: keyPath) else {
+        guard case let .object(obj) = json.value, let binary = obj["$binary"] else {
             return nil
         }
-        guard
-            let (base64, subTypeInput) = try binary.unwrapObject(withKeys: "base64", "subType", keyPath: keyPath)
-        else {
+
+        let subtype: Subtype
+        let base64Str: String
+
+        switch binary {
+        // extended JSON v2
+        case .object:
+            guard obj.count == 1 else {
+                throw Swift.DecodingError._extraKeysError(
+                    keyPath: keyPath,
+                    expectedKeys: ["$binary"],
+                    allKeys: Set(obj.keys)
+                )
+            }
+            guard
+                let (base64, subTypeInput) = try binary.unwrapObject(withKeys: "base64", "subType", keyPath: keyPath)
+            else {
+                throw Swift.DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Missing \"base64\" or \"subType\" in \(binary)"
+                )
+            }
+            guard let b64Str = base64.stringValue else {
+                throw Swift.DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse `base64` from \"\(base64)\", " +
+                        "input must be a base64-encoded (with padding as =) payload as a string"
+                )
+            }
+
+            guard
+                let subtypeString = subTypeInput.stringValue,
+                let subtypeInt = UInt8(subtypeString, radix: 16),
+                let s = Subtype(rawValue: subtypeInt)
+            else {
+                throw Swift.DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse `SubType` from \"\(json)\", subtype must"
+                        + "be a BSON binary type as a one- or two-character hex string"
+                )
+            }
+
+            base64Str = b64Str
+            subtype = s
+        case let .string(base64):
+            guard obj.count == 2 else {
+                throw Swift.DecodingError._extraKeysError(
+                    keyPath: keyPath,
+                    expectedKeys: ["$binary"],
+                    allKeys: Set(obj.keys)
+                )
+            }
+
+            // extended JSON v1 (legacy)
+            guard let subtypeInput = obj["$type"] else {
+                throw Swift.DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "missing \"$type\" key in BSON binary legacy extended JSON representation"
+                )
+            }
+
+            let subtypeString: String
+            if let str = subtypeInput.stringValue {
+                subtypeString = str
+            } else if case let .number(n) = subtypeInput {
+                subtypeString = n
+            } else {
+                throw Swift.DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "expected \"$type\" to be a string or number, got \(subtypeInput) instead"
+                )
+            }
+
+            guard
+                let subtypeInt = UInt8(subtypeString, radix: 16),
+                let s = Subtype(rawValue: subtypeInt)
+            else {
+                throw Swift.DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Could not parse `SubType` from \"\(json)\", subtype must be a BSON binary"
+                        + "type as a one-or-two character hex string or a number"
+                )
+            }
+
+            base64Str = base64
+            subtype = s
+        default:
             throw Swift.DecodingError._extendedJSONError(
                 keyPath: keyPath,
-                debugDescription: "Missing \"base64\" or \"subType\" in \(binary)"
+                debugDescription: "expected extended JSON object for \"$binary\", got \(binary) instead"
             )
         }
-        guard let base64Str = base64.stringValue else {
-            throw Swift.DecodingError._extendedJSONError(
-                keyPath: keyPath,
-                debugDescription: "Could not parse `base64` from \"\(base64)\", " +
-                    "input must be a base64-encoded (with padding as =) payload as a string"
-            )
-        }
-        guard
-            let subTypeStr = subTypeInput.stringValue,
-            let subTypeInt = UInt8(subTypeStr, radix: 16),
-            let subType = Subtype(rawValue: subTypeInt)
-        else {
-            throw Swift.DecodingError._extendedJSONError(
-                keyPath: keyPath,
-                debugDescription: "Could not parse `SubType` from \"\(subTypeInput)\", " +
-                    "input must be a BSON binary type as a one- or two-character hex string"
-            )
-        }
+
         do {
-            self = try BSONBinary(base64: base64Str, subtype: subType)
+            self = try BSONBinary(base64: base64Str, subtype: subtype)
         } catch {
             throw Swift.DecodingError._extendedJSONError(
                 keyPath: keyPath,

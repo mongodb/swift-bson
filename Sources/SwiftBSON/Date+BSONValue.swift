@@ -4,6 +4,9 @@ import NIO
 extension Date: BSONValue {
     internal static let extJSONTypeWrapperKeys: [String] = ["$date"]
 
+    /// The range of datetimes that can be represented in BSON.
+    private static let VALID_BSON_DATES: Range<Date> = Date(msSinceEpoch: Int64.min)..<Date(msSinceEpoch: Int64.max)
+
     /*
      * Initializes a `Date` from ExtendedJSON.
      *
@@ -48,6 +51,15 @@ extension Date: BSONValue {
                 )
             }
             self = date
+        case let .number(ms):
+            // legacy extended JSON
+            guard let msInt64 = Int64(ms) else {
+                throw DecodingError._extendedJSONError(
+                    keyPath: keyPath,
+                    debugDescription: "Expected \(ms) to be valid Int64 representing milliseconds since epoch"
+                )
+            }
+            self = Date(msSinceEpoch: msInt64)
         default:
             throw DecodingError._extendedJSONError(
                 keyPath: keyPath,
@@ -87,7 +99,20 @@ extension Date: BSONValue {
     internal var bson: BSON { .datetime(self) }
 
     /// The number of milliseconds after the Unix epoch that this `Date` occurs.
-    internal var msSinceEpoch: Int64 { Int64((self.timeIntervalSince1970 * 1000.0).rounded()) }
+    /// If the date is further in the future than Int64.max milliseconds from the epoch,
+    /// Int64.max is returned to prevent a crash.
+    internal var msSinceEpoch: Int64 {
+        // to prevent the application from crashing, we simply clamp the date to the range representable
+        // by an Int64 ms since epoch
+        guard self > Self.VALID_BSON_DATES.lowerBound else {
+            return Int64.min
+        }
+        guard self < Self.VALID_BSON_DATES.upperBound else {
+            return Int64.max
+        }
+
+        return Int64((self.timeIntervalSince1970 * 1000.0).rounded())
+    }
 
     /// Initializes a new `Date` representing the instance `msSinceEpoch` milliseconds
     /// since the Unix epoch.
@@ -104,5 +129,9 @@ extension Date: BSONValue {
 
     internal func write(to buffer: inout ByteBuffer) {
         buffer.writeInteger(self.msSinceEpoch, endianness: .little, as: Int64.self)
+    }
+
+    internal func isValidBSONDate() -> Bool {
+        Self.VALID_BSON_DATES.contains(self)
     }
 }

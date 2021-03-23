@@ -135,10 +135,7 @@ extension JSONValue {
             return nil
         }
         guard obj.count == 1 else {
-            throw DecodingError._extendedJSONError(
-                keyPath: keyPath,
-                debugDescription: "Expected only \"\(key)\", found too many keys: \(obj.keys)"
-            )
+            throw DecodingError._extraKeysError(keyPath: keyPath, expectedKeys: [key], allKeys: Set(obj.keys))
         }
         return value
     }
@@ -173,10 +170,7 @@ extension JSONValue {
             return nil
         }
         guard obj.count == 2 else {
-            throw DecodingError._extendedJSONError(
-                keyPath: keyPath,
-                debugDescription: "Expected only \"\(key1)\" and \"\(key2)\" found keys: \(obj.keys)"
-            )
+            throw DecodingError._extraKeysError(keyPath: keyPath, expectedKeys: [key1, key2], allKeys: Set(obj.keys))
         }
         return (value1, value2)
     }

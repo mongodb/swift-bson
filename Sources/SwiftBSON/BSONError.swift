@@ -55,6 +55,20 @@ extension DecodingError {
             debugDescription: debugStart + debugDescription
         ))
     }
+
+    internal static func _extraKeysError(
+        keyPath: [String],
+        expectedKeys: Set<String>,
+        allKeys: Set<String>
+    ) -> DecodingError {
+        let extra = allKeys.subtracting(expectedKeys)
+
+        return Self._extendedJSONError(
+            keyPath: keyPath,
+            debugDescription: "Expected only the following keys, \(Array(expectedKeys)), instead got extra " +
+                "key(s): \(extra)"
+        )
+    }
 }
 
 /// Standardize the errors emitted from the BSON Iterator.
