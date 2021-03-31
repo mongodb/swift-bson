@@ -20,7 +20,7 @@
     <header class="header">
       <p class="header-col header-col--primary">
         <a class="header-link" href="index.html">
-          SwiftBSON 3.0.0 Docs
+          SwiftBSON 3.0.1 Docs
         </a>
          (99% documented)
       </p>
@@ -295,30 +295,11 @@ by doing something like this: </p>
 
 <p>in your <code>configure.swift</code>.</p>
 
-<p>In order for this to work, you will also have to include extensions that ensure conformance to Vapor&rsquo;s 
- <code>ContentEncoder</code> and <code>ContentDecoder</code> protocols. The snippets below should be sufficient for doing that.</p>
-<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">ExtendedJSONEncoder</span><span class="p">:</span> <span class="kt">ContentEncoder</span> <span class="p">{</span>
-    <span class="kd">public</span> <span class="kd">func</span> <span class="n">encode</span><span class="o">&lt;</span><span class="kt">E</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">encodable</span><span class="p">:</span> <span class="kt">E</span><span class="p">,</span> <span class="n">to</span> <span class="nv">body</span><span class="p">:</span> <span class="k">inout</span> <span class="kt">ByteBuffer</span><span class="p">,</span> <span class="nv">headers</span><span class="p">:</span> <span class="k">inout</span> <span class="kt">HTTPHeaders</span><span class="p">)</span> <span class="k">throws</span> 
-        <span class="k">where</span> <span class="kt">E</span><span class="p">:</span> <span class="kt">Encodable</span>
-    <span class="p">{</span>
-        <span class="n">headers</span><span class="o">.</span><span class="n">contentType</span> <span class="o">=</span> <span class="o">.</span><span class="n">json</span>
-        <span class="k">try</span> <span class="n">body</span><span class="o">.</span><span class="nf">writeBytes</span><span class="p">(</span><span class="k">self</span><span class="o">.</span><span class="nf">encode</span><span class="p">(</span><span class="n">encodable</span><span class="p">))</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</code></pre>
-<pre class="highlight swift"><code><span class="kd">extension</span> <span class="kt">ExtendedJSONDecoder</span><span class="p">:</span> <span class="kt">ContentDecoder</span> <span class="p">{</span>
-   <span class="kd">public</span> <span class="kd">func</span> <span class="n">decode</span><span class="o">&lt;</span><span class="kt">D</span><span class="o">&gt;</span><span class="p">(</span><span class="n">_</span> <span class="nv">decodable</span><span class="p">:</span> <span class="kt">D</span><span class="o">.</span><span class="k">Type</span><span class="p">,</span> <span class="n">from</span> <span class="nv">body</span><span class="p">:</span> <span class="kt">ByteBuffer</span><span class="p">,</span> <span class="nv">headers</span><span class="p">:</span> <span class="kt">HTTPHeaders</span><span class="p">)</span> <span class="k">throws</span> <span class="o">-&gt;</span> <span class="kt">D</span>
-       <span class="k">where</span> <span class="kt">D</span><span class="p">:</span> <span class="kt">Decodable</span>
-    <span class="p">{</span>
-        <span class="k">let</span> <span class="nv">data</span> <span class="o">=</span> <span class="n">body</span><span class="o">.</span><span class="nf">getData</span><span class="p">(</span><span class="nv">at</span><span class="p">:</span> <span class="n">body</span><span class="o">.</span><span class="n">readerIndex</span><span class="p">,</span> <span class="nv">length</span><span class="p">:</span> <span class="n">body</span><span class="o">.</span><span class="n">readableBytes</span><span class="p">)</span> <span class="p">??</span> <span class="kt">Data</span><span class="p">()</span>
-        <span class="k">return</span> <span class="k">try</span> <span class="k">self</span><span class="o">.</span><span class="nf">decode</span><span class="p">(</span><span class="kt">D</span><span class="o">.</span><span class="k">self</span><span class="p">,</span> <span class="nv">from</span><span class="p">:</span> <span class="n">data</span><span class="p">)</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-</code></pre>
+<p>Note that in order for this to work, <code><a href="Classes/ExtendedJSONEncoder.html">ExtendedJSONEncoder</a></code> must conform to Vapor&rsquo;s <code>ContentEncoder</code> protocol, and <code><a href="Classes/ExtendedJSONDecoder.html">ExtendedJSONDecoder</a></code> must conform to Vapor&rsquo;s <code>ContentDecoder</code> protocol.</p>
 
-<p>To see some example Vapor apps using the driver, check out
-<a href="https://github.com/mongodb/mongo-swift-driver/tree/main/Examples/VaporExample">Examples/VaporExample</a> or
-<a href="https://github.com/mongodb/mongo-swift-driver/tree/main/Examples/ComplexVaporExample">Examples/ComplexVaporExample</a>.</p>
+<p>We&rsquo;ve added these conformances in our Vapor integration library <a href="https://github.com/mongodb/mongodb-vapor">MongoDBVapor</a>, which we highly recommend using if you want to use the driver with Vapor.</p>
+
+<p>To see an example Vapor app using the driver via the integration library, check out <a href="https://github.com/mongodb/mongo-swift-driver/tree/main/Examples/VaporExample">Examples/VaporExample</a>.</p>
 <h2 id='using-code-jsonencoder-code-and-code-jsondecoder-code-with-bson-types' class='heading'>Using <code>JSONEncoder</code> and <code>JSONDecoder</code> with BSON Types</h2>
 
 <p>Currently, some BSON types (e.g. <code><a href="Structs/BSONBinary.html">BSONBinary</a></code>) do not support working with encoders and decoders other than those introduced in <code>swift-bson</code>, meaning Foundation&rsquo;s <code>JSONEncoder</code> and <code>JSONDecoder</code> will throw errors when encoding or decoding such types. There are plans to add general <code>Codable</code> support for all BSON types in the future, though. For now, only <code><a href="Structs/BSONObjectID.html">BSONObjectID</a></code> and any BSON types defined in Foundation or the standard library (e.g. <code>Date</code> or <code>Int32</code>) will work with other encoder/decoder pairs. If type information is not required in the output JSON and only types that include a general <code>Codable</code> conformance are included in your data, you can use <code>JSONEncoder</code> and <code>JSONDecoder</code> to produce and ingest JSON data.</p>
@@ -333,8 +314,8 @@ by doing something like this: </p>
       </article>
     </div>
     <section class="footer">
-      <p>&copy; 2021 <a class="link" href="https://github.com/mongodb/swift-bson" target="_blank" rel="external">Neal Beeken, Nellie Spektor, Patrick Freed, and Kaitlin Mahar</a>. All rights reserved. (Last updated: 2021-02-12)</p>
-      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.5</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
+      <p>&copy; 2021 <a class="link" href="https://github.com/mongodb/swift-bson" target="_blank" rel="external">Neal Beeken, Nellie Spektor, Patrick Freed, and Kaitlin Mahar</a>. All rights reserved. (Last updated: 2021-03-31)</p>
+      <p>Generated by <a class="link" href="https://github.com/realm/jazzy" target="_blank" rel="external">jazzy ♪♫ v0.13.6</a>, a <a class="link" href="https://realm.io" target="_blank" rel="external">Realm</a> project.</p>
     </section>
   </body>
 </div>
