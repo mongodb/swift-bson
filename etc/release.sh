@@ -32,9 +32,17 @@ git push
 # go back to wherever we started
 git checkout -
 
+# update the README with the version string
+etc/sed.sh -i "s/swift-bson\", .upToNextMajor[^)]*)/swift-bson\", .upToNextMajor(from: \"${version}\")/" README.md
+
+git add README.md
+git commit -m "Update README for ${version}"
+git push
+
 # tag release and push tag
 git tag "v${version}"
 git push --tags
 
 # go to GitHub to publish release notes
-open "https://github.com/mongodb/swift-bson/releases/tag/v${version}"
+echo "Successfully tagged release! \
+Go here to publish release notes: https://github.com/mongodb/swift-bson/releases/tag/v${version}"
