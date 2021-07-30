@@ -112,13 +112,6 @@ final class BSONCorpusTests: BSONTestCase {
                     // TODO: SWIFT-972
                     "Special - Negative NaN"
                 ],
-            "Array":
-                [
-                    // TODO: SWIFT-963
-                    "Multi Element Array with duplicate indexes",
-                    "Single Element Array with index set incorrectly to empty string",
-                    "Single Element Array with index set incorrectly to ab"
-                ],
             "Top-level document validity": [
                 "Bad DBRef (ref is number, not string)",
                 "Bad DBRef (db is number, not string)",
@@ -199,9 +192,10 @@ final class BSONCorpusTests: BSONTestCase {
 
                         let docFromDB = try BSONDocument(fromBSON: dBData)
 
-                        // SKIPPING: native_to_bson( bson_to_native(dB) ) = cB
-                        // We only validate the BSON bytes, we do not clean them up, so can't do this assertion
-                        // Degenerate BSON round trip tests will be added in SWIFT-964
+                        // native_to_bson( bson_to_native(dB) ) = cB
+                        let nativeFromDoc = docFromDB.toArray()
+                        let docFromNative = BSONDocument(fromArray: nativeFromDoc)
+                        expect(docFromNative.toByteString()).to(equal(cBData.toByteString()))
 
                         // native_to_canonical_extended_json( bson_to_native(dB) ) = cEJ
                         // (Not in spec yet, might be added in DRIVERS-1355)
