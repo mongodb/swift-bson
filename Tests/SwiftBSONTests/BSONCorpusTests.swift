@@ -112,13 +112,6 @@ final class BSONCorpusTests: BSONTestCase {
                     // TODO: SWIFT-972
                     "Special - Negative NaN"
                 ],
-            "Array":
-                [
-                    // TODO: SWIFT-963
-                    "Multi Element Array with duplicate indexes",
-                    "Single Element Array with index set incorrectly to empty string",
-                    "Single Element Array with index set incorrectly to ab"
-                ],
             "Top-level document validity": [
                 "Bad DBRef (ref is number, not string)",
                 "Bad DBRef (db is number, not string)",
