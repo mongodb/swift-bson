@@ -9,6 +9,7 @@ INSTALL_DIR="${PROJECT_DIRECTORY}/opt"
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 RAW_TEST_RESULTS="${PROJECT_DIRECTORY}/rawTestResults"
 XML_TEST_RESULTS="${PROJECT_DIRECTORY}/testResults.xml"
+SANITIZE=${SANITIZE:-"false"}
 
 # enable swiftenv
 export SWIFTENV_ROOT="${INSTALL_DIR}/swiftenv"
@@ -20,11 +21,16 @@ if [ "$OS" == "darwin" ]; then
     sudo xcode-select -s /Applications/Xcode11.3.app
 fi
 
+SANITIZE_STATEMENT=""
+if [ "$SANITIZE" != "false" ]; then
+    SANITIZE_STATEMENT="--sanitize ${SANITIZE}"
+fi
+
 # switch swift version, and run tests
 swiftenv local $SWIFT_VERSION
 
 # build the driver
-swift build
+swift build $SANITIZE_STATEMENT
 
 # even if tests fail we want to parse the results, so disable errexit
 set +o errexit
@@ -32,7 +38,7 @@ set +o errexit
 set -o pipefail
 
 # test the driver
-swift test --enable-test-discovery 2>&1 | tee ${RAW_TEST_RESULTS}
+swift test --enable-test-discovery $SANITIZE_STATEMENT 2>&1 | tee ${RAW_TEST_RESULTS}
 
 # save tests exit code
 EXIT_CODE=$?

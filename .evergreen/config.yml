@@ -102,6 +102,7 @@ functions:
         script: |
           ${PREPARE_SHELL}
           SWIFT_VERSION=${SWIFT_VERSION} \
+          SANITIZE=${SANITIZE} \
           ${PROJECT_DIRECTORY}/.evergreen/run-tests.sh
   
   "upload test results":
@@ -135,13 +136,13 @@ axes:
         display_name: "Ubuntu 18.04"
         run_on: ubuntu1804-test
 
-      - id: ubuntu-16.04
-        display_name: "Ubuntu 16.04"
-        run_on: ubuntu1604-test
+      - id: ubuntu-20.04
+        display_name: "Ubuntu 20.04"
+        run_on: ubuntu2004-test
 
-      - id: macos-10.14
-        display_name: "macOS 10.14"
-        run_on: macos-1014
+      - id: macos-10.15
+        display_name: "macOS 10.15"
+        run_on: macos-1015
 
   - id: swift-version
     display_name: "Swift"
@@ -157,7 +158,27 @@ axes:
       - id: "5.3"
         display_name: "Swift 5.3"
         variables:
-          SWIFT_VERSION: "5.3"
+          SWIFT_VERSION: "5.3.3"
+      - id: "5.4"
+        display_name: "Swift 5.4"
+        variables:
+          SWIFT_VERSION: "5.4.2"
+      - id: "5.5-dev"
+        display_name: "Swift 5.5-dev"
+        variables:
+          SWIFT_VERSION: "DEVELOPMENT-SNAPSHOT-2021-04-26-a"
+
+  - id: sanitize
+    display_name: Sanitize
+    values:
+      - id: tsan
+        display_name: TSan
+        variables:
+          SANITIZE: "thread"
+      - id: asan
+        display_name: ASan
+        variables:
+          SANITIZE: "address"
 
 buildvariants:
   - matrix_name: "tests-all"
@@ -165,21 +186,22 @@ buildvariants:
     matrix_spec:
       os-fully-featured: "*"
       swift-version:
-        - "5.1"
         - "5.2"
+        - "5.3"
+        - "5.4"
+        - "5.5-dev"
     tasks:
       - name: "test"
 
-# define a separate matrix for 5.3 - no way to remove 5.3 + macOS from the definition above.
-# see EVG-13092
-  - matrix_name: "tests-all-5.3"
+  - matrix_name: "tests-5.1"
     display_name: "${swift-version} ${os-fully-featured}"
     matrix_spec:
+      # Swift 5.1 does not have Ubuntu 20.04 toolchains
       os-fully-featured:
         - "ubuntu-18.04"
-        - "ubuntu-16.04"
+        - "macos-10.15"
       swift-version:
-        - "5.3"
+        - "5.1"
     tasks:
       - name: "test"
 
@@ -187,7 +209,16 @@ buildvariants:
     display_name: "Format and Lint"
     matrix_spec:
       os-fully-featured: "ubuntu-18.04"
-      swift-version: "5.2"
+      swift-version: "5.4"
     tasks:
       - name: "check-format"
       - name: "check-lint"
+
+  - matrix_name: "sanitize"
+    display_name: "${sanitize} ${os-fully-featured}"
+    matrix_spec:
+      os-fully-featured: "ubuntu-18.04"
+      swift-version: "5.4"
+      sanitize: "*"
+    tasks:
+      - name: "test"
