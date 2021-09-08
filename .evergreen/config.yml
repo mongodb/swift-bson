@@ -175,10 +175,12 @@ axes:
         display_name: TSan
         variables:
           SANITIZE: "thread"
-      - id: asan
-        display_name: ASan
-        variables:
-          SANITIZE: "address"
+      # ASan is unfortunately known to produce false positives in Swift, see
+      # https://forums.swift.org/t/test-for-memory-leaks-in-ci/36526/9 
+      # - id: asan
+      #   display_name: ASan
+      #   variables:
+      #     SANITIZE: "address"
 
 buildvariants:
   - matrix_name: "tests-all"
@@ -219,6 +221,6 @@ buildvariants:
     matrix_spec:
       os-fully-featured: "ubuntu-18.04"
       swift-version: "5.4"
-      sanitize: "*"
+      sanitize: "thread"
     tasks:
       - name: "test"
