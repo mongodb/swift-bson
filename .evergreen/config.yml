@@ -221,6 +221,6 @@ buildvariants:
     matrix_spec:
       os-fully-featured: "ubuntu-18.04"
       swift-version: "5.4"
-      sanitize: "thread"
+      sanitize: "tsan"
     tasks:
       - name: "test"
