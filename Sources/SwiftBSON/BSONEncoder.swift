@@ -218,7 +218,7 @@ public class BSONEncoder {
                     )
                 )
             }
-            return boxedValue.bson
+            return try boxedValue.toBSON()
         } catch let error as BSONErrorProtocol {
             throw EncodingError.invalidValue(
                 value,
@@ -304,8 +304,8 @@ internal class _BSONEncoder: Encoder {
 
 internal struct _BSONEncodingStorage {
     /// The container stack.
-    /// Elements may be any `BSONValue` type.
-    internal var containers: [BSONValue] = []
+    /// Elements may be any `BSONRepresentable` type.
+    internal var containers: [BSONRepresentable] = []
 
     /// Initializes `self` with no containers.
     fileprivate init() {}
@@ -326,11 +326,11 @@ internal struct _BSONEncodingStorage {
         return array
     }
 
-    fileprivate mutating func push(container: BSONValue) {
+    fileprivate mutating func push(container: BSONRepresentable) {
         self.containers.append(container)
     }
 
-    fileprivate mutating func popContainer() -> BSONValue {
+    fileprivate mutating func popContainer() -> BSONRepresentable {
         guard !self.containers.isEmpty else {
             fatalError("Empty container stack.")
         }
@@ -385,7 +385,7 @@ private class _BSONReferencingEncoder: _BSONEncoder {
 
     /// Finalizes `self` by writing the contents of our storage to the referenced encoder's storage.
     deinit {
-        let value: BSONValue
+        let value: BSONRepresentable
         switch self.storage.count {
         case 0: value = BSONDocument()
         case 1: value = self.storage.popContainer()
@@ -404,24 +404,24 @@ private class _BSONReferencingEncoder: _BSONEncoder {
 
 /// Extend `_BSONEncoder` to add methods for "boxing" values.
 extension _BSONEncoder {
-    /// Converts a `CodableNumber` to a `BSONValue` type. Throws if `value` cannot be
+    /// Converts a `CodableNumber` to a `BSONRepresentable` type. Throws if `value` cannot be
     /// exactly represented by an `Int`, `Int32`, `Int64`, or `Double`.
-    fileprivate func boxNumber<T: CodableNumber>(_ value: T) throws -> BSONValue {
+    fileprivate func boxNumber<T: CodableNumber>(_ value: T) throws -> BSONRepresentable {
         guard let number = value.bsonValue else {
             throw EncodingError._numberError(at: self.codingPath, value: value)
         }
         return number
     }
 
-    /// Returns the value as a `BSONValue` if possible. Otherwise, returns an empty `BSONDocument`.
-    fileprivate func box<T: Encodable>(_ value: T) throws -> BSONValue {
+    /// Returns the value as a `BSONRepresentable` if possible. Otherwise, returns an empty `BSONDocument`.
+    fileprivate func box<T: Encodable>(_ value: T) throws -> BSONRepresentable {
         try self.box_(value) ?? BSONDocument()
     }
 
-    fileprivate func handleCustomStrategy<T: Encodable>(
+    private func handleCustomStrategy<T: Encodable>(
         encodeFunc f: (T, Encoder) throws -> Void,
         forValue value: T
-    ) throws -> BSONValue? {
+    ) throws -> BSONRepresentable? {
         let depth = self.storage.count
 
         do {
@@ -441,8 +441,8 @@ extension _BSONEncoder {
         return self.storage.popContainer()
     }
 
-    /// Returns the date as a `BSONValue`, or nil if no values were encoded by the custom encoder strategy.
-    fileprivate func boxDate(_ date: Date) throws -> BSONValue? {
+    /// Returns the date as a `BSONRepresentable`, or nil if no values were encoded by the custom encoder strategy.
+    private func boxDate(_ date: Date) throws -> BSONRepresentable? {
         func validateDate() throws {
             guard date.isValidBSONDate() else {
                 throw EncodingError.invalidValue(
@@ -476,8 +476,8 @@ extension _BSONEncoder {
         }
     }
 
-    /// Returns the uuid as a `BSONValue`.
-    fileprivate func boxUUID(_ uuid: UUID) throws -> BSONValue {
+    /// Returns the uuid as a `BSONRepresentable`.
+    private func boxUUID(_ uuid: UUID) throws -> BSONRepresentable {
         switch self.options.uuidEncodingStrategy {
         case .deferredToUUID:
             try uuid.encode(to: self)
@@ -487,7 +487,7 @@ extension _BSONEncoder {
         }
     }
 
-    fileprivate func boxData(_ data: Data) throws -> BSONValue? {
+    private func boxData(_ data: Data) throws -> BSONRepresentable? {
         switch self.options.dataEncodingStrategy {
         case .deferredToData:
             try data.encode(to: self)
@@ -501,8 +501,8 @@ extension _BSONEncoder {
         }
     }
 
-    /// Returns the value as a `BSONValue` if possible. Otherwise, returns nil.
-    fileprivate func box_<T: Encodable>(_ value: T) throws -> BSONValue? {
+    /// Returns the value as a `BSONRepresentable` if possible. Otherwise, returns nil.
+    fileprivate func box_<T: Encodable>(_ value: T) throws -> BSONRepresentable? {
         switch value {
         case let date as Date:
             return try self.boxDate(date)
@@ -521,10 +521,10 @@ extension _BSONEncoder {
         }
 
         // if it's already a `BSONValue`, just return it.
-        if let bsonValue = value as? BSONValue {
+        if let bsonValue = value as? BSONRepresentable {
             return bsonValue
-        } else if let bsonArray = value as? [BSONValue] {
-            return bsonArray.map { $0.bson }
+        } else if let bsonArray = value as? [BSONRepresentable] {
+            return try bsonArray.map { try $0.toBSON() }
         }
 
         // The value should request a container from the _BSONEncoder.
@@ -749,7 +749,7 @@ extension _BSONEncoder: SingleValueEncodingContainer {
         self.storage.push(container: try self.boxNumber(value))
     }
 
-    private func encodeBSONType<T: BSONValue>(_ value: T) throws {
+    private func encodeBSONType<T: BSONRepresentable>(_ value: T) throws {
         self.assertCanEncodeNewValue()
         self.storage.push(container: value)
     }
@@ -760,79 +760,61 @@ extension _BSONEncoder: SingleValueEncodingContainer {
     }
 }
 
+internal protocol BSONRepresentable {
+    func toBSON() throws -> BSON
+}
+
+extension Array: BSONRepresentable where Element == BSON {
+    internal func toBSON() throws -> BSON {
+        .array(self)
+    }
+}
+
+extension BSONValue {
+    internal func toBSON() throws -> BSON {
+        self.bson
+    }
+}
+
 /// A private class wrapping a Swift array so we can pass it by reference for
 /// encoder storage purposes. We use this rather than NSMutableArray because
 /// it allows us to preserve Swift type information.
-private class MutableArray: BSONValue {
+private class MutableArray: BSONRepresentable {
+    func toBSON() throws -> BSON {
+        .array(try self.array.map { try $0.toBSON() })
+    }
+
     fileprivate static var bsonType: BSONType { .array }
     internal static let extJSONTypeWrapperKeys: [String] = []
 
-    fileprivate var bson: BSON {
-        .array(self.array.map { $0.bson })
-    }
+    fileprivate var array = [BSONRepresentable]()
 
-    fileprivate var array = [BSONValue]()
-
-    fileprivate func add(_ value: BSONValue) {
+    fileprivate func add(_ value: BSONRepresentable) {
         self.array.append(value)
     }
 
     fileprivate var count: Int { self.array.count }
 
-    fileprivate func insert(_ value: BSONValue, at index: Int) {
+    fileprivate func insert(_ value: BSONRepresentable, at index: Int) {
         self.array.insert(value, at: index)
     }
 
     fileprivate init() {}
-
-    internal required init(fromExtJSON _: JSON, keyPath _: [String]) throws {
-        fatalError("MutableArray: BSONValue.init(fromExtJSON) should be unused")
-    }
-
-    internal func toRelaxedExtendedJSON() -> JSON {
-        fatalError("MutableArray: BSONValue.toRelaxedExtendedJSON() should be unused")
-    }
-
-    internal func toCanonicalExtendedJSON() -> JSON {
-        fatalError("MutableArray: BSONValue.toCanonicalExtendedJSON() should be unused")
-    }
-
-    /// methods required by the BSONValue protocol that we don't actually need/use. MutableArray
-    /// is just a BSONValue to simplify usage alongside true BSONValues within the encoder.
-    static func read(from _: inout ByteBuffer) throws -> BSON {
-        fatalError("MutableArray is not meant to be read from a ByteBuffer")
-    }
-
-    func write(to _: inout ByteBuffer) {
-        fatalError("MutableArray is not meant to be written to a ByteBuffer")
-    }
-
-    fileprivate func encode(to _: Encoder) throws {
-        fatalError("MutableArray is not meant to be encoded with an Encoder")
-    }
-
-    required convenience init(from _: Decoder) throws {
-        fatalError("MutableArray is not meant to be initialized from a Decoder")
-    }
 }
 
 /// A private class wrapping a Swift dictionary so we can pass it by reference
 /// for encoder storage purposes. We use this rather than NSMutableDictionary
 /// because it allows us to preserve Swift type information.
-private class MutableDictionary: BSONValue {
+private class MutableDictionary: BSONRepresentable {
     internal static let extJSONTypeWrapperKeys: [String] = []
     fileprivate static var bsonType: BSONType { .document }
 
-    fileprivate var bson: BSON {
-        .document(self.toDocument())
-    }
-
     // rather than using a dictionary, do this so we preserve key orders
     fileprivate var keys = [String]()
-    fileprivate var values = [BSONValue]()
+    fileprivate var values = [BSONRepresentable]()
     fileprivate var latestKeyIndexes = [String: Int]()
 
-    fileprivate subscript(key: String) -> BSONValue? {
+    fileprivate subscript(key: String) -> BSONRepresentable? {
         get {
             guard let index = self.latestKeyIndexes[key] else {
                 return nil
@@ -859,46 +841,20 @@ private class MutableDictionary: BSONValue {
     }
 
     /// Converts self to a `BSONDocument` with equivalent key-value pairs.
-    fileprivate func toDocument() -> BSONDocument {
+    fileprivate func toDocument() throws -> BSONDocument {
         var doc = BSONDocument()
         for i in 0..<self.keys.count {
             let value = self.values[i]
-            doc.append(key: self.keys[i], value: value.bson)
+            doc.append(key: self.keys[i], value: try value.toBSON())
         }
         return doc
     }
 
+    fileprivate func toBSON() throws -> BSON {
+        .document(try self.toDocument())
+    }
+
     fileprivate init() {}
-
-    internal required init?(fromExtJSON _: JSON, keyPath _: [String]) throws {
-        fatalError("MutableDictionary: BSONValue.init(fromExtJSON) should be unused")
-    }
-
-    internal func toRelaxedExtendedJSON() -> JSON {
-        fatalError("MutableDictionary: BSONValue.toRelaxedExtendedJSON() should be unused")
-    }
-
-    internal func toCanonicalExtendedJSON() -> JSON {
-        fatalError("MutableDictionary: BSONValue.toCanonicalExtendedJSON() should be unused")
-    }
-
-    /// methods required by the BSONValue protocol that we don't actually need/use. MutableDictionary
-    /// is just a BSONValue to simplify usage alongside true BSONValues within the encoder.
-    static func read(from _: inout ByteBuffer) throws -> BSON {
-        fatalError("MutableDictionary is not meant to be read from a ByteBuffer")
-    }
-
-    func write(to _: inout ByteBuffer) {
-        fatalError("MutableDictionary is not meant to be encoded to a ByteBuffer")
-    }
-
-    fileprivate func encode(to _: Encoder) throws {
-        fatalError("MutableDictionary is not meant to be encoded with an `Encoder`")
-    }
-
-    fileprivate required convenience init(from _: Decoder) throws {
-        fatalError("MutableDictionary is not meant to be initialized from a `Decoder`")
-    }
 }
 
 private extension EncodingError {
