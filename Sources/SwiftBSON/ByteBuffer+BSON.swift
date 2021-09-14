@@ -33,6 +33,7 @@ extension ByteBuffer {
         throw BSONError.InternalError(message: "Failed to read CString, possibly missing null terminator?")
     }
 }
+
 extension String {
     internal var isValidCString: Bool {
         // C strings cannot contain embedded null bytes.

@@ -169,7 +169,7 @@ public class ExtendedJSONDecoder {
                 bytes += try self.appendObject(obj, to: &storage, keyPath: keyPath)
                 return bytes
             }
-        // This can happen if an invalid C string is found as a key in the JSON.
+            // This can happen if an invalid C string is found as a key in the JSON.
         } catch let err as BSONError.InvalidArgumentError {
             throw DecodingError._extendedJSONError(keyPath: keyPath, debugDescription: err.message)
         }
