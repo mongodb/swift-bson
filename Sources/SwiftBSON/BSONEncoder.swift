@@ -846,7 +846,7 @@ private class MutableDictionary: BSONRepresentable {
         var doc = BSONDocument()
         for i in 0..<self.keys.count {
             let value = self.values[i]
-            doc.append(key: self.keys[i], value: try value.toBSON())
+            try doc.append(key: self.keys[i], value: try value.toBSON())
         }
         return doc
     }

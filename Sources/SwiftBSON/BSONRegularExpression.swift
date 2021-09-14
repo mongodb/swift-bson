@@ -82,6 +82,9 @@ extension BSONRegularExpression: BSONValue {
      *   - `DecodingError` if `json` is a partial match or is malformed.
      */
     internal init?(fromExtJSON json: JSON, keyPath: [String]) throws {
+        let regexPattern: String
+        let regexOptions: String
+
         // canonical and relaxed extended JSON v2
         if let regex = try json.value.unwrapObject(withKey: "$regularExpression", keyPath: keyPath) {
             guard
@@ -95,8 +98,8 @@ extension BSONRegularExpression: BSONValue {
                         "\"pattern\" and \"options\" must be strings"
                 )
             }
-            self = BSONRegularExpression(pattern: patternStr, options: optionsStr)
-            return
+            regexPattern = patternStr
+            regexOptions = optionsStr
         } else {
             // legacy / v1 extended JSON
             guard
@@ -109,9 +112,26 @@ extension BSONRegularExpression: BSONValue {
                 // "Regular expression as value of $regex query operator with $options" corpus test.
                 return nil
             }
-            self = BSONRegularExpression(pattern: patternStr, options: optionsStr)
-            return
+            regexPattern = patternStr
+            regexOptions = optionsStr
         }
+
+        guard regexPattern.isValidCString else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Could not parse `BSONRegularExpression` pattern from \"\(regexPattern)\", " +
+                    "must not contain null byte(s)"
+            )
+        }
+        guard regexOptions.isValidCString else {
+            throw DecodingError._extendedJSONError(
+                keyPath: keyPath,
+                debugDescription: "Could not parse `BSONRegularExpression` options from \"\(regexOptions)\", " +
+                    "must not contain null byte(s)"
+            )
+        }
+
+        self = BSONRegularExpression(pattern: regexPattern, options: regexOptions)
     }
 
     /// Converts this `BSONRegularExpression` to a corresponding `JSON` in relaxed extendedJSON format.
@@ -139,8 +159,8 @@ extension BSONRegularExpression: BSONValue {
         return .regex(BSONRegularExpression(pattern: regex, options: flags))
     }
 
-    internal func write(to buffer: inout ByteBuffer) {
-        buffer.writeCString(self.pattern)
-        buffer.writeCString(self.options)
+    internal func write(to buffer: inout ByteBuffer) throws {
+        try buffer.writeCString(self.pattern)
+        try buffer.writeCString(self.options)
     }
 }

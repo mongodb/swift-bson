@@ -17,11 +17,7 @@ public struct BSONDocument {
 
     internal var storage: BSONDocumentStorage
 
-    internal init(_ elements: [BSON]) {
-        self = BSONDocument(keyValuePairs: elements.enumerated().map { i, element in (String(i), element) })
-    }
-
-    internal init(keyValuePairs: [(String, BSON)]) {
+    internal init(keyValuePairs: [(String, BSON)]) throws {
         self.storage = BSONDocumentStorage()
 
         let start = self.storage.buffer.writerIndex
@@ -30,13 +26,13 @@ public struct BSONDocument {
         self.storage.buffer.writeInteger(0, endianness: .little, as: Int32.self)
 
         for (key, value) in keyValuePairs {
-            self.storage.append(key: key, value: value)
+            try self.storage.append(key: key, value: value)
         }
         // BSON null terminator
         self.storage.buffer.writeInteger(0, as: UInt8.self)
 
         guard let byteLength = Int32(exactly: self.storage.buffer.writerIndex - start) else {
-            fatalError("Data is \(self.storage.buffer.writerIndex - start) bytes, "
+            throw BSONError.InvalidArgumentError(message: "Data is \(self.storage.buffer.writerIndex - start) bytes, "
                 + "but maximum allowed BSON document size is \(Int32.max) bytes")
         }
         // Set encodedLength in reserved space
@@ -185,7 +181,13 @@ public struct BSONDocument {
             BSONDocumentIterator.find(key: key, in: self)?.value
         }
         set {
-            self.set(key: key, to: newValue)
+            // We have no choice but to crash here.
+            do {
+                try self.set(key: key, to: newValue)
+            } catch {
+                fatalError("\(error)")
+            }
+            
         }
     }
 
@@ -238,7 +240,7 @@ public struct BSONDocument {
         var newSize = self.storage.encodedLength
 
         let _id = BSON.objectID()
-        newSize += newStorage.append(key: "_id", value: _id)
+        newSize += try newStorage.append(key: "_id", value: _id)
 
         guard newSize <= BSON_MAX_SIZE else {
             throw BSONError.DocumentTooLargeError(value: _id.bsonValue, forKey: "_id")
@@ -257,10 +259,10 @@ public struct BSONDocument {
 
     /// Appends the provided key value pair without checking to see if the key already exists.
     /// Warning: appending two of the same key may result in errors or undefined behavior.
-    internal mutating func append(key: String, value: BSON) {
+    internal mutating func append(key: String, value: BSON) throws {
         // setup to overwrite null terminator
         self.storage.buffer.moveWriterIndex(to: self.storage.encodedLength - 1)
-        let size = self.storage.append(key: key, value: value)
+        let size = try self.storage.append(key: key, value: value)
         self.storage.buffer.writeInteger(0, endianness: .little, as: UInt8.self) // add back in our null terminator
         self.storage.encodedLength += size
     }
@@ -269,13 +271,13 @@ public struct BSONDocument {
      * Sets a BSON element with the corresponding key
      * if element.value is nil the element is deleted from the BSON
      */
-    private mutating func set(key: String, to value: BSON?) {
+    private mutating func set(key: String, to value: BSON?) throws {
         guard let range = BSONDocumentIterator.findByteRange(for: key, in: self) else {
             guard let value = value else {
                 // no-op: key does not exist and the value is nil
                 return
             }
-            self.append(key: key, value: value)
+            try self.append(key: key, value: value)
             return
         }
 
@@ -299,7 +301,7 @@ public struct BSONDocument {
         var newSize = self.storage.encodedLength - (range.endIndex - range.startIndex)
         if let value = value {
             // Overwriting
-            let size = newStorage.append(key: key, value: value)
+            let size = try newStorage.append(key: key, value: value)
             newSize += size
 
             guard newSize <= BSON_MAX_SIZE else {
@@ -344,18 +346,18 @@ public struct BSONDocument {
         }
 
         /// Appends element to underlying BSON bytes, returns the size of the element appended: type + key + value
-        @discardableResult internal mutating func append(key: String, value: BSON) -> Int {
+        @discardableResult internal mutating func append(key: String, value: BSON) throws -> Int {
             let writer = self.buffer.writerIndex
-            self.appendElementHeader(key: key, bsonType: value.bsonValue.bsonType)
-            value.bsonValue.write(to: &self.buffer)
+            try self.appendElementHeader(key: key, bsonType: value.bsonValue.bsonType)
+            try value.bsonValue.write(to: &self.buffer)
             return self.buffer.writerIndex - writer
         }
 
         /// Append the header (key and BSONType) for a given element.
-        @discardableResult internal mutating func appendElementHeader(key: String, bsonType: BSONType) -> Int {
+        @discardableResult internal mutating func appendElementHeader(key: String, bsonType: BSONType) throws -> Int {
             let writer = self.buffer.writerIndex
             self.buffer.writeInteger(bsonType.rawValue, as: UInt8.self)
-            self.buffer.writeCString(key)
+            try self.buffer.writeCString(key)
             return self.buffer.writerIndex - writer
         }
 
@@ -449,14 +451,20 @@ extension BSONDocument: ExpressibleByDictionaryLiteral {
      * - Returns: a new `BSONDocument`
      */
     public init(dictionaryLiteral keyValuePairs: (String, BSON)...) {
-        self.init(dictionaryLiteral: Array(keyValuePairs))
+        do {
+            try self.init(dictionaryLiteral: Array(keyValuePairs))
+        } catch {
+            fatalError("\(error)")
+        }
     }
 
-    internal init(dictionaryLiteral keyValuePairs: [(String, BSON)]) {
+    /// This separate variant exists so we can call this elsewhere internally and pass in arrays as Swift has no
+    /// "splat" operator.
+    internal init(dictionaryLiteral keyValuePairs: [(String, BSON)]) throws {
         guard Set(keyValuePairs.map { $0.0 }).count == keyValuePairs.count else {
-            fatalError("Dictionary \(keyValuePairs) contains duplicate keys")
+            throw BSONError.InvalidArgumentError(message: "Dictionary \(keyValuePairs) contains duplicate keys")
         }
-        self.init(keyValuePairs: keyValuePairs)
+        try self.init(keyValuePairs: keyValuePairs)
     }
 }
 
@@ -500,7 +508,7 @@ extension BSONDocument: BSONValue {
             let bsonValue = try BSON(fromExtJSON: JSON(val), keyPath: keyPath + [key])
             doc.append((key, bsonValue))
         }
-        self = BSONDocument(keyValuePairs: doc)
+        self = try BSONDocument(keyValuePairs: doc)
     }
 
     /// Converts this `BSONDocument` to a corresponding `JSON` in relaxed extendedJSON format.

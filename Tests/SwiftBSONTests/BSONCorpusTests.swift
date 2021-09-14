@@ -1,3 +1,4 @@
+import ExtrasJSON
 import Foundation
 import Nimble
 @testable import SwiftBSON
@@ -245,6 +246,11 @@ final class BSONCorpusTests: BSONTestCase {
                         }
                         expect(try decoder.decode(BSONDocument.self, from: testData))
                             .to(throwError(errorType: DecodingError.self), description: description)
+                        // Drivers SHOULD also parse the Extended JSON input using a regular JSON parser (not an
+                        // Extended JSON one) and verify the input is parsed successfully. This serves to verify that
+                        // the ``parseErrors`` test cases are testing Extended JSON-specific error conditions and that
+                        // they do not have, for example, unintended syntax errors.
+                        expect(try JSONParser().parse(bytes: testData)).toNot(throwError())
                     case .decimal128:
                         expect(try BSONDecimal128(test.string))
                             .to(throwError(), description: description)
@@ -284,5 +290,88 @@ final class BSONCorpusTests: BSONTestCase {
                 }
             }
         }
+    }
+
+    /// Tests from the "Prose Tests" section of the test plan.
+    func testBSONCorpusProse() throws {
+        // 1. Prohibit null bytes in null-terminated strings when encoding BSON
+        // Note we can't write these tests using the dictionary literal syntax since all of these cases trigger
+        // fatalErrors with that API.
+        // 1a) Field name within a root document
+
+        // creating a new document
+        expect(try BSONDocument(keyValuePairs: [("a\0", 1)]))
+            .to(throwError(errorType: BSONError.InvalidArgumentError.self))
+
+        // adding to an existing document
+        var doc: BSONDocument = ["b": 1]
+        expect(try doc.storage.append(key: "a\0", value: 2))
+            .to(throwError(errorType: BSONError.InvalidArgumentError.self))
+
+        // encoding via BSONEncoder
+        let dict = ["a\0": 1]
+        expect(try BSONEncoder().encode(dict)).to(throwError(errorType: EncodingError.self))
+
+        // 1b) Field name within a sub-document
+
+        // we can't test creating a new document, because doing so would require being able to construct a sub-document
+        // with an invalid key that we could use as an initial key/value pair, which is not possible.
+
+        // we also can't test adding to an existing document, for a similar reason - we would need to be able to
+        // construct an invalid sub-document in order to have something to add.
+
+        // encoding via BSONEncoder
+        let dict2 = ["a": ["b\0": 1]]
+        expect(try BSONEncoder().encode(dict2)).to(throwError(errorType: EncodingError.self))
+
+        // 1c) Pattern for a regular expression
+        let invalidRegexPattern = BSONRegularExpression(pattern: "a\0b", options: "")
+
+        // creating a new document
+        expect(try BSONDocument(keyValuePairs: [("a", .regex(invalidRegexPattern))]))
+            .to(throwError(errorType: BSONError.InvalidArgumentError.self))
+
+        // adding to an existing document
+        expect(try doc.storage.append(key: "a", value: .regex(invalidRegexPattern)))
+            .to(throwError(errorType: BSONError.InvalidArgumentError.self))
+
+        // encoding via BSONEncoder
+        let dict3 = ["a": invalidRegexPattern]
+        expect(try BSONEncoder().encode(dict3)).to(throwError(errorType: EncodingError.self))
+
+        // 1d) Flags/options for a regular expression
+        let invalidRegexOptions = BSONRegularExpression(pattern: "a\0b", options: "")
+
+        // creating a new document
+        expect(try BSONDocument(keyValuePairs: [("a", .regex(invalidRegexOptions))]))
+            .to(throwError(errorType: BSONError.InvalidArgumentError.self))
+
+        // adding to an existing document
+        expect(try doc.storage.append(key: "a", value: .regex(invalidRegexOptions)))
+            .to(throwError(errorType: BSONError.InvalidArgumentError.self))
+
+        // encoding via BSONEncoder
+        let dict4 = ["a": invalidRegexOptions]
+        expect(try BSONEncoder().encode(dict4)).to(throwError(errorType: EncodingError.self))
+    }
+
+    func testBSONRegularExpressionNullBytes() throws {
+        struct Test: Decodable {
+            let r: BSONRegularExpression
+        }
+
+        // decoding invalid pattern from extJSON directly to a Codable type (to document is covered by corpus)
+        let extJSON = """
+        {"r": {"$regularExpression": {"pattern": "a\\u0000", "options": ""}}}
+        """.data(using: .utf8)!
+
+        expect(try ExtendedJSONDecoder().decode(Test.self, from: extJSON)).to(throwError(errorType: DecodingError.self))
+
+        // decoding invalid options from extJSON directly to a Codable type (to document is covered by corpus)
+        let extJSON2 = """
+        {"r": {"$regularExpression": {"pattern": "a", "options": "a\\u0000"}}}
+        """.data(using: .utf8)!
+
+        expect(try ExtendedJSONDecoder().decode(Test.self, from: extJSON2)).to(throwError(errorType: DecodingError.self))
     }
 }

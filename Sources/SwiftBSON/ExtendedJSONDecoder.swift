@@ -143,25 +143,30 @@ public class ExtendedJSONDecoder {
         forKey key: String,
         keyPath: [String]
     ) throws -> Int {
-        switch try self.decodeScalar(value, keyPath: keyPath) {
-        case let .scalar(s):
-            return storage.append(key: key, value: s)
-        case let .encodedArray(arr):
-            var bytes = 0
-            bytes += storage.appendElementHeader(key: key, bsonType: .array)
-            bytes += try storage.buildDocument { storage in
+        do {
+            switch try self.decodeScalar(value, keyPath: keyPath) {
+            case let .scalar(s):
+                return try storage.append(key: key, value: s)
+            case let .encodedArray(arr):
                 var bytes = 0
-                for (i, v) in arr.enumerated() {
-                    bytes += try self.appendElement(v, to: &storage, forKey: String(i), keyPath: keyPath + [String(i)])
+                bytes += try storage.appendElementHeader(key: key, bsonType: .array)
+                bytes += try storage.buildDocument { storage in
+                    var bytes = 0
+                    for (i, v) in arr.enumerated() {
+                        bytes += try self.appendElement(v, to: &storage, forKey: String(i), keyPath: keyPath + [String(i)])
+                    }
+                    return bytes
                 }
                 return bytes
+            case let .encodedObject(obj):
+                var bytes = 0
+                bytes += try storage.appendElementHeader(key: key, bsonType: .document)
+                bytes += try self.appendObject(obj, to: &storage, keyPath: keyPath)
+                return bytes
             }
-            return bytes
-        case let .encodedObject(obj):
-            var bytes = 0
-            bytes += storage.appendElementHeader(key: key, bsonType: .document)
-            bytes += try self.appendObject(obj, to: &storage, keyPath: keyPath)
-            return bytes
+        // This can happen if an invalid C string is found as a key in the JSON.
+        } catch let err as BSONError.InvalidArgumentError {
+            throw DecodingError._extendedJSONError(keyPath: keyPath, debugDescription: err.message)
         }
     }
 

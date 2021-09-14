@@ -17,6 +17,6 @@ let package = Package(
     ],
     targets: [
         .target(name: "SwiftBSON", dependencies: ["NIO", "ExtrasJSON", "ExtrasBase64"]),
-        .testTarget(name: "SwiftBSONTests", dependencies: ["SwiftBSON", "Nimble"])
+        .testTarget(name: "SwiftBSONTests", dependencies: ["SwiftBSON", "Nimble", "ExtrasJSON"])
     ]
 )
