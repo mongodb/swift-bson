@@ -760,18 +760,19 @@ extension _BSONEncoder: SingleValueEncodingContainer {
     }
 }
 
+/// Indicates that a type can be converted to a `BSON`.
 internal protocol BSONRepresentable {
     func toBSON() throws -> BSON
 }
 
 extension Array: BSONRepresentable where Element == BSON {
-    internal func toBSON() throws -> BSON {
+    internal func toBSON() -> BSON {
         .array(self)
     }
 }
 
 extension BSONValue {
-    internal func toBSON() throws -> BSON {
+    internal func toBSON() -> BSON {
         self.bson
     }
 }
