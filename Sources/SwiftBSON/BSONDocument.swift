@@ -187,7 +187,6 @@ public struct BSONDocument {
             } catch {
                 fatalError("\(error)")
             }
-            
         }
     }
 

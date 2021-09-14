@@ -365,13 +365,15 @@ final class BSONCorpusTests: BSONTestCase {
         {"r": {"$regularExpression": {"pattern": "a\\u0000", "options": ""}}}
         """.data(using: .utf8)!
 
-        expect(try ExtendedJSONDecoder().decode(Test.self, from: extJSON)).to(throwError(errorType: DecodingError.self))
+        expect(try ExtendedJSONDecoder().decode(Test.self, from: extJSON))
+            .to(throwError(errorType: DecodingError.self))
 
         // decoding invalid options from extJSON directly to a Codable type (to document is covered by corpus)
         let extJSON2 = """
         {"r": {"$regularExpression": {"pattern": "a", "options": "a\\u0000"}}}
         """.data(using: .utf8)!
 
-        expect(try ExtendedJSONDecoder().decode(Test.self, from: extJSON2)).to(throwError(errorType: DecodingError.self))
+        expect(try ExtendedJSONDecoder().decode(Test.self, from: extJSON2))
+            .to(throwError(errorType: DecodingError.self))
     }
 }

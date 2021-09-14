@@ -153,7 +153,12 @@ public class ExtendedJSONDecoder {
                 bytes += try storage.buildDocument { storage in
                     var bytes = 0
                     for (i, v) in arr.enumerated() {
-                        bytes += try self.appendElement(v, to: &storage, forKey: String(i), keyPath: keyPath + [String(i)])
+                        bytes += try self.appendElement(
+                            v,
+                            to: &storage,
+                            forKey: String(i),
+                            keyPath: keyPath + [String(i)]
+                        )
                     }
                     return bytes
                 }

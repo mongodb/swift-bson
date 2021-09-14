@@ -5,7 +5,9 @@ extension ByteBuffer {
     @discardableResult
     internal mutating func writeCString(_ string: String) throws -> Int {
         guard string.isValidCString else {
-            throw BSONError.InvalidArgumentError(message: "C string cannot contain embedded null bytes - found \"\(string)\"")
+            throw BSONError.InvalidArgumentError(
+                message: "C string cannot contain embedded null bytes - found \"\(string)\""
+            )
         }
         let written = self.writeString(string + "\0")
         return written
