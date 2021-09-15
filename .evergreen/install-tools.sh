@@ -6,7 +6,7 @@ set -o errexit  # Exit the script with error if any of the commands fail
 
 # variables
 PROJECT_DIRECTORY=${PROJECT_DIRECTORY:-$PWD}
-SWIFT_VERSION=${SWIFT_VERSION:-5.2.4}
+SWIFT_VERSION=${SWIFT_VERSION:-5.4.2}
 INSTALL_DIR="${PROJECT_DIRECTORY}/opt"
 
 export SWIFTENV_ROOT="${INSTALL_DIR}/swiftenv"
@@ -39,7 +39,7 @@ swiftenv local $SWIFT_VERSION
 
 if [ $1 == "swiftlint" ]
 then
-    build_from_gh swiftlint https://github.com/realm/SwiftLint "0.41.0"
+    build_from_gh swiftlint https://github.com/realm/SwiftLint "0.43.1"
 elif [ $1 == "swiftformat" ]
 then
     build_from_gh swiftformat https://github.com/nicklockwood/SwiftFormat "0.47.3"
