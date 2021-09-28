@@ -314,7 +314,7 @@ internal struct _BSONDecodingStorage {
 /// Extend _BSONDecoder to add methods for "unboxing" values as various types.
 extension _BSONDecoder {
     /// Unbox a type using the provided closure.
-    fileprivate func unboxCustom<T>(_ value: BSON, f: (BSON) -> T?) throws -> T {
+    private func unboxCustom<T>(_ value: BSON, f: (BSON) -> T?) throws -> T {
         // We throw in the case of BSONNull because nulls should be requested through decodeNil().
         guard value != .null else {
             throw DecodingError.valueNotFound(
@@ -360,7 +360,7 @@ extension _BSONDecoder {
     }
 
     /// Attempt to unbox a `Data` according to the set `DataDecodingStrategy`.
-    fileprivate func unboxData(_ value: BSON) throws -> Data {
+    private func unboxData(_ value: BSON) throws -> Data {
         switch self.options.dataDecodingStrategy {
         case .deferredToData:
             self.storage.push(container: value)
@@ -398,7 +398,7 @@ extension _BSONDecoder {
     }
 
     /// Attempt to unbox a `Data` according to the set `DateDecodingStrategy`.
-    fileprivate func unboxDate(_ value: BSON) throws -> Date {
+    private func unboxDate(_ value: BSON) throws -> Date {
         switch self.options.dateDecodingStrategy {
         case .bsonDateTime:
             let date = try self.unboxCustom(value) { $0.dateValue }
@@ -445,7 +445,7 @@ extension _BSONDecoder {
     }
 
     /// Attempt to unbox a `Data` according to the set `UUIDDecodingStrategy`.
-    fileprivate func unboxUUID(_ value: BSON) throws -> UUID {
+    private func unboxUUID(_ value: BSON) throws -> UUID {
         switch self.options.uuidDecodingStrategy {
         case .deferredToUUID:
             self.storage.push(container: value)
