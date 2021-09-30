@@ -322,7 +322,16 @@ public class BSONDocumentIterator: IteratorProtocol {
                 // we ran out of values
                 break
             }
-            newDoc.append(key: next.key, value: next.value)
+            // We can't throw from this method because it's called from the BSONDocument.subscript variant that takes
+            // in a range of indexes. We shouldn't encounter errors here, as they only result from a key being an
+            // invalid C string or a document being too large. Since we construct keys by reading from an existing doc,
+            // there won't be invalid ones, and the resulting document will be no larger than the original as we're
+            // taking a subsequence.
+            do {
+                try newDoc.append(key: next.key, value: next.value)
+            } catch {
+                fatalError("Error retrieving document subsequence: \(error)")
+            }
         }
 
         return newDoc
@@ -349,6 +358,14 @@ extension BSONDocument {
         for pair in self where try isIncluded(pair) {
             elements.append(pair)
         }
-        return BSONDocument(keyValuePairs: elements)
+        // We can't start throwing from here for backward-compat reasons, but also in practice this initializer only
+        // throws if the document is too large or any of the keys are invalid C strings. Since we are constructing the
+        // document from an existing, valid document, we should not hit either of those errors since all the keys have
+        // already been validated and the new document will be no larger than the original document.
+        do {
+            return try BSONDocument(keyValuePairs: elements)
+        } catch {
+            fatalError("\(error)")
+        }
     }
 }

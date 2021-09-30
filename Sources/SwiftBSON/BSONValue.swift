@@ -22,7 +22,7 @@ internal protocol BSONValue: Codable, BSONRepresentable {
     static func read(from buffer: inout ByteBuffer) throws -> BSON
 
     /// Writes this value's BSON byte representation to the provided ByteBuffer.
-    func write(to buffer: inout ByteBuffer)
+    func write(to buffer: inout ByteBuffer) throws
 
     /// Initializes a corresponding `BSONValue` from the provided extendedJSON.
     init?(fromExtJSON json: JSON, keyPath: [String]) throws

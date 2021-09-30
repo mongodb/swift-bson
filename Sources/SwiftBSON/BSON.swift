@@ -450,7 +450,11 @@ extension BSON: ExpressibleByBooleanLiteral {
 
 extension BSON: ExpressibleByDictionaryLiteral {
     public init(dictionaryLiteral elements: (String, BSON)...) {
-        self = .document(BSONDocument(dictionaryLiteral: elements))
+        do {
+            self = .document(try BSONDocument(dictionaryLiteral: elements))
+        } catch {
+            fatalError("\(error)")
+        }
     }
 }
 
