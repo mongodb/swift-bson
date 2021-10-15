@@ -5,8 +5,8 @@ set -o errexit  # Exit the script with error if any of the commands fail
 # Script for installing various tool dependencies.
 
 # variables
-PROJECT_DIRECTORY=${PROJECT_DIRECTORY:-$PWD}
-SWIFT_VERSION=${SWIFT_VERSION:-5.4.2}
+PROJECT_DIRECTORY=${PROJECT_DIRECTORY:-"MISSING_PROJECT_DIRECTORY"}
+SWIFT_VERSION=${SWIFT_VERSION:-"MISSING_SWIFT_VERSION"}
 INSTALL_DIR="${PROJECT_DIRECTORY}/opt"
 
 export SWIFTENV_ROOT="${INSTALL_DIR}/swiftenv"

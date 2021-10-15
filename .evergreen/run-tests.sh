@@ -3,31 +3,21 @@ set -o xtrace   # Write all commands first to stderr
 set -o errexit  # Exit the script with error if any of the commands fail
 
 # variables
-PROJECT_DIRECTORY=${PROJECT_DIRECTORY:-$PWD}
-SWIFT_VERSION=${SWIFT_VERSION:-5.2.4}
+PROJECT_DIRECTORY=${PROJECT_DIRECTORY:-"MISSING_PROJECT_DIRECTORY"}
+SWIFT_VERSION=${SWIFT_VERSION:-"MISSING_SWIFT_VERSION"}
 INSTALL_DIR="${PROJECT_DIRECTORY}/opt"
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+
 RAW_TEST_RESULTS="${PROJECT_DIRECTORY}/rawTestResults"
 XML_TEST_RESULTS="${PROJECT_DIRECTORY}/testResults.xml"
 SANITIZE=${SANITIZE:-"false"}
 
-# enable swiftenv
-export SWIFTENV_ROOT="${INSTALL_DIR}/swiftenv"
-export PATH="${SWIFTENV_ROOT}/bin:$PATH"
-eval "$(swiftenv init -)"
-
-# select the latest Xcode for Swift 5.1 support on MacOS
-if [ "$OS" == "darwin" ]; then
-    sudo xcode-select -s /Applications/Xcode11.3.app
-fi
+# configure Swift
+. ${PROJECT_DIRECTORY}/.evergreen/configure-swift.sh
 
 SANITIZE_STATEMENT=""
 if [ "$SANITIZE" != "false" ]; then
     SANITIZE_STATEMENT="--sanitize ${SANITIZE}"
 fi
-
-# switch swift version, and run tests
-swiftenv local $SWIFT_VERSION
 
 # build the driver
 swift build $SANITIZE_STATEMENT
