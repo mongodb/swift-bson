@@ -15,4 +15,10 @@ git clone --depth 1 -b "osx-install-path" https://github.com/kmahar/swiftenv.git
 
 # install swift
 eval "$(swiftenv init -)"
+
+# dynamically determine latest available snapshot if needed
+if [ "$SWIFT_VERSION" = "main-snapshot" ]; then
+    SWIFT_VERSION=$(swiftenv install --list-snapshots | tail -1)
+fi
+
 swiftenv install --install-local $SWIFT_VERSION
