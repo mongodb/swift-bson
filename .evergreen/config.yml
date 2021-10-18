@@ -164,10 +164,14 @@ axes:
         display_name: "Swift 5.4"
         variables:
           SWIFT_VERSION: "5.4.2"
-      - id: "5.5-dev"
-        display_name: "Swift 5.5-dev"
+      - id: "5.5"
+        display_name: "Swift 5.5"
         variables:
-          SWIFT_VERSION: "DEVELOPMENT-SNAPSHOT-2021-04-26-a"
+          SWIFT_VERSION: "5.5"
+      - id: "6.0-dev"
+        display_name: "Swift 6.0-dev"
+        variables:
+          SWIFT_VERSION: "main-snapshot"
 
   - id: sanitize
     display_name: Sanitize
@@ -192,18 +196,19 @@ axes:
           CHECK_LEAKS: leaks
 
 buildvariants:
+  # test two latest stable releases, plus latest dev snapshots
   - matrix_name: "tests-all"
     display_name: "${swift-version} ${os-fully-featured}"
     matrix_spec:
       os-fully-featured: "*"
       swift-version:
-        - "5.2"
-        - "5.3"
         - "5.4"
-        - "5.5-dev"
+        - "5.5"
+        - "6.0-dev"
     tasks:
       - name: "test"
 
+  # test our lowest supported version
   - matrix_name: "tests-5.1"
     display_name: "${swift-version} ${os-fully-featured}"
     matrix_spec:
@@ -220,7 +225,7 @@ buildvariants:
     display_name: "Format and Lint"
     matrix_spec:
       os-fully-featured: "ubuntu-18.04"
-      swift-version: "5.4"
+      swift-version: "5.4" # updating to 5.5 blocked on a SwiftLint release > 0.44
     tasks:
       - name: "check-format"
       - name: "check-lint"
@@ -229,7 +234,7 @@ buildvariants:
     display_name: "${sanitize} ${os-fully-featured}"
     matrix_spec:
       os-fully-featured: "ubuntu-18.04"
-      swift-version: "5.4"
+      swift-version: "5.5"
       sanitize: "tsan"
     tasks:
       - name: "test"
@@ -238,7 +243,7 @@ buildvariants:
     display_name: "Leak Checker ${os-fully-featured}"
     matrix_spec:
       os-fully-featured: "macos-10.15"
-      swift-version: "5.4"
+      swift-version: "5.5"
       check-leaks: "leaks"
     tasks:
       - name: "test"
