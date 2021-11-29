@@ -102,7 +102,8 @@ final class DocumentTests: BSONTestCase {
             "binary3": .binary(try BSONBinary(data: uuidData, subtype: .uuidDeprecated)),
             "binary4": .binary(try BSONBinary(data: uuidData, subtype: .uuid)),
             "binary5": .binary(try BSONBinary(data: testData, subtype: .md5)),
-            "binary6": .binary(try BSONBinary(data: testData, subtype: .userDefined(200)))
+            "binary6": .binary(try BSONBinary(data: testData, subtype: .userDefined(200))),
+            "binary7": .binary(try BSONBinary(data: testData, subtype: .column))
         ]
         for (k, v) in binaryData {
             doc[k] = v
@@ -118,7 +119,7 @@ final class DocumentTests: BSONTestCase {
             "string", "true", "false", "int", "int32", "int64", "double", "decimal128",
             "minkey", "maxkey", "date", "timestamp", "nestedarray", "nesteddoc", "oid",
             "regex", "array1", "array2", "null", "code", "codewscope", "binary0", "binary1",
-            "binary2", "binary3", "binary4", "binary5", "binary6"
+            "binary2", "binary3", "binary4", "binary5", "binary6", "binary7"
         ]
         expect(doc.count).to(equal(expectedKeys.count))
         expect(doc.keys).to(equal(expectedKeys))
@@ -162,6 +163,7 @@ final class DocumentTests: BSONTestCase {
         expect(doc["binary4"]).to(equal(.binary(try BSONBinary(data: uuidData, subtype: .uuid))))
         expect(doc["binary5"]).to(equal(.binary(try BSONBinary(data: testData, subtype: .md5))))
         expect(doc["binary6"]).to(equal(.binary(try BSONBinary(data: testData, subtype: .userDefined(200)))))
+        expect(doc["binary7"]).to(equal(.binary(try BSONBinary(data: testData, subtype: .column))))
 
         let nestedArray = doc["nestedarray"]?.arrayValue?.compactMap { $0.arrayValue?.compactMap { $0.toInt() } }
         expect(nestedArray?[0]).to(equal([1, 2]))
