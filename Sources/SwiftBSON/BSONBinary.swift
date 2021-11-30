@@ -28,15 +28,17 @@ public struct BSONBinary: Equatable, Hashable {
         public static let md5 = Subtype(rawValue: 0x05)!
         /// Encrypted BSON value
         public static let encryptedValue = Subtype(rawValue: 0x06)!
+        /// Column
+        public static let column = Subtype(rawValue: 0x07)!
         // swiftlint:enable force_unwrapping
 
         /// Subtype indicator value
         public let rawValue: UInt8
 
         /// Initializes a `Subtype` with a custom value.
-        /// Returns nil if rawValue within reserved range [0x07, 0x80).
+        /// Returns nil if rawValue within reserved range [0x08, 0x80).
         public init?(rawValue: UInt8) {
-            guard !(rawValue > 0x06 && rawValue < 0x80) else {
+            guard !(rawValue > 0x07 && rawValue < 0x80) else {
                 return nil
             }
             self.rawValue = rawValue
