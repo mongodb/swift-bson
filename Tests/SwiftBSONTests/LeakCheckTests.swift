@@ -1,3 +1,4 @@
+#if os(macOS) // the Process APIs used do not exist on iOS, and `leaks` does not exist on Linux.
 import Foundation
 
 final class LeakCheckTests: BSONTestCase {
@@ -32,3 +33,4 @@ final class LeakCheckTests: BSONTestCase {
         }
     }
 }
+#endif
