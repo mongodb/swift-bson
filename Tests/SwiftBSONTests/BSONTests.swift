@@ -6,19 +6,15 @@ import SwiftBSON
 import XCTest
 
 open class BSONTestCase: XCTestCase {
-    /// Gets the path of the directory containing spec files, depending on whether
-    /// we're running from XCode or the command line
+    /// Gets the path of the directory containing spec files.
     static var specsPath: String {
-        // if we can access the "/Tests" directory, assume we're running from command line
-        if FileManager.default.fileExists(atPath: "./Tests") {
-            return "./Tests/Specs"
-        }
-        // otherwise we're in Xcode, get the bundle's resource path
-        guard let path = Bundle(for: self).resourcePath else {
-            XCTFail("Missing resource path")
-            return ""
-        }
-        return path
+        // Approach taken from https://stackoverflow.com/a/58034307
+        // TODO: SWIFT-1442 Once we drop Swift < 5.3 we can switch to including the JSON files as Resources via our
+        // package manifest instead.
+        let thisFile = URL(fileURLWithPath: #file)
+        // We are in Tests/SwiftBSONTests/BSONTests.swift; drop 2 components to get up to the Tests directory.
+        let baseDirectory = thisFile.deletingLastPathComponent().deletingLastPathComponent()
+        return baseDirectory.appendingPathComponent("Specs").path
     }
 
     // indicates whether we are running on a 32-bit platform
