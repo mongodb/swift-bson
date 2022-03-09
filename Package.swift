@@ -5,7 +5,7 @@ let package = Package(
     name: "swift-bson",
     platforms: [
         .macOS(.v10_14),
-        .iOS(.v11)
+        .iOS(.v13)
     ],
     products: [
         .library(name: "SwiftBSON", targets: ["SwiftBSON"])

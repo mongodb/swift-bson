@@ -1,4 +1,4 @@
-name: iOS starter workflow
+name: iOS
 
 on:
   push:
@@ -7,16 +7,32 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
-    name: Build and Test on iOS
-    runs-on: macos-latest
+  build-and-test-iOS:
+    name: Build and Test on iOS ${{ matrix.iOS-version }}
+    runs-on: macos-11
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - xcode-version: "13.2.1"
+            iOS-version: "15.2"
+            device-name: "iPhone 13"
+          - xcode-version: "12.5.1"
+            iOS-version: "14.5"
+            device-name: "iPhone 12"
+          - xcode-version: "11.7"
+            iOS-version: "13.7"
+            device-name: "iPhone 11"
 
     steps:
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: ${{ matrix.xcode-version }}
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
         run: |
-          xcodebuild build-for-testing -scheme "swift-bson" -destination "platform=iOS Simulator,name=iPhone 13"
+          xcodebuild build-for-testing -scheme "swift-bson" -destination "OS=${{ matrix.iOS-version }},name=${{ matrix.device-name }}"
       - name: Test
         run: |
-          xcodebuild test-without-building -scheme "swift-bson" -destination "platform=iOS Simulator,name=iPhone 13"
+          xcodebuild test-without-building -scheme "swift-bson" -destination "OS=${{ matrix.iOS-version }},name=${{ matrix.device-name }}"
