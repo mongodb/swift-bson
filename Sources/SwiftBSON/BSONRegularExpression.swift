@@ -43,7 +43,7 @@ public struct BSONRegularExpression: Equatable, Hashable {
     public let options: String
 
     /// Initializes a new `BSONRegularExpression` with the provided pattern and options.
-    public init(pattern: String, options: String) {
+    public init(pattern: String, options: String = "") {
         self.pattern = pattern
         self.options = String(options.sorted())
     }
