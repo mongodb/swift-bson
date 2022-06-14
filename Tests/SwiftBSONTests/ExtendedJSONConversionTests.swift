@@ -373,8 +373,8 @@ open class ExtendedJSONConversionTestCase: BSONTestCase {
             .to(throwError(errorType: DecodingError.self))
         expect(try BSONTimestamp(fromExtJSON: ["$timestamp": ["t": 1, "i": 2], "extra": "2"], keyPath: []))
             .to(throwError(errorType: DecodingError.self))
-        
-        //Comparable testing
+
+        // Comparable testing
         let base = BSONTimestamp(timestamp: 6, inc: 5)
         let compare1 = BSONTimestamp(timestamp: 7, inc: 5)
         let compare2 = BSONTimestamp(timestamp: 6, inc: 6)

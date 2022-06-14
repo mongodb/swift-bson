@@ -4,8 +4,6 @@ import NIO
 /// application development, you should use the BSON date type (represented in this library by `Date`.)
 /// - SeeAlso: https://docs.mongodb.com/manual/reference/bson-types/#timestamps
 public struct BSONTimestamp: BSONValue, Comparable, Equatable, Hashable {
-    
-    
     internal static let extJSONTypeWrapperKeys: [String] = ["$timestamp"]
     internal static var bsonType: BSONType { .timestamp }
     internal var bson: BSON { .timestamp(self) }
@@ -92,20 +90,20 @@ public struct BSONTimestamp: BSONValue, Comparable, Equatable, Hashable {
             ]
         ]
     }
-    
+
     /// Compares two `BSONTimestamp` values as outlined by the Comparable protocol
     public static func < (lhs: BSONTimestamp, rhs: BSONTimestamp) -> Bool {
-        //If ts same move onto comparabel
-        if (lhs.timestamp != rhs.timestamp){
+        // If ts same move onto comparabel
+        if lhs.timestamp != rhs.timestamp {
             return lhs.timestamp < rhs.timestamp
-        } else { //equal timestamps, look at increment
+        } else { // equal timestamps, look at increment
             return lhs.increment < rhs.increment
         }
     }
-    
+
     /// Checks two `BSONTimestamp`s for equality as outlined by the Comparable protocol
     public static func == (lhs: BSONTimestamp, rhs: BSONTimestamp) -> Bool {
-        return lhs.timestamp == rhs.timestamp && lhs.increment == rhs.increment
+        lhs.timestamp == rhs.timestamp && lhs.increment == rhs.increment
     }
 
     internal static func read(from buffer: inout ByteBuffer) throws -> BSON {
