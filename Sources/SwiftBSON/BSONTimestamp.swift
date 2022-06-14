@@ -91,9 +91,8 @@ public struct BSONTimestamp: BSONValue, Comparable, Equatable, Hashable {
         ]
     }
 
-    /// Compares two `BSONTimestamp` values as outlined by the Comparable protocol
+    /// Compares two `BSONTimestamp` instances as outlined by the Comparable protocol
     public static func < (lhs: BSONTimestamp, rhs: BSONTimestamp) -> Bool {
-        // If ts same move onto comparabel
         if lhs.timestamp != rhs.timestamp {
             return lhs.timestamp < rhs.timestamp
         } else { // equal timestamps, look at increment
@@ -101,9 +100,9 @@ public struct BSONTimestamp: BSONValue, Comparable, Equatable, Hashable {
         }
     }
 
-    /// Checks two `BSONTimestamp`s for equality as outlined by the Comparable protocol
+    /// Checks two `BSONTimestamp` instances for equality as outlined by the Comparable protocol
     public static func == (lhs: BSONTimestamp, rhs: BSONTimestamp) -> Bool {
-        lhs.timestamp == rhs.timestamp && lhs.increment == rhs.increment
+        return lhs.timestamp == rhs.timestamp && lhs.increment == rhs.increment
     }
 
     internal static func read(from buffer: inout ByteBuffer) throws -> BSON {
