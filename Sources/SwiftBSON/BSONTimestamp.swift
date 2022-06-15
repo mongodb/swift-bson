@@ -100,11 +100,6 @@ public struct BSONTimestamp: BSONValue, Comparable, Equatable, Hashable {
         }
     }
 
-    /// Checks two `BSONTimestamp` instances for equality as outlined by the `Comparable` protocol.
-    public static func == (lhs: BSONTimestamp, rhs: BSONTimestamp) -> Bool {
-        lhs.timestamp == rhs.timestamp && lhs.increment == rhs.increment
-    }
-
     internal static func read(from buffer: inout ByteBuffer) throws -> BSON {
         guard let increment = buffer.readInteger(endianness: .little, as: UInt32.self) else {
             throw BSONError.InternalError(message: "Cannot read increment from BSON timestamp")
