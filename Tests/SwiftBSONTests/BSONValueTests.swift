@@ -102,6 +102,17 @@ final class BSONValueTests: BSONTestCase {
         expect(b0).toNot(equal(b1))
     }
 
+    func testBSONComparable() throws {
+        // Comparable testing of different values
+        let base = BSONTimestamp(timestamp: 6, inc: 5)
+        let compare1 = BSONTimestamp(timestamp: 7, inc: 5)
+        let compare2 = BSONTimestamp(timestamp: 6, inc: 6)
+        let compare3 = BSONTimestamp(timestamp: 6, inc: 5)
+        expect(base < compare1).to(beTrue())
+        expect(base < compare2).to(beTrue())
+        expect(base == compare3).to(beTrue())
+    }
+
     struct BSONNumberTestCase {
         let int: Int?
         let double: Double?

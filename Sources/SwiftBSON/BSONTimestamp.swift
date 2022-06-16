@@ -3,7 +3,7 @@ import NIO
 /// A struct to represent the BSON Timestamp type. This type is for internal MongoDB use. For most cases, in
 /// application development, you should use the BSON date type (represented in this library by `Date`.)
 /// - SeeAlso: https://docs.mongodb.com/manual/reference/bson-types/#timestamps
-public struct BSONTimestamp: BSONValue, Equatable, Hashable {
+public struct BSONTimestamp: BSONValue, Comparable, Equatable, Hashable {
     internal static let extJSONTypeWrapperKeys: [String] = ["$timestamp"]
     internal static var bsonType: BSONType { .timestamp }
     internal var bson: BSON { .timestamp(self) }
@@ -89,6 +89,15 @@ public struct BSONTimestamp: BSONValue, Equatable, Hashable {
                 "i": JSON(.number(String(self.increment)))
             ]
         ]
+    }
+
+    /// Compares two `BSONTimestamp` instances as outlined by the `Comparable` protocol.
+    public static func < (lhs: BSONTimestamp, rhs: BSONTimestamp) -> Bool {
+        if lhs.timestamp != rhs.timestamp {
+            return lhs.timestamp < rhs.timestamp
+        } else { // equal timestamps, look at increment
+            return lhs.increment < rhs.increment
+        }
     }
 
     internal static func read(from buffer: inout ByteBuffer) throws -> BSON {
