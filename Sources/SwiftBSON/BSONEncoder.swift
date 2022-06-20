@@ -1,6 +1,6 @@
 import ExtrasBase64
 import Foundation
-import NIO
+import NIOCore
 
 /// `BSONEncoder` facilitates the encoding of `Encodable` values into BSON.
 public class BSONEncoder {

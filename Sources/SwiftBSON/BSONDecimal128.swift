@@ -1,5 +1,5 @@
 import Foundation
-import NIO
+import NIOCore
 
 private extension UInt64 {
     var upper32bits: Self { self.getBits(0...31) }

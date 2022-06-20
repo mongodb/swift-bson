@@ -1,4 +1,4 @@
-import NIO
+import NIOCore
 
 /// An extension of `Array` to represent the BSON array type.
 extension Array: BSONValue where Element == BSON {

@@ -1,5 +1,5 @@
 import Foundation
-import NIO
+import NIOCore
 import NIOConcurrencyHelpers
 
 /// A struct to represent the BSON ObjectID type.

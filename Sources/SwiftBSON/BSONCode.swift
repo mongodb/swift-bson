@@ -1,4 +1,4 @@
-import NIO
+import NIOCore
 
 /// A struct to represent the BSON Code type.
 public struct BSONCode: Equatable, Hashable {

@@ -1,5 +1,5 @@
 import Foundation
-import NIO
+import NIOCore
 
 // A mapping of regex option characters to their equivalent `NSRegularExpression` option.
 // note that there is a BSON regexp option 'l' that `NSRegularExpression`

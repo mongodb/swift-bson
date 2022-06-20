@@ -1,5 +1,5 @@
 import Foundation
-import NIO
+import NIOCore
 
 /// :nodoc:
 /// Iterator over a `BSONDocument`. This type is not meant to be used directly; please use `Sequence` protocol methods

@@ -1,4 +1,4 @@
-import NIO
+import NIOCore
 
 extension ByteBuffer {
     /// Write null terminated UTF-8 string to ByteBuffer starting at writerIndex

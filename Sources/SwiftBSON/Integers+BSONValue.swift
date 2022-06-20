@@ -1,4 +1,4 @@
-import NIO
+import NIOCore
 
 extension Int32: BSONValue {
     internal static let extJSONTypeWrapperKeys: [String] = ["$numberInt"]
