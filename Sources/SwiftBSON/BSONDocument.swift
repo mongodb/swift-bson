@@ -1,6 +1,6 @@
 import ExtrasJSON
 import Foundation
-import NIO
+import NIOCore
 
 /// This shared allocator instance should be used for all underlying `ByteBuffer` creation.
 internal let BSON_ALLOCATOR = ByteBufferAllocator()

@@ -1,4 +1,4 @@
-import NIO
+import NIOCore
 
 /// A struct to represent the deprecated Symbol type.
 /// Symbols cannot be instantiated, but they can be read from existing documents that contain them.

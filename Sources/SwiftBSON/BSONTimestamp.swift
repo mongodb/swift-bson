@@ -1,4 +1,4 @@
-import NIO
+import NIOCore
 
 /// A struct to represent the BSON Timestamp type. This type is for internal MongoDB use. For most cases, in
 /// application development, you should use the BSON date type (represented in this library by `Date`.)

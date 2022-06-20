@@ -1,4 +1,4 @@
-import NIO
+import NIOCore
 
 extension Double: BSONValue {
     internal static let extJSONTypeWrapperKeys: [String] = ["$numberDouble"]
