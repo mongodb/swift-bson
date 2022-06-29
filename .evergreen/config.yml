@@ -66,6 +66,26 @@ functions:
       params:
         working_dir: "src"
         script: |
+          set -o xtrace
+          set -o errexit
+
+          if [ "${SWIFT_MINOR_VERSION}" = "main-snapshot" ]; then
+              export SWIFT_VERSION="${SWIFT_MINOR_VERSION}"
+          else
+              # otherwise, find the latest patch release for the specified version
+              ${PYTHON} -m virtualenv ./requests-env
+              ./requests-env/${VENV_BIN_DIR}/python3 -m pip install requests
+              export SWIFT_VERSION="$(./requests-env/${VENV_BIN_DIR}/python3 .evergreen/get_latest_swift_patch.py ${SWIFT_MINOR_VERSION})"
+          fi
+          echo "SWIFT_VERSION: $SWIFT_VERSION" > swift-version.yml
+          cat swift-version.yml
+    - command: expansions.update
+      params:
+        file: src/swift-version.yml
+    - command: shell.exec
+      params:
+        working_dir: "src"
+        script: |
           ${PREPARE_SHELL}
           SWIFT_VERSION=${SWIFT_VERSION} \
             sh ${PROJECT_DIRECTORY}/.evergreen/install-swift.sh
@@ -136,42 +156,50 @@ axes:
       - id: ubuntu-18.04
         display_name: "Ubuntu 18.04"
         run_on: ubuntu1804-test
+        variables:
+          PYTHON: "/opt/mongodbtoolchain/v3/bin/python3"
+          VENV_BIN_DIR: "bin"
 
       - id: ubuntu-20.04
         display_name: "Ubuntu 20.04"
         run_on: ubuntu2004-test
+        variables:
+          PYTHON: "/opt/mongodbtoolchain/v3/bin/python3"
+          VENV_BIN_DIR: "bin"
+      
+      - id: macos-10.14
+        display_name: "macOS 10.14"
+        run_on: macos-1014
+        variables:
+          PYTHON: "/opt/mongodbtoolchain/v3/bin/python3"
+          VENV_BIN_DIR: "bin"
 
-      - id: macos-10.15
-        display_name: "macOS 10.15"
-        run_on: macos-1015
+      - id: macos-11
+        display_name: "macOS 11"
+        run_on: macos-1100
+        variables:
+          PYTHON: "/opt/mongodbtoolchain/v3/bin/python3"
+          VENV_BIN_DIR: "bin"
 
   - id: swift-version
     display_name: "Swift"
     values:
-      - id: "5.1"
-        display_name: "Swift 5.1"
-        variables:
-          SWIFT_VERSION: "5.1.5"
       - id: "5.2"
         display_name: "Swift 5.2"
         variables:
-          SWIFT_VERSION: "5.2.5"
-      - id: "5.3"
-        display_name: "Swift 5.3"
-        variables:
-          SWIFT_VERSION: "5.3.3"
-      - id: "5.4"
-        display_name: "Swift 5.4"
-        variables:
-          SWIFT_VERSION: "5.4.2"
+          SWIFT_MINOR_VERSION: "5.2"
       - id: "5.5"
         display_name: "Swift 5.5"
         variables:
-          SWIFT_VERSION: "5.5"
-      - id: "6.0-dev"
-        display_name: "Swift 6.0-dev"
+          SWIFT_MINOR_VERSION: "5.5"
+      - id: "5.6"
+        display_name: "Swift 5.6"
         variables:
-          SWIFT_VERSION: "main-snapshot"
+          SWIFT_MINOR_VERSION: "5.6"
+      - id: "5.7-dev"
+        display_name: "Swift 5.7-dev"
+        variables:
+          SWIFT_MINOR_VERSION: "main-snapshot"
 
   - id: sanitize
     display_name: Sanitize
@@ -196,28 +224,31 @@ axes:
           CHECK_LEAKS: leaks
 
 buildvariants:
-  # test two latest stable releases, plus latest dev snapshots
+  # test two latest stable releases plus latest dev snapshots
   - matrix_name: "tests-all"
     display_name: "${swift-version} ${os-fully-featured}"
     matrix_spec:
-      os-fully-featured: "*"
+      os-fully-featured:
+        - "macos-11"
+        - "ubuntu-20.04"
+        - "ubuntu-18.04"
       swift-version:
-        - "5.4"
         - "5.5"
-        - "6.0-dev"
+        - "5.6"
+        - "5.7-dev"
     tasks:
       - name: "test"
-
-  # test our lowest supported version
-  - matrix_name: "tests-5.1"
+    
+  # test minimum supported version
+  - matrix_name: "tests-min-version"
     display_name: "${swift-version} ${os-fully-featured}"
     matrix_spec:
-      # Swift 5.1 does not have Ubuntu 20.04 toolchains
       os-fully-featured:
+        - "macos-10.14"
+        - "ubuntu-20.04"
         - "ubuntu-18.04"
-        - "macos-10.15"
       swift-version:
-        - "5.1"
+        - "5.2"
     tasks:
       - name: "test"
 
@@ -225,7 +256,7 @@ buildvariants:
     display_name: "Format and Lint"
     matrix_spec:
       os-fully-featured: "ubuntu-18.04"
-      swift-version: "5.4" # updating to 5.5 blocked on a SwiftLint release > 0.44
+      swift-version: "5.6"
     tasks:
       - name: "check-format"
       - name: "check-lint"
@@ -234,7 +265,7 @@ buildvariants:
     display_name: "${sanitize} ${os-fully-featured}"
     matrix_spec:
       os-fully-featured: "ubuntu-18.04"
-      swift-version: "5.5"
+      swift-version: "5.6"
       sanitize: "tsan"
     tasks:
       - name: "test"
@@ -242,8 +273,8 @@ buildvariants:
   - matrix_name: "leaks"
     display_name: "Leak Checker ${os-fully-featured}"
     matrix_spec:
-      os-fully-featured: "macos-10.15"
-      swift-version: "5.5"
+      os-fully-featured: "macos-11"
+      swift-version: "5.6"
       check-leaks: "leaks"
     tasks:
       - name: "test"

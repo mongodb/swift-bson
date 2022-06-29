@@ -1,4 +1,4 @@
-// swift-tools-version:5.1
+// swift-tools-version:5.2
 import PackageDescription
 
 let package = Package(
@@ -17,7 +17,16 @@ let package = Package(
         .package(url: "https://github.com/Quick/Nimble.git", .upToNextMajor(from: "8.0.0"))
     ],
     targets: [
-        .target(name: "SwiftBSON", dependencies: ["NIO", "ExtrasJSON", "ExtrasBase64"]),
-        .testTarget(name: "SwiftBSONTests", dependencies: ["SwiftBSON", "Nimble", "ExtrasJSON"])
+        .target(name: "SwiftBSON", dependencies: [
+            .product(name: "NIO", package: "swift-nio"),
+            .product(name: "NIOConcurrencyHelpers", package: "swift-nio"),
+            .product(name: "ExtrasJSON", package: "swift-extras-json"),
+            .product(name: "ExtrasBase64", package: "swift-extras-base64")
+        ]),
+        .testTarget(name: "SwiftBSONTests", dependencies: [
+            "SwiftBSON",
+            .product(name: "Nimble", package: "Nimble"),
+            .product(name: "ExtrasJSON", package: "swift-extras-json")
+        ])
     ]
 )
