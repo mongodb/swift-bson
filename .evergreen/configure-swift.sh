@@ -22,6 +22,7 @@ if [ "$SWIFT_VERSION" = "main-snapshot" ]; then
 fi
 
 if [ "$OS" == "darwin" ]; then
+    # 5.2 requires an older version of Xcode/Command Line Tools
     if [[ "$SWIFT_VERSION" == 5.2.* ]]; then
         sudo xcode-select -s /Applications/Xcode11.3.app
     else
