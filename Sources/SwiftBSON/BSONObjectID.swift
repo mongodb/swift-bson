@@ -1,6 +1,6 @@
 import Foundation
-import NIOCore
 import NIOConcurrencyHelpers
+import NIOCore
 
 /// A struct to represent the BSON ObjectID type.
 public struct BSONObjectID: Equatable, Hashable, CustomStringConvertible {
