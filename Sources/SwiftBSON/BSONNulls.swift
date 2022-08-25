@@ -1,4 +1,4 @@
-import NIO
+import NIOCore
 
 /// A struct to represent the BSON null type.
 internal struct BSONNull: BSONValue, Equatable {

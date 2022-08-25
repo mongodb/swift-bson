@@ -1,7 +1,7 @@
 import ExtrasBase64
 import ExtrasJSON
 import Foundation
-import NIO
+import NIOCore
 
 /// A struct to represent the BSON Binary type.
 public struct BSONBinary: Equatable, Hashable {

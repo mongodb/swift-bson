@@ -1,7 +1,7 @@
 import ExtrasJSON
 import Foundation
 import Nimble
-import NIO
+import NIOCore
 import SwiftBSON
 import XCTest
 

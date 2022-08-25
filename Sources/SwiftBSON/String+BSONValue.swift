@@ -1,4 +1,4 @@
-import NIO
+import NIOCore
 
 extension String: BSONValue {
     internal static let extJSONTypeWrapperKeys: [String] = []

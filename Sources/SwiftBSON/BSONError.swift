@@ -1,5 +1,5 @@
 import Foundation
-import NIO
+import NIOCore
 
 /// An empty protocol for encapsulating all errors that BSON package can throw.
 public protocol BSONErrorProtocol: LocalizedError {}

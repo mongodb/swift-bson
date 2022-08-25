@@ -1,6 +1,6 @@
 import ExtrasJSON
 import Foundation
-import NIO
+import NIOCore
 
 /// Facilitates the encoding of `Encodable` values into ExtendedJSON.
 public class ExtendedJSONEncoder {

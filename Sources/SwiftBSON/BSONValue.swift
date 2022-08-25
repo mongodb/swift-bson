@@ -1,4 +1,4 @@
-import NIO
+import NIOCore
 
 internal protocol BSONValue: Codable, BSONRepresentable {
     /// The `BSONType` associated with this value.
