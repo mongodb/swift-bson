@@ -89,13 +89,13 @@ public struct BSONBinary: Equatable, Hashable {
         self = try BSONBinary(buffer: buffer, subtype: subtype)
     }
 
-    internal init(bytes: [UInt8], subtype: Subtype) throws {
+    public init(bytes: [UInt8], subtype: Subtype) throws {
         var buffer = BSON_ALLOCATOR.buffer(capacity: bytes.count)
         buffer.writeBytes(bytes)
         self = try BSONBinary(buffer: buffer, subtype: subtype)
     }
 
-    internal init(buffer: ByteBuffer, subtype: Subtype) throws {
+    public init(buffer: ByteBuffer, subtype: Subtype) throws {
         if [Subtype.uuid, Subtype.uuidDeprecated].contains(subtype) && buffer.readableBytes != 16 {
             throw BSONError.InvalidArgumentError(
                 message:
