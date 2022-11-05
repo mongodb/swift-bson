@@ -89,12 +89,20 @@ public struct BSONBinary: Equatable, Hashable {
         self = try BSONBinary(buffer: buffer, subtype: subtype)
     }
 
+    /// Initializes a `BSONBinary` instance from a `[UInt8]` array and a `Subtype` subtype.
+    /// This will always create a copy of the array contents.
+    /// - Throws:
+    ///   - `BSONError.InvalidArgumentError` if the provided array is incompatible with the specified subtype.
     public init(bytes: [UInt8], subtype: Subtype) throws {
         var buffer = BSON_ALLOCATOR.buffer(capacity: bytes.count)
         buffer.writeBytes(bytes)
         self = try BSONBinary(buffer: buffer, subtype: subtype)
     }
 
+    /// Initializes a `BSONBinary` instance from a `ByteBuffer` and a `Subtype` subtype.
+    /// This will always create a copy of the buffer contents.
+    /// - Throws:
+    ///   - `BSONError.InvalidArgumentError` if the provided buffer is incompatible with the specified subtype.
     public init(buffer: ByteBuffer, subtype: Subtype) throws {
         if [Subtype.uuid, Subtype.uuidDeprecated].contains(subtype) && buffer.readableBytes != 16 {
             throw BSONError.InvalidArgumentError(
