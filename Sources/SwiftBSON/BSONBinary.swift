@@ -100,7 +100,6 @@ public struct BSONBinary: Equatable, Hashable {
     }
 
     /// Initializes a `BSONBinary` instance from a `ByteBuffer` and a `Subtype` subtype.
-    /// This will always create a copy of the buffer contents.
     /// - Throws:
     ///   - `BSONError.InvalidArgumentError` if the provided buffer is incompatible with the specified subtype.
     public init(buffer: ByteBuffer, subtype: Subtype) throws {
