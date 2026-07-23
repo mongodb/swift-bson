@@ -9,7 +9,7 @@ There are still ways to use MongoDB with Swift:
 
 Community members and developers are welcome to fork our existing driver and add features as you see fit - the Swift driver is under the Apache 2.0 license and source code is available on GitHub. 
 
-We would like to take this opportunity to express our heartfelt appreciation for the enthusiastic support that the Swift community has shown for MongoDB. Your loyalty and feedback have been invaluable to us throughout our journey, and we hope to resume development on the server-side Swift driver in the future.
+We would like to take this opportunity to express our heartfelt appreciation for the enthusiastic support that the Swift community has shown for MongoDB. Your loyalty and feedback have been invaluable to us throughout our journey.
 
 # Swift BSON
 
