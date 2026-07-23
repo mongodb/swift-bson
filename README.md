@@ -1,3 +1,16 @@
+# Development Pause
+We are announcing our decision to stop development of the MongoDB server-side Swift driver and the associated BSON library. No further development, bug fixes, enhancements, documentation changes or maintenance will be provided by this project and pull requests will no longer be accepted.
+
+There are still ways to use MongoDB with Swift:
+
+- Use the MongoDB driver with server-side Swift applications as is
+- Use the [MongoDB C Driver](https://www.mongodb.com/docs/drivers/c/) directly in your server-side Swift projects
+- Usage of another community Swift driver, mongokitten
+
+Community members and developers are welcome to fork our existing driver and add features as you see fit - the Swift driver is under the Apache 2.0 license and source code is available on GitHub. 
+
+We would like to take this opportunity to express our heartfelt appreciation for the enthusiastic support that the Swift community has shown for MongoDB. Your loyalty and feedback have been invaluable to us throughout our journey.
+
 # Swift BSON
 
 ![swift-bson-logo](etc/swiftBSON.png)
